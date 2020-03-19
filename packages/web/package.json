@@ -1,0 +1,32 @@
+{
+    "name": "at-live-client",
+    "version": "0.0.1",
+    "description": "The front-end of AT Live Server, provides bus, train and ferry tracking on a map.",
+    "main": "",
+    "dependencies": {},
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^2.24.0",
+        "@typescript-eslint/parser": "^2.24.0",
+        "eslint": "^6.8.0",
+        "eslint-config-airbnb-base": "^14.1.0",
+        "eslint-plugin-import": "^2.20.1",
+        "gulp": "^4.0.2",
+        "gulp-autoprefixer": "^7.0.1",
+        "gulp-sass": "^4.0.2",
+        "gulp-typescript": "^6.0.0-alpha.1",
+        "typescript": "^3.8.3"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/DarkMatterMatt/AT-Live-Client.git"
+    },
+    "author": "Matt Moran",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/DarkMatterMatt/AT-Live-Client/issues"
+    },
+    "homepage": "https://github.com/DarkMatterMatt/AT-Live-Client#readme"
+}
