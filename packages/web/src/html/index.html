@@ -1,49 +1,77 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>AT Live</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-        <meta content="utf-8" http-equiv="encoding">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css"/>
-        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-        <link rel="stylesheet" href="styles.css">
-        <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
-        <script defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
-        <script defer src="index.js"></script>
-    </head>
-    <body>
-        <div id="menu">
-            <div class="spacer left"></div>
-            <div class="logo">
-                <img src="images/logo.svg">
-            </div>
-            <div class="title">
-                Routes:
-            </div>
-            <!-- List of active routes -->
-            <div id="new-route">
-                <img class="btn" src="images/plus-circle.svg">
-                <div id="search">
-                    <input type="text" placeholder="Search">
-                </div>
-                <div id="dropdown-filter">
-                    <!-- List of routes -->
-                </div>
-            </div>
-            <div id="help" class="title">
-                <img class="btn" src="images/help-circle.svg">
-                <div class="message">
-                    <span>This website provides live tracking for buses, trains and ferries on the Auckland Transport network.</span>
-                    <span>Track a new route by clicking the <img src="images/plus-circle.svg"> and change its color by clicking on the left of its icon in the menu bar.</span>
-                    <span>Remove by clicking on the right of its icon in the menu bar.</span>
-                    <span>Markers with a dark center are travelling in the opposite direction to those with a light center.</span>
-                    <span>(Dark center dots tend to move towards the city).</span>
-                    <br><span class="copyright">&copy; Matt Moran (2020)</span>
-                </div>
-            </div>
-            <div class="spacer right"></div>
+
+<head>
+    <title>AT Live</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css" />
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <script defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+    <script defer src="index.js"></script>
+</head>
+
+<body>
+    <img id="open-menu" class="btn hide-900" src="images/menu.svg">
+    <div id="menu">
+        <div id="title">
+            <img src="images/logo.svg" alt="AT Live">
+            <div class="hide-0-899">Routes:</div>
+            <div class="hide-900">AT Live</div>
+            <div class="close hide-900"><img src="images/close.svg" alt="Close menu"></div>
         </div>
-        <div id="map"><!-- Google Maps --></div>
-    </body>
+        <!-- List of active routes -->
+        <div class="active-route" style="--color:#242551;">
+            <div class="short name">30</div>
+            <div class="pickr btn"></div>
+            <div class="remove btn"><img src="images/remove.svg" alt="Remove route"></div>
+        </div>
+        <div class="active-route" style="--color:#37E93C;">
+            <div class="short name">70</div>
+            <div class="pickr btn"></div>
+            <div class="remove btn"><img src="images/remove.svg" alt="Remove route"></div>
+        </div>
+        <div id="add-route">
+            <img class="btn hide-0-899" src="images/plus-circle.svg">
+            <input type="text" placeholder="Search">
+            <div id="dropdown-filter">
+                <!-- List of routes -->
+                <div class="filter-result btn"><img class="hide-0-899" src="images/bus-filled.svg" alt="bus"><span
+                        class="short name">003</span><span class="long name">Alfriston Sch to Flat Bush and Alfrsiton
+                        Col to Takanini</span></div>
+                <div class="filter-result btn"><img class="hide-0-899" src="images/bus-filled.svg" alt="bus"><span
+                        class="short name">NX1</span><span class="long name">Hibiscus Coast Station to Britomart (Lower
+                        Albert) AM Peak</span></div>
+            </div>
+        </div>
+        <div id="about" class="hide-900 show">
+            <div>About</div>
+            <div class="message">
+                <div>AT Live provides live tracking for buses, trains and ferries on the Auckland Transport network.
+                </div>
+                <div class="copyright">&copy; Matt Moran (2020).</div>
+            </div>
+        </div>
+        <div id="help" class="hide-0-899">
+            <img class="btn" src="images/help-circle.svg">
+            <div class="message">
+                <span>AT Live provides live tracking for buses, trains and ferries on the Auckland Transport
+                    network.</span>
+                <span>Track a new route by clicking the <img class="inline" src="images/plus-circle.svg"> and change its
+                    color by clicking on the left of its icon in the menu bar.</span>
+                <span>Remove a route by clicking on the right of its icon in the menu bar.</span>
+                <span>Markers with a dark center are travelling in the opposite direction to those with a light
+                    center.</span>
+                <span>(Dark center dots tend to move towards the city).</span>
+                <br><span class="copyright">&copy; Matt Moran (2020).</span>
+            </div>
+        </div>
+    </div>
+    <div id="map">
+        <!-- Google Maps -->
+    </div>
+</body>
+
 </html>
