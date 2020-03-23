@@ -4,7 +4,8 @@ module.exports = {
         es6: true,
     },
     extends: [
-        'airbnb-base',
+        'airbnb-typescript',
+        "plugin:@typescript-eslint/recommended",
     ],
     globals: {
         Atomics: 'readonly',
@@ -16,6 +17,7 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     parserOptions: {
         ecmaVersion: 2018,
+        project: "./tsconfig.json",
     },
     plugins: [
         '@typescript-eslint',
@@ -30,7 +32,7 @@ module.exports = {
             "exports": "always-multiline",
             "functions": "never",
         }],
-        "indent": ["error", 4, {
+        "@typescript-eslint/indent": ["error", 4, {
             "SwitchCase": 1
         }],
         "key-spacing": ["error", {
@@ -55,6 +57,6 @@ module.exports = {
         "object-curly-newline": ["error", {
             "consistent": true
         }],
-        "quotes": ["error", "double"],
+        "@typescript-eslint/quotes": ["error", "double"],
     },
 };
