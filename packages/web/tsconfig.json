@@ -1,1 +1,17 @@
-{}
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "noImplicitAny": true,
+      "removeComments": true,
+      "preserveConstEnums": true,
+      "typeRoots": [
+          "node_modules/@types",
+          "src/ts/types"
+      ],
+      "types": [
+          "googlemaps",
+          "pickr"
+      ]
+    },
+    "include": ["src/ts/*.ts", "gulpfile.js"]
+}

@@ -1,0 +1,7 @@
+{
+    "description": "Flat, Simple, Hackable Color-Picker.",
+    "homepage": "https://github.com/Simonwep/pickr#readme",
+    "name": "@simonwep/pickr",
+    "typings": "pickr.d.ts",
+    "version": "1.5.1"
+}
