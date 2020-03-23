@@ -1,207 +1,24 @@
-html,
-body {
+@import url("0-899.css") (max-width: 899px);
+@import url("900-.css") (min-width: 900px);
+
+html, body {
     height: 100%;
     width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    box-sizing: border-box;
+    text-size-adjust: 100%;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
+    font-family: Verdana, sans-serif;
 }
 
-#menu {
-    $blend-height: 20px;
-    $height: 3rem;
-    $margin: 0.4rem;
-
-    display: flex;
-    position: relative;
-    height: calc(#{$height} - #{$blend-height}/2);
-    width: 100%;
-
-    img {
-        height: 100%;
-    }
-
-    >div {
-        z-index: 3;
-        height: $height - 2*$margin;
-        margin: $margin;
-        font-size: $height - 4*$margin;
-        text-align: center;
-    }
-
-    .btn {
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .title {
-        font-weight: bold;
-    }
-
-    .active-route {
-        $border-width: 3px;
-        --color: transparent;
-        position: relative;
-        flex-shrink: 2;
-
-        flex-basis: 7rem;
-        border: $border-width solid var(--color);
-        border-radius: $height/2 - $margin;
-        line-height: calc(#{$height} - 2*#{$margin} - 2*#{$border-width});
-        
-        &:hover {
-            background: linear-gradient(90deg, var(--color) 50%, transparent 50%);
-            color: transparent;
-
-            .remove {
-                visibility: visible;
-            }
-        }
-
-        .remove {
-            visibility: hidden;
-            position: absolute;
-            top: 0;
-            left: 75%;
-            transform: translateX(-50%);
-            height: 100%;
-            width: 50%;
-
-            img {
-                vertical-align: top;
-            }
-        }
-    }
-
-    .spacer {
-        flex-grow: 1;
-        margin-left: 0;
-        margin-right: 0;
-
-        &.left,
-        &.right {
-            max-width: calc((100vw - 1920px) / 2);
-        }
-    }
-
-    #new-route {
-        display: flex;
-        position: relative;
-        flex-basis: calc(5rem + #{$height});
-        flex-grow: 1;
-
-        .btn {
-            z-index: 1;
-        }
-
-        &:hover #search input, #search.open input {
-            opacity: 1;
-        }
-    
-        #search {
-            flex-basis: 5rem;
-            flex-grow: 1;
-            margin: 0 $margin;
-    
-            input {
-                float: left;
-                height: 100%;
-                width: 100%;
-                opacity: 0;
-                border: none;
-                font-size: 1.2rem;
-                transition: opacity 0.2s;
-                vertical-align: bottom;
-    
-                &:focus {
-                    outline-width: 0;
-                }
-            }
-        }
-
-        #dropdown-filter {
-            visibility: hidden;
-            position: absolute;
-            top: calc(#{$height} - 2*#{$margin} - #{$blend-height}/2);
-            left: 0;
-            margin-top: $margin;
-            padding: $margin;
-            background-color: white;
-            border-radius: 0 0 8px 8px;
-            font-size: 0;
-            text-align: left;
-            cursor: default;
-
-            &.open {
-                visibility: visible;
-            }
-
-            .filter-result {
-                font-size: 1rem;
-                white-space: nowrap;
-                cursor: pointer;
-                user-select: none;
-
-                img {
-                    height: $height - 4*$margin;
-                }
-
-                .short-name {
-                    margin: 0 $margin;
-                    font-weight: bold;
-                }
-            }
-        }
-    }
-
-    #help {
-        z-index: 2;
-        &.open .message {
-            opacity: 1;
-        }
-
-        .message {
-            z-index: -1;
-            position: absolute;
-            top: calc(#{$height} - #{$blend-height}/2);
-            left: 0;
-            width: 100%;
-            opacity: 0;
-            padding: $margin;
-            background-color: white;
-            font-size: 1rem;
-            font-weight: normal;
-            transition: opacity 0.2s;
-
-            span {
-                display: inline-block;
-            }
-
-            .copyright {
-                font-size: 0.8rem;
-            }
-
-            img {
-                height: 1rem;
-                vertical-align: text-bottom;
-            }
-        }
-    }
-
-    &:after {
-        z-index: 1;
-        content: "";
-        position: absolute;
-        top: calc(#{$height} - #{$blend-height}/2);
-        left: 0px;
-        height: $blend-height;
-        width: 100%;
-        background: linear-gradient(white, transparent);
-    }
-}
-
-#map {
-    flex-grow: 1;
+*,
+*:before,
+*:after {
+    box-sizing: inherit
 }

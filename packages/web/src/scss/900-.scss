@@ -1,0 +1,241 @@
+$blend-height: 3rem;
+$menu-height: 3rem;
+$spacing: 0.4rem;
+
+.hide-900 {
+    display: none !important;
+}
+
+@keyframes fadeIn {
+    0% {
+        display: none;
+        opacity: 0;
+    }
+
+    1% {
+        display: block;
+        opacity: 0;
+    }
+
+    100% {
+        display: block;
+        opacity: 1;
+    }
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.fadeIn {
+    animation: fadeIn 0.2s ease-out both;
+}
+
+.fadeOut {
+    animation: fadeIn 0.2s ease-out reverse both;
+}
+
+.btn {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* top bar menu */
+#menu {
+    display: flex;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    height: $menu-height;
+    width: 100%;
+    max-width: 1920px;
+
+    font-weight: bold;
+
+    >* {
+        height: $menu-height;
+        padding: $spacing;
+        font-size: $menu-height - 4*$spacing;
+        line-height: $menu-height - 2*$spacing;
+    }
+
+    img {
+        height: 100%;
+    }
+
+    img.inline {
+        height: 1em;
+        vertical-align: middle;
+    }
+
+    #title {
+        div {
+            display: inline-block;
+            vertical-align: top;
+        }
+    }
+
+    .active-route {
+        $border-width: 3px;
+        --color: transparent;
+        position: relative;
+        flex-shrink: 1;
+        margin: $spacing;
+        padding: 0;
+        text-align: center;
+
+        flex-basis: 7rem;
+        height: $menu-height - 2*$spacing;
+        border: $border-width solid var(--color);
+        border-radius: $menu-height/2 - $spacing;
+        line-height: calc(#{$menu-height} - 2*#{$spacing} - 2*#{$border-width});
+
+        &:hover {
+            background: linear-gradient(90deg, var(--color) 50%, transparent 50%);
+            
+            .short.name {
+                visibility: hidden;
+            }
+
+            .pickr, .remove {
+                visibility: visible;
+            }
+        }
+
+        .pickr, .remove {
+            visibility: hidden;
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%;
+        }
+
+        .pickr {
+            left: 0;
+        }
+
+        .remove {
+            left: 75%;
+            transform: translateX(-50%);
+
+            img {
+                vertical-align: top;
+            }
+        }
+    }
+
+    #add-route {
+        display: flex;
+        position: relative;
+        flex-grow: 1;
+
+        &:hover, &:focus-within, &.show {
+            input {
+                opacity: 1;
+            }
+        }
+
+        input {
+            opacity: 0;
+            flex-grow: 1;
+            height: $menu-height - 2*$spacing;
+            padding: 0 calc((#{$menu-height - 2*$spacing} - 1em) / 2);
+            border: none;
+            font-size: 0.8em;
+            transition: opacity 0.2s ease-in-out;
+
+            &:focus {
+                outline: none;
+            }
+        }
+
+        #dropdown-filter {
+            display: none;
+            position: absolute;
+            top: $menu-height;
+            left: 0;
+            padding: $spacing;
+            background-color: white;
+            border-radius: 0 0 8px 8px;
+            font-size: 0;
+            text-align: left;
+            cursor: default;
+
+            &.show {
+                display: block;
+            }
+
+            .filter-result {
+                height: 1rem + 2*$spacing;
+                font-size: 1rem;
+                white-space: nowrap;
+
+                img {
+                    height: $menu-height - 2*$spacing;
+                    padding: $spacing;
+                }
+
+                .name {
+                    vertical-align: top;
+
+                    &.short {
+                        margin: 0 $spacing;
+                        font-weight: bold;
+                    }
+                }
+            }
+        }
+    }
+
+    #help {
+        .message {
+            display: none;
+
+            position: absolute;
+            top: $menu-height;
+            left: 0;
+            width: 100%;
+
+            padding: $spacing;
+            background-color: white;
+            font-size: 1rem;
+            font-weight: normal;
+            line-height: 1.2;
+
+            .copyright {
+                font-size: 0.8rem;
+            }
+        }
+    }
+
+    /* blend menu into map */
+    &:after {
+        content: "";
+        position: absolute;
+        top: $menu-height;
+        left: 0;
+
+        height: $blend-height;
+        width: 100%;
+
+        background: linear-gradient(hsl(0, 0%, 100%) 0%,
+                hsla(0, 0%, 100%, 0.738) 19.0%,
+                hsla(0, 0%, 100%, 0.541) 34.0%,
+                hsla(0, 0%, 100%, 0.382) 47.0%,
+                hsla(0, 0%, 100%, 0.278) 56.5%,
+                hsla(0, 0%, 100%, 0.194) 65.0%,
+                hsla(0, 0%, 100%, 0.126) 73.0%,
+                hsla(0, 0%, 100%, 0.075) 80.2%,
+                hsla(0, 0%, 100%, 0.042) 86.1%,
+                hsla(0, 0%, 100%, 0.021) 91.0%,
+                hsla(0, 0%, 100%, 0.008) 95.2%,
+                hsla(0, 0%, 100%, 0.002) 98.2%,
+                hsla(0, 0%, 100%, 0.000) 100%);
+        pointer-events: none;
+    }
+}
+
+#map {
+    flex-grow: 1;
+}
