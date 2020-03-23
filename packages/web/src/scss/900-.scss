@@ -43,6 +43,7 @@ body {
 
 /* top bar menu */
 #menu {
+    z-index: 2;
     display: flex;
     position: relative;
     left: 50%;
@@ -189,6 +190,10 @@ body {
     }
 
     #help {
+        &.show .message {
+            display: block;
+        }
+
         .message {
             display: none;
 
@@ -211,6 +216,7 @@ body {
 
     /* blend menu into map */
     &:after {
+        z-index: -1;
         content: "";
         position: absolute;
         top: $menu-height;
@@ -237,5 +243,6 @@ body {
 }
 
 #map {
+    z-index: 1;
     flex-grow: 1;
 }
