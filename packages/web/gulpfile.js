@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 const gulp = require("gulp");
 const ts = require("gulp-typescript");
 const sass = require("gulp-sass");
+const sourcemaps = require("gulp-sourcemaps");
 const autoprefixer = require("gulp-autoprefixer");
 const tsConfig = require("./tsconfig.json");
 
@@ -14,14 +17,17 @@ gulp.task("html", () => gulp
 
 gulp.task("scss", () => gulp
     .src("src/scss/*.scss")
+    .pipe(sourcemaps.init())
     .pipe(sass())
     .pipe(autoprefixer({ cascade: false }))
+    .pipe(sourcemaps.write("."))
     .pipe(gulp.dest("dist")));
-
 
 gulp.task("ts", () => gulp
     .src("src/ts/*.ts")
+    .pipe(sourcemaps.init())
     .pipe(ts(tsConfig.compilerOptions))
+    .pipe(sourcemaps.write("."))
     .pipe(gulp.dest("dist")));
 
 gulp.task("watch", () => {
