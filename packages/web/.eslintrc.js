@@ -24,7 +24,7 @@ module.exports = {
     ],
     rules: {
         "arrow-parens": "off",
-        "brace-style": ["error", "stroustrup"],
+        "@typescript-eslint/brace-style": ["error", "stroustrup"],
         "comma-dangle": ["error", {
             "arrays": "always-multiline",
             "objects": "always-multiline",
@@ -45,13 +45,14 @@ module.exports = {
         "no-bitwise": "off",
         "no-console": "off",
         "no-continue": "off",
+        "@typescript-eslint/no-explicit-any": "off",
         "no-multi-spaces": "off",
         "no-plusplus": ["error", {
             "allowForLoopAfterthoughts": true
         }],
         "no-restricted-syntax": "off",
         "no-underscore-dangle": "off",
-        "no-unused-vars": ["warn", {
+        "@typescript-eslint/no-unused-vars": ["warn", {
             "argsIgnorePattern": "^_+$",
         }],
         "object-curly-newline": ["error", {

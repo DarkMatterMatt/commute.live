@@ -6,7 +6,9 @@ const sass = require("gulp-sass");
 const sourcemaps = require("gulp-sourcemaps");
 const autoprefixer = require("gulp-autoprefixer");
 const browserSync = require("browser-sync").create();
+const webpack = require("webpack-stream");
 const tsConfig = require("./tsconfig.json");
+const webpackConfig = require("./webpack.config.js");
 
 gulp.task("serve", () => {
     browserSync.init({
@@ -36,9 +38,10 @@ gulp.task("scss", () => gulp
     .pipe(browserSync.reload({ stream: true })));
 
 gulp.task("ts", () => gulp
-    .src("src/ts/*.ts")
+    .src("src/ts/index.ts")
     .pipe(sourcemaps.init())
     .pipe(ts(tsConfig.compilerOptions))
+    .pipe(webpack(webpackConfig))
     .pipe(sourcemaps.write("."))
     .pipe(gulp.dest("dist"))
     .pipe(browserSync.reload({ stream: true })));
