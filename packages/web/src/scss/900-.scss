@@ -220,10 +220,11 @@ body {
         content: "";
         position: absolute;
         top: $menu-height;
-        left: 0;
+        left: 50%;
+        transform: translateX(-50%);
 
         height: $blend-height;
-        width: 100%;
+        width: 100vw;
 
         background: linear-gradient(hsl(0, 0%, 100%) 0%,
                 hsla(0, 0%, 100%, 0.738) 19.0%,
