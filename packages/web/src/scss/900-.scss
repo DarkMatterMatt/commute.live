@@ -174,7 +174,7 @@ body {
 
                 img {
                     height: $menu-height - 2*$spacing;
-                    padding: $spacing;
+                    padding: $spacing/2;
                 }
 
                 .name {
@@ -182,7 +182,10 @@ body {
 
                     &.short {
                         margin: 0 $spacing;
-                        font-weight: bold;
+                    }
+
+                    &.long {
+                        font-weight: normal;
                     }
                 }
             }
