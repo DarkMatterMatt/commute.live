@@ -62,7 +62,7 @@ class State {
             this.routesByShortName.set(shortName, route);
 
             if (active) {
-                const $activeRoute = Render.createActiveRoute({ shortName }, route.color,
+                const $activeRoute = Render.createActiveRoute({ shortName }, route.color, false,
                     this.changeRouteColor.bind(this), this.deactivateRoute.bind(this));
                 this.$addRoute.parentNode.insertBefore($activeRoute, this.$addRoute);
                 route.activate();
@@ -108,7 +108,9 @@ class State {
 
     async activateRoute({ shortName, type }: SearchRoute): Promise<void> {
         let route = this.routesByShortName.get(shortName);
+        let showPickr = false;
         if (route === undefined) {
+            showPickr = true;
             route = new Route({
                 shortName,
                 type,
@@ -118,7 +120,7 @@ class State {
             this.routesByShortName.set(shortName, route);
         }
 
-        const $activeRoute = Render.createActiveRoute({ shortName }, route.color,
+        const $activeRoute = Render.createActiveRoute({ shortName }, route.color, showPickr,
             this.changeRouteColor.bind(this), this.deactivateRoute.bind(this));
         this.$addRoute.parentNode.insertBefore($activeRoute, this.$addRoute);
 

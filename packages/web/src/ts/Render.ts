@@ -43,7 +43,7 @@ abstract class Render {
         };
     }
 
-    static createActiveRoute(routeData: SearchRoute, color: string,
+    static createActiveRoute(routeData: SearchRoute, color: string, showPickr: boolean,
         onColorChange: (routeData: SearchRoute, color: string) => void,
         onRemove: (routeData: SearchRoute) => void): HTMLDivElement {
         //
@@ -102,6 +102,10 @@ abstract class Render {
                 $parent.style.setProperty("--color", newColorStr);
                 onColorChange(routeData, newColorStr);
             });
+
+        if (showPickr) {
+            pickr.show();
+        }
 
         $remove.addEventListener("click", () => {
             pickr.destroyAndRemove();
