@@ -1,4 +1,3 @@
-
 $spacing: 5vw;
 
 .hide-0-899 {
@@ -10,7 +9,6 @@ $spacing: 5vw;
     position: absolute;
     top: 0;
     left: 0;
-
     height: 100%;
     width: 100%;
 }
@@ -91,10 +89,10 @@ $spacing: 5vw;
     }
 
     #add-route {
-        min-height: 16vw + $spacing/2;
-        margin-top: $spacing/2;
         display: flex;
         flex-direction: column;
+        min-height: 16vw + $spacing/2;
+        margin-top: $spacing/2;
 
         input {
             width: 100%;
@@ -105,8 +103,8 @@ $spacing: 5vw;
         }
 
         #dropdown-filter {
-            flex-grow: 1;
             overflow-y: auto;
+            flex-grow: 1;
 
             .filter-result {
                 display: flex;

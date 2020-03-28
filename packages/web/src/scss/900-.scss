@@ -51,7 +51,6 @@ body {
     height: $menu-height;
     width: 100%;
     max-width: 1920px;
-
     font-weight: bold;
 
     >* {
@@ -81,15 +80,14 @@ body {
         $border-width: 3px;
         --color: transparent;
         position: relative;
+        flex-basis: 7rem;
         flex-shrink: 1;
+        height: $menu-height - 2*$spacing;
         margin: $spacing;
         padding: 0;
-        text-align: center;
-
-        flex-basis: 7rem;
-        height: $menu-height - 2*$spacing;
         border: $border-width solid var(--color);
         border-radius: $menu-height/2 - $spacing;
+        text-align: center;
         line-height: calc(#{$menu-height} - 2*#{$spacing} - 2*#{$border-width});
 
         &:hover {
@@ -200,20 +198,18 @@ body {
 
         .message {
             opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-            pointer-events: none;
-
             position: absolute;
             top: $menu-height;
             right: 0;
             width: 30em;
-
             padding: $spacing;
             background-color: white;
             font-size: 1rem;
             font-weight: normal;
-            line-height: 1.2;
             text-align: justify;
+            line-height: 1.2;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
 
             p {
                 margin-block-start: 0.2em;
@@ -234,10 +230,9 @@ body {
         top: $menu-height;
         left: 50%;
         transform: translateX(-50%);
-
         height: $blend-height;
         width: 100vw;
-
+        pointer-events: none;
         background: linear-gradient(hsl(0, 0%, 100%) 0%,
                 hsla(0, 0%, 100%, 0.738) 19.0%,
                 hsla(0, 0%, 100%, 0.541) 34.0%,
@@ -251,7 +246,6 @@ body {
                 hsla(0, 0%, 100%, 0.008) 95.2%,
                 hsla(0, 0%, 100%, 0.002) 98.2%,
                 hsla(0, 0%, 100%, 0.000) 100%);
-        pointer-events: none;
     }
 }
 
