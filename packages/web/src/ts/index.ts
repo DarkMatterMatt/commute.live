@@ -121,10 +121,14 @@ function openAddRouteInput(): void {
     $addRoute.addEventListener("click", ev => {
         if (!$addRoute.classList.contains("show")) {
             openAddRouteInput();
-            onClickOutside($addRoute, closeAddRouteInput);
+            onClickOutside($addRoute, () => {
+                closeAddRouteInput();
+                search.hideDropdown();
+            });
         }
         else if (ev.target === $searchBtn) {
             closeAddRouteInput();
+            search.hideDropdown();
         }
     });
 })();

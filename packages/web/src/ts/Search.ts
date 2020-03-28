@@ -18,7 +18,6 @@ class Search {
         this.$dropdown = $dropdown;
 
         $search.addEventListener("keyup", () => this.search($search.value));
-        $search.addEventListener("change", () => this.search($search.value));
     }
 
     async load(): Promise<void> {
@@ -63,13 +62,21 @@ class Search {
     }
 
     render(routes: SearchRoute[]): void {
-        Render.renderFilterDropdown(this.$dropdown, routes,
-            routeData => this.state.activateRoute(routeData));
+        Render.renderFilterDropdown(this.$dropdown, routes, routeData => {
+            this.$search.value = "";
+            this.state.activateRoute(routeData);
+        });
     }
 
-    search(query: string): void {
+    hideDropdown(): void {
+        this.render([]);
+    }
+
+    search(query_: string): void {
+        const query = query_.toLowerCase();
+
         if (query === "") {
-            this.render([]);
+            this.hideDropdown();
             return;
         }
 
