@@ -32,7 +32,7 @@ $spacing: 5vw;
     flex-direction: column;
     height: 100%;
     width: 100%;
-    padding: $spacing;
+    padding: $spacing $spacing 0 $spacing;
     background-color: white;
     font-size: 10vw;
     transition: left 0.3s ease-in-out;
@@ -91,10 +91,10 @@ $spacing: 5vw;
     }
 
     #add-route {
-        overflow-y: hidden;
-        flex-shrink: 1;
         min-height: 16vw + $spacing/2;
         margin-top: $spacing/2;
+        display: flex;
+        flex-direction: column;
 
         input {
             width: 100%;
@@ -105,6 +105,9 @@ $spacing: 5vw;
         }
 
         #dropdown-filter {
+            flex-grow: 1;
+            overflow-y: auto;
+
             .filter-result {
                 display: flex;
                 align-items: baseline;
@@ -133,15 +136,13 @@ $spacing: 5vw;
     }
 
     #add-route:focus-within ~ #about {
-        transform: scaleY(0);
+        display: none;
     }
     
     #about {
-        transform: scaleY(1);
-        transform-origin: bottom;
-        margin-top: auto;
+        margin: auto 0 $spacing;
+        padding-top: $spacing/2;
         font-size: 7vw;
-        transition: transform 0.2s;
 
         img {
             height: 1.2em;
