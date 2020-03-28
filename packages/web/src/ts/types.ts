@@ -9,12 +9,13 @@ export interface LiveVehicle {
 }
 
 export interface SearchRoute {
-    type: "bus" | "rail" | "ferry";
+    type?: "bus" | "rail" | "ferry";
     shortName: string;
-    shortNameLower: string;
-    longName: string;
-    longNameLower: string;
-    longNameWords: string[];
+    shortNameLower?: string;
+    longName?: string;
+    longNameLower?: string;
+    longNameWords?: string[];
     filterWeight?: number;
     $searchResult?: HTMLDivElement;
+    $activeRoute?: HTMLDivElement;
 }

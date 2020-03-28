@@ -1,5 +1,7 @@
+import { LiveVehicle } from "./types";
 import VehicleMarker from "./VehicleMarker";
 import Api from "./Api";
+import Render from "./Render";
 
 interface RouteOptions {
     map: google.maps.Map;
@@ -26,13 +28,13 @@ class Route {
 
     vehicleMarkers: Map<string, VehicleMarker>;
 
-    constructor({ map, type, color, active = false, shortName }: RouteOptions) {
+    constructor({ map, type, color, shortName }: RouteOptions) {
         this.map = map;
         this.type = type;
         this.color = color;
-        this.active = active;
         this.shortName = shortName;
 
+        this.active = false;
         this.longName = null;
         this.polylines = null;
         this.vehicleMarkers = new Map();
@@ -53,33 +55,72 @@ class Route {
         ];
     }
 
-    setColor(color: Pickr.HSVaColor): void {
-        this.color = color.toHEXA().toString();
-        if (this.polylines) {
-            this.polylines[2].setOptions({ strokeColor: this.color });
-            this.polylines[3].setOptions({ strokeColor: this.color });
+
+    generateMarkerIcon(directionId: LiveVehicle["directionId"], colorOverride?: string): google.maps.Icon {
+        const fill = colorOverride || this.color;
+        const dotFill = directionId === 0 ? "#000" : "#FFF";
+        return Render.createMarkerIcon({ fill, dotFill });
+    }
+
+    showVehicle(data: LiveVehicle): void {
+        const { vehicleId, position, lastUpdated, directionId } = data;
+
+        let marker = this.vehicleMarkers.get(data.vehicleId);
+        if (marker === undefined) {
+            marker = new VehicleMarker({ map: this.map });
+            this.vehicleMarkers.set(data.vehicleId, marker);
+
+            marker.interval = setInterval(() => {
+            // delete marker after no update for 90 seconds
+                const now = Math.floor((new Date()).getTime() / 1000);
+                if (marker.lastUpdated < now - 90) {
+                    marker.setMap(null);
+                    clearInterval(marker.interval);
+                    this.vehicleMarkers.delete(vehicleId);
+                }
+                // make marker gray after no update for 30 seconds
+                else if (marker.lastUpdated < now - 30) {
+                    marker.setIcon(this.generateMarkerIcon(directionId, "gray"));
+                }
+            }, 1000 + Math.floor(Math.random() * 200));
         }
-        for (const m of Object.values(this.vehicleMarkers) as VehicleMarker[]) {
-            m.setIcon(generateMarkerIcon(m.directionId, this.color));
+
+        marker.setPosition(position);
+        marker.setIcon(this.generateMarkerIcon(directionId));
+        marker.lastUpdated = lastUpdated;
+        marker.directionId = directionId;
+    }
+
+    setColor(color: string): void {
+        this.color = color;
+        if (this.polylines) {
+            this.polylines[2].setOptions({ strokeColor: color });
+            this.polylines[3].setOptions({ strokeColor: color });
+        }
+        for (const m of this.vehicleMarkers.values()) {
+            m.setIcon(this.generateMarkerIcon(m.directionId));
         }
     }
 
-    async show(): Promise<void> {
+    async activate(): Promise<void> {
         if (this.active) {
             return;
         }
         this.active = true;
+        Api.subscribe(this.shortName);
+
         await this.load();
         for (const polyline of this.polylines) {
             polyline.setMap(this.map);
         }
     }
 
-    remove(): void {
+    deactivate(): void {
         if (!this.active) {
             return;
         }
         this.active = false;
+        Api.unsubscribe(this.shortName);
 
         for (const polyline of this.polylines) {
             polyline.setMap(null);
