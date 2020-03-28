@@ -1,9 +1,22 @@
-const API_URL = "https://mattm.win/atlive/api/v1/";
+import { LiveVehicle } from "./types";
+
+const API_URL = "http://mattm.win/atlive/api/v1/";
 const WS_URL = "ws://mattm.win/atlive/api/v1/websocket";
 
 // eslint-disable-next-line max-len
 type QueryRouteInfo = "shortName" | "longName" | "longNames" | "routeIds" | "shapeIds" | "vehicles" | "type" | "agencyId" | "polylines";
 
+interface RoutesResult {
+    shortName?: string;
+    longName?: string;
+    longNames?: string[];
+    routeIds?: string[];
+    shapeIds?: string[];
+    vehicles?: LiveVehicle[];
+    type?: "bus" | "rail" | "ferry";
+    agencyId?: string;
+    polylines?: google.maps.LatLngLiteral[][];
+}
 
 class Api {
     ws: WebSocket;
@@ -30,18 +43,18 @@ class Api {
         return response;
     }
 
-    async queryRoutes(shortNames?: string[], fetch?: QueryRouteInfo[]): Promise<Record<string, any>> {
+    async queryRoutes(shortNames?: string[], fetch?: QueryRouteInfo[]): Promise<Record<string, RoutesResult[]>> {
         const query: Record<string, string> = {};
         if (shortNames) query.shortNames = shortNames.join(",");
         if (fetch) query.fetch = fetch.join(",");
-        return this.query("routes", query);
+        return await this.query("routes", query) as Record<string, RoutesResult[]>;
     }
 
-    async queryRoute(shortName: string, fetch?: QueryRouteInfo[]): Promise<Record<string, any>> {
+    async queryRoute(shortName: string, fetch?: QueryRouteInfo[]): Promise<RoutesResult> {
         const query: Record<string, string> = { shortNames: shortName };
         if (fetch) query.fetch = fetch.join(",");
         const response = await this.query("routes", query);
-        return response.routes[shortName];
+        return response.routes[shortName] as RoutesResult;
     }
 
     wsConnect(): Promise<void> {
