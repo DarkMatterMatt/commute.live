@@ -41,7 +41,10 @@ class Route {
     }
 
     async load(): Promise<void> {
-        const { longName, polylines } = await Api.queryRoute(this.shortName, ["longName", "polylines"]);
+        const {
+            longName, polylines, vehicles,
+        } = await Api.queryRoute(this.shortName, ["longName", "polylines", "vehicles"]);
+
         this.longName = longName;
 
         this.polylines = [
@@ -53,6 +56,8 @@ class Route {
             new google.maps.Polyline({ path: polylines[0], strokeColor: this.color, strokeOpacity: 0.7, zIndex: 1 }),
             new google.maps.Polyline({ path: polylines[1], strokeColor: this.color, strokeOpacity: 0.7, zIndex: 2 }),
         ];
+
+        Object.values(vehicles).map(v => this.showVehicle(v));
     }
 
 
@@ -62,13 +67,11 @@ class Route {
         return Render.createMarkerIcon({ fill, dotFill });
     }
 
-    showVehicle(data: LiveVehicle): void {
-        const { vehicleId, position, lastUpdated, directionId } = data;
-
-        let marker = this.vehicleMarkers.get(data.vehicleId);
+    showVehicle({ vehicleId, position, lastUpdated, directionId }: LiveVehicle): void {
+        let marker = this.vehicleMarkers.get(vehicleId);
         if (marker === undefined) {
             marker = new VehicleMarker({ map: this.map });
-            this.vehicleMarkers.set(data.vehicleId, marker);
+            this.vehicleMarkers.set(vehicleId, marker);
 
             marker.interval = setInterval(() => {
             // delete marker after no update for 90 seconds
