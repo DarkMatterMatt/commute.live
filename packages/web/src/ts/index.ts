@@ -56,6 +56,18 @@ function openMenu(): void {
     $menu.classList.add("show");
 }
 
+function showHelp(): void {
+    $help.classList.add("show");
+}
+
+function hideHelp(): void {
+    $help.classList.remove("show");
+}
+
+function helpIsVisible(): boolean {
+    return $help.classList.contains("show");
+}
+
 function closeAddRouteInput(): void {
     $addRoute.classList.remove("show");
     if (largeScreen()) {
@@ -129,6 +141,16 @@ function openAddRouteInput(): void {
         else if (ev.target === $searchBtn) {
             closeAddRouteInput();
             search.hideDropdown();
+        }
+    });
+
+    $helpBtn.addEventListener("click", ev => {
+        if (!helpIsVisible()) {
+            showHelp();
+            onClickOutside($help, hideHelp);
+        }
+        else if (ev.target === $helpBtn) {
+            hideHelp();
         }
     });
 })();
