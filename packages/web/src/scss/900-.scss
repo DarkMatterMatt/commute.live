@@ -194,22 +194,31 @@ body {
 
     #help {
         &.show .message {
-            display: block;
+            opacity: 1;
+            pointer-events: all;
         }
 
         .message {
-            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            pointer-events: none;
 
             position: absolute;
             top: $menu-height;
-            left: 0;
-            width: 100%;
+            right: 0;
+            width: 30em;
 
             padding: $spacing;
             background-color: white;
             font-size: 1rem;
             font-weight: normal;
             line-height: 1.2;
+            text-align: justify;
+
+            p {
+                margin-block-start: 0.2em;
+                margin-block-end: 0.2em;
+            }
 
             .copyright {
                 font-size: 0.8rem;
