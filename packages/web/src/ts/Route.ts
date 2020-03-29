@@ -41,9 +41,11 @@ class Route {
     }
 
     async load(): Promise<void> {
-        const {
-            longName, polylines, vehicles,
-        } = await Api.queryRoute(this.shortName, ["longName", "polylines", "vehicles"]);
+        // query in different requests so the polylines can be cached
+        const [{ longName, polylines }, { vehicles }] = await Promise.all([
+            Api.queryRoute(this.shortName, ["longName", "polylines"]),
+            Api.queryRoute(this.shortName, ["vehicles"]),
+        ]);
 
         this.longName = longName;
 
