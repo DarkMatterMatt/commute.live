@@ -17,7 +17,19 @@ class Search {
         this.$search = $search;
         this.$dropdown = $dropdown;
 
-        $search.addEventListener("keyup", () => this.search($search.value));
+        $search.addEventListener("keyup", ev => {
+            if (ev.key === "Escape") {
+                // eslint-disable-next-line no-param-reassign
+                $search.value = "";
+                this.hideDropdown();
+                return;
+            }
+            if (ev.key === "Enter") {
+                ($dropdown.firstChild as HTMLElement).click();
+                return;
+            }
+            this.search($search.value);
+        });
     }
 
     async load(): Promise<void> {
