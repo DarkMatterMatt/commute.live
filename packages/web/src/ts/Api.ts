@@ -25,13 +25,24 @@ class Api {
 
     wsUrl: string;
 
+    subscriptions: Set<string>;
+
     _onMessage: (data: Record<string, any>) => void;
+
+    promiseWsConnect: Promise<void>;
+
+    resolveWhenWsConnect: (value?: void | PromiseLike<void>) => void;
 
     constructor() {
         this.ws = null;
         this.apiUrl = API_URL;
         this.wsUrl = WS_URL;
+        this.subscriptions = new Set();
         this._onMessage = null;
+
+        this.promiseWsConnect = new Promise<void>(resolve => {
+            this.resolveWhenWsConnect = resolve;
+        });
     }
 
     async query(path: string, params: Record<string, string>): Promise<Record<string, any>> {
@@ -61,13 +72,12 @@ class Api {
         this.ws = new WebSocket(this.wsUrl);
         let wsHeartbeatInterval: number;
 
-        let resolve: (value?: void | PromiseLike<void>) => void;
-        const promise = new Promise<void>(resolve_ => {
-            resolve = resolve_;
-        });
-
         this.ws.addEventListener("open", () => {
-            resolve();
+            this.resolveWhenWsConnect();
+
+            for (const shortName of this.subscriptions.values()) {
+                this.subscribe(shortName);
+            }
 
             // send a heartbeat every 5 seconds
             wsHeartbeatInterval = setInterval(() => {
@@ -90,10 +100,11 @@ class Api {
             this._onMessage(data as Record<string, any>);
         });
 
-        return promise;
+        return this.promiseWsConnect;
     }
 
     subscribe(shortName: string): void {
+        this.subscriptions.add(shortName);
         this.ws.send(JSON.stringify({
             route: "subscribe",
             shortName,
@@ -101,6 +112,7 @@ class Api {
     }
 
     unsubscribe(shortName: string): void {
+        this.subscriptions.delete(shortName);
         this.ws.send(JSON.stringify({
             route: "unsubscribe",
             shortName,
