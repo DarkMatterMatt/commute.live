@@ -2,11 +2,13 @@ import { SearchRoute } from "./types";
 
 const MAX_FILTER_RESULTS = 20;
 const SUGGESTED_COLORS = [
-    "#242551",
-    "#406244",
-    "#dab71f",
-    "#d8832b",
-    "#c94d4d",
+    "#E94537",
+    "#E67C13",
+    "#CECE1D",
+    "#1DCE1D",
+    "#5555FF",
+    "#9400D3",
+    "#D30094",
 ];
 
 interface MarkerIconOptions {
