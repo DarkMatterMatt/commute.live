@@ -91,24 +91,28 @@ class Route {
         this.active = true;
         Api.subscribe(this.shortName);
 
-        const { longName, polylines } = await Api.queryRoute(this.shortName, ["longName", "polylines"]);
+        const [
+            { longName, polylines },
+            { vehicles },
+        ] = await Promise.all([
+            Api.queryRoute(this.shortName, ["longName", "polylines"]),
+            Api.queryRoute(this.shortName, ["vehicles"]),
+        ]);
+
         this.longName = longName;
 
+        const { map } = this;
+        const strokeOpacity = 0.7;
         this.polylines = [
             // background line, so the path isn't affected by the map colour
-            new google.maps.Polyline({ path: polylines[0], strokeColor: "black" }),
-            new google.maps.Polyline({ path: polylines[1], strokeColor: "white" }),
+            new google.maps.Polyline({ map, path: polylines[0], strokeColor: "black" }),
+            new google.maps.Polyline({ map, path: polylines[1], strokeColor: "white" }),
 
             // route line, semi-transparent so it's obvious when they overlap
-            new google.maps.Polyline({ path: polylines[0], strokeColor: this.color, strokeOpacity: 0.7, zIndex: 1 }),
-            new google.maps.Polyline({ path: polylines[1], strokeColor: this.color, strokeOpacity: 0.7, zIndex: 2 }),
+            new google.maps.Polyline({ map, path: polylines[0], strokeColor: this.color, strokeOpacity, zIndex: 1 }),
+            new google.maps.Polyline({ map, path: polylines[1], strokeColor: this.color, strokeOpacity, zIndex: 2 }),
         ];
 
-        for (const polyline of this.polylines) {
-            polyline.setMap(this.map);
-        }
-
-        const { vehicles } = await Api.queryRoute(this.shortName, ["vehicles"]);
         Object.values(vehicles).map(v => this.showVehicle(v));
     }
 
