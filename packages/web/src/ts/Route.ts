@@ -125,6 +125,7 @@ class Route {
 
         for (const polyline of this.polylines) {
             polyline.setMap(null);
+            this.polylines = [];
         }
 
         for (const marker of this.vehicleMarkers.values()) {
