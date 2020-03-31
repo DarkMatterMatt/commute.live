@@ -106,7 +106,7 @@ abstract class Render {
             });
 
         if (showPickr) {
-            pickr.show();
+            setTimeout(() => pickr.show(), 0);
         }
 
         $remove.addEventListener("click", () => {
