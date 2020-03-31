@@ -1,0 +1,115 @@
+.hide-0-899 {
+  display: none !important; }
+
+#map {
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%; }
+
+#open-menu {
+  z-index: 2;
+  position: absolute;
+  top: 5vw;
+  right: 5vw;
+  height: 12vw; }
+
+#menu {
+  z-index: 3;
+  display: flex;
+  position: relative;
+  top: 0;
+  left: -100vw;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  padding: 5vw 5vw 0 5vw;
+  background-color: white;
+  font-size: 10vw;
+  transition: left 0.3s ease-in-out; }
+  #menu.show {
+    left: 0; }
+  #menu > * {
+    width: 100%;
+    line-height: 1.2; }
+  #menu img {
+    height: 100%; }
+  #menu #title {
+    height: 1.2em;
+    margin-bottom: 2.5vw; }
+    #menu #title div {
+      display: inline-block;
+      vertical-align: top; }
+    #menu #title .close {
+      float: right;
+      height: 100%; }
+  #menu .active-route {
+    --color: transparent;
+    display: flex;
+    height: 1.2em;
+    margin-top: 2.5vw;
+    padding-left: 5vw;
+    padding-right: calc(5vw - 6px);
+    border: 3px solid var(--color);
+    border-radius: 5vw;
+    line-height: calc(1.2em - 6px); }
+    #menu .active-route .short.name {
+      flex-grow: 1; }
+    #menu .active-route .pickr {
+      height: calc(1em - 6px);
+      width: calc(1em - 6px);
+      margin: 0.1em;
+      background-color: var(--color);
+      border-radius: 1.5vw; }
+    #menu .active-route .remove {
+      width: calc(1.2em - 6px); }
+  #menu #add-route {
+    display: flex;
+    flex-direction: column;
+    min-height: 18.5vw;
+    margin-top: 2.5vw; }
+    #menu #add-route input {
+      width: 100%;
+      padding: 0 1vw;
+      border: none;
+      font-size: 7vw;
+      line-height: 1.2; }
+    #menu #add-route #dropdown-filter {
+      overflow-y: auto;
+      flex-grow: 1; }
+      #menu #add-route #dropdown-filter .filter-result {
+        display: flex;
+        align-items: baseline;
+        border-top: 1px solid black;
+        font-size: 6vw; }
+        #menu #add-route #dropdown-filter .filter-result .name {
+          display: inline-block; }
+          #menu #add-route #dropdown-filter .filter-result .name.short {
+            flex-shrink: 0;
+            margin-right: 0.4em;
+            font-weight: bold; }
+          #menu #add-route #dropdown-filter .filter-result .name.long {
+            overflow-x: hidden;
+            flex-shrink: 1;
+            font-size: 0.8em;
+            white-space: nowrap;
+            text-overflow: ellipsis; }
+  #menu #add-route.show ~ #about {
+    display: none; }
+  #menu #about {
+    margin: auto 0 5vw;
+    padding-top: 2.5vw;
+    font-size: 7vw; }
+    #menu #about img {
+      height: 1.2em;
+      vertical-align: text-top; }
+    #menu #about div:first-of-type {
+      display: inline-block; }
+    #menu #about .message {
+      font-size: 4.5vw; }
+      #menu #about .message .copyright {
+        font-size: 3.5vw; }
+
+/*# sourceMappingURL=0-899.css.map */
