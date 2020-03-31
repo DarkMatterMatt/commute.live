@@ -110,10 +110,10 @@ $spacing: 5vw;
                 display: flex;
                 align-items: baseline;
                 border-top: 1px solid black;
+                font-size: 6vw;
 
                 .name {
                     display: inline-block;
-                    font-size: 5vw;
 
                     &.short {
                         flex-shrink: 0;
@@ -124,7 +124,7 @@ $spacing: 5vw;
                     &.long {    
                         overflow-x: hidden;
                         flex-shrink: 1;
-                        font-size: 4vw;
+                        font-size: 0.8em;
                         white-space: nowrap;
                         text-overflow: ellipsis;
                     }
@@ -133,7 +133,7 @@ $spacing: 5vw;
         }
     }
 
-    #add-route:focus-within ~ #about {
+    #add-route.show ~ #about {
         display: none;
     }
     
