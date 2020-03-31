@@ -1,7 +1,7 @@
 import { LiveVehicle } from "./types";
 
-const API_URL = "http://mattm.win/atlive/api/v1/";
-const WS_URL = "ws://mattm.win/atlive/api/v1/websocket";
+const API_URL = "https://mattm.win/atlive/api/v1/";
+const WS_URL = "wss://mattm.win/atlive/api/v1/websocket";
 
 // eslint-disable-next-line max-len
 type QueryRouteInfo = "shortName" | "longName" | "longNames" | "routeIds" | "shapeIds" | "vehicles" | "type" | "agencyId" | "polylines";
