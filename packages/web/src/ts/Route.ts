@@ -36,7 +36,7 @@ class Route {
 
         this.active = false;
         this.longName = null;
-        this.polylines = null;
+        this.polylines = [];
         this.vehicleMarkers = new Map();
     }
 
@@ -46,7 +46,7 @@ class Route {
         return Render.createMarkerIcon({ fill, dotFill });
     }
 
-    showVehicle({ vehicleId, position, lastUpdated, directionId }: LiveVehicle): void {
+    showVehicle({ vehicleId, position, lastUpdatedUnix, directionId }: LiveVehicle): void {
         let marker = this.vehicleMarkers.get(vehicleId);
         if (marker === undefined) {
             marker = new VehicleMarker({ map: this.map });
@@ -54,14 +54,14 @@ class Route {
 
             marker.interval = setInterval(() => {
             // delete marker after no update for 90 seconds
-                const now = Math.floor((new Date()).getTime() / 1000);
-                if (marker.lastUpdated < now - 90) {
+                const now = (new Date()).getTime() / 1000;
+                if (marker.lastUpdatedUnix < now - 90) {
                     marker.setMap(null);
                     clearInterval(marker.interval);
                     this.vehicleMarkers.delete(vehicleId);
                 }
                 // make marker gray after no update for 30 seconds
-                else if (marker.lastUpdated < now - 30) {
+                else if (marker.lastUpdatedUnix < now - 30) {
                     marker.setIcon(this.generateMarkerIcon(directionId, "gray"));
                 }
             }, 1000 + Math.floor(Math.random() * 200));
@@ -69,7 +69,7 @@ class Route {
 
         marker.setPosition(position);
         marker.setIcon(this.generateMarkerIcon(directionId));
-        marker.lastUpdated = lastUpdated;
+        marker.lastUpdatedUnix = lastUpdatedUnix;
         marker.directionId = directionId;
     }
 

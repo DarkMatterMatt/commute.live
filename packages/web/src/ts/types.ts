@@ -3,7 +3,7 @@ export type unixTimestamp = number;
 export interface LiveVehicle {
     shortName: string;
     vehicleId: string;
-    lastUpdated: unixTimestamp;
+    lastUpdatedUnix: unixTimestamp;
     directionId: 0 | 1;
     position: google.maps.LatLng | google.maps.LatLngLiteral;
 }
