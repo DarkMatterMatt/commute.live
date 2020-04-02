@@ -50,7 +50,6 @@ body {
     transform: translateX(-50%);
     height: $menu-height;
     width: 100%;
-    max-width: 1920px;
     font-weight: bold;
 
     >* {
@@ -74,6 +73,12 @@ body {
             display: inline-block;
             vertical-align: top;
         }
+    }
+
+    .spacer {
+        flex-grow: 1000;
+        max-width: calc((100vw - 1920px) / 2);
+        padding: 0;
     }
 
     .active-route {
@@ -191,6 +196,8 @@ body {
     }
 
     #help {
+        position: relative;
+
         &.show .message {
             opacity: 1;
             pointer-events: all;
