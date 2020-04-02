@@ -346,7 +346,7 @@ class Route {
         this.shortName = shortName;
         this.active = false;
         this.longName = null;
-        this.polylines = null;
+        this.polylines = [];
         this.vehicleMarkers = new Map();
     }
     generateMarkerIcon(directionId, colorOverride) {
@@ -354,26 +354,26 @@ class Route {
         const dotFill = directionId === 0 ? "#000" : "#FFF";
         return _Render__WEBPACK_IMPORTED_MODULE_2__["default"].createMarkerIcon({ fill, dotFill });
     }
-    showVehicle({ vehicleId, position, lastUpdated, directionId }) {
+    showVehicle({ vehicleId, position, lastUpdatedUnix, directionId }) {
         let marker = this.vehicleMarkers.get(vehicleId);
         if (marker === undefined) {
             marker = new _VehicleMarker__WEBPACK_IMPORTED_MODULE_0__["default"]({ map: this.map });
             this.vehicleMarkers.set(vehicleId, marker);
             marker.interval = setInterval(() => {
-                const now = Math.floor((new Date()).getTime() / 1000);
-                if (marker.lastUpdated < now - 90) {
+                const now = (new Date()).getTime() / 1000;
+                if (marker.lastUpdatedUnix < now - 90) {
                     marker.setMap(null);
                     clearInterval(marker.interval);
                     this.vehicleMarkers.delete(vehicleId);
                 }
-                else if (marker.lastUpdated < now - 30) {
+                else if (marker.lastUpdatedUnix < now - 30) {
                     marker.setIcon(this.generateMarkerIcon(directionId, "gray"));
                 }
             }, 1000 + Math.floor(Math.random() * 200));
         }
         marker.setPosition(position);
         marker.setIcon(this.generateMarkerIcon(directionId));
-        marker.lastUpdated = lastUpdated;
+        marker.lastUpdatedUnix = lastUpdatedUnix;
         marker.directionId = directionId;
     }
     setColor(color) {
