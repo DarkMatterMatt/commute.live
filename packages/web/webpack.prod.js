@@ -1,4 +1,5 @@
 const path = require("path");
+const Dotenv = require("dotenv-webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WebpackMd5Hash = require("webpack-md5-hash");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -70,6 +71,7 @@ module.exports = {
         ],
     },
     plugins: [
+        new Dotenv(),
         new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({
             filename: "style.[contenthash].css",

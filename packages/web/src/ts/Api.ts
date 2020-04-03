@@ -1,8 +1,5 @@
 import { LiveVehicle } from "./types";
 
-const API_URL = "https://mattm.win/atlive/api/v1/";
-const WS_URL = "wss://mattm.win/atlive/api/v1/websocket";
-
 // eslint-disable-next-line max-len
 type QueryRouteInfo = "shortName" | "longName" | "longNames" | "routeIds" | "shapeIds" | "vehicles" | "type" | "agencyId" | "polylines";
 
@@ -35,8 +32,8 @@ class Api {
 
     constructor() {
         this.ws = null;
-        this.apiUrl = API_URL;
-        this.wsUrl = WS_URL;
+        this.apiUrl = process.env.API_URL;
+        this.wsUrl = process.env.WS_URL;
         this.subscriptions = new Set();
         this._onMessage = null;
 
