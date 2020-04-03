@@ -4,26 +4,24 @@ module.exports = {
         es6: true,
     },
     extends: [
-        'airbnb-typescript',
         "plugin:@typescript-eslint/recommended",
+        "airbnb-typescript",
     ],
     globals: {
-        Atomics: 'readonly',
-        SharedArrayBuffer: 'readonly',
+        Atomics: "readonly",
+        SharedArrayBuffer: "readonly",
     },
-    ignorePatterns: [
-        "dist/",
-    ],
-    parser: '@typescript-eslint/parser',
+    ignorePatterns: ["*.js"],
+    parser: "@typescript-eslint/parser",
     parserOptions: {
         ecmaVersion: 2018,
-        project: "./tsconfig.json",
     },
     plugins: [
-        '@typescript-eslint',
+        "@typescript-eslint",
     ],
     rules: {
-        "arrow-parens": "off",
+        "arrow-parens": ["error", "as-needed"],
+        "arrow-spacing": "error",
         "@typescript-eslint/brace-style": ["error", "stroustrup"],
         "comma-dangle": ["error", {
             "arrays": "always-multiline",
@@ -46,13 +44,11 @@ module.exports = {
         "no-console": "off",
         "no-continue": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "no-multi-spaces": "off",
         "no-plusplus": ["error", {
             "allowForLoopAfterthoughts": true
         }],
-        "no-restricted-syntax": "off",
         "no-underscore-dangle": "off",
-        "@typescript-eslint/no-unused-vars": ["warn", {
+        "@typescript-eslint/no-unused-vars": ["error", {
             "argsIgnorePattern": "^_+$",
         }],
         "object-curly-newline": ["error", {

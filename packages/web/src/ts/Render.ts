@@ -1,4 +1,17 @@
+import "@simonwep/pickr/dist/themes/monolith.min.css";
+import Pickr from "@simonwep/pickr";
 import { SearchRoute } from "./types";
+
+import RemoveIcon from "../assets/remove.svg";
+import BusIcon from "../assets/bus-filled.svg";
+import RailIcon from "../assets/rail-filled.svg";
+import FerryIcon from "../assets/ferry-filled.svg";
+
+const transitIcons = {
+    bus:   BusIcon,
+    rail:  RailIcon,
+    ferry: FerryIcon,
+};
 
 const MAX_FILTER_RESULTS = 20;
 const SUGGESTED_COLORS = [
@@ -74,36 +87,36 @@ abstract class Render {
         $parent.append($remove);
 
         const $img = document.createElement("img");
-        $img.src = "images/remove.svg";
+        $img.src = RemoveIcon;
         $img.alt = "Remove route";
         $remove.append($img);
 
-        const pickr = Pickr
-            .create({
-                el:          $pickr,
-                theme:       "monolith",
-                lockOpacity: true,
-                useAsButton: true,
-                default:     color,
-                swatches:    SUGGESTED_COLORS,
+        const pickr = new Pickr({
+            el:          $pickr,
+            theme:       "monolith",
+            lockOpacity: true,
+            useAsButton: true,
+            default:     color,
+            swatches:    SUGGESTED_COLORS,
 
-                components: {
-                    preview: true,
-                    hue:     true,
+            components: {
+                preview: true,
+                hue:     true,
 
-                    interaction: {
-                        input: true,
-                        save:  true,
-                    },
+                interaction: {
+                    input: true,
+                    save:  true,
                 },
-            })
-            .on("save", (newColor: Pickr.HSVaColor) => {
-                pickr.hide();
+            },
+        });
 
-                const newColorStr = newColor.toHEXA().toString();
-                $parent.style.setProperty("--color", newColorStr);
-                onColorChange(routeData, newColorStr);
-            });
+        pickr.on("save", (newColor: Pickr.HSVaColor) => {
+            pickr.hide();
+
+            const newColorStr = newColor.toHEXA().toString();
+            $parent.style.setProperty("--color", newColorStr);
+            onColorChange(routeData, newColorStr);
+        });
 
         if (showPickr) {
             setTimeout(() => pickr.show(), 0);
@@ -130,7 +143,7 @@ abstract class Render {
 
         const $img = document.createElement("img");
         $img.classList.add("hide-0-899");
-        $img.src = `images/${routeData.type}-filled.svg`;
+        $img.src = transitIcons[routeData.type];
         $img.alt = routeData.type;
         $parent.append($img);
 

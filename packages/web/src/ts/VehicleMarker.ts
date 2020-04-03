@@ -1,7 +1,7 @@
 import { unixTimestamp } from "./types";
 
 class VehicleMarker extends google.maps.Marker {
-    interval: number;
+    interval: NodeJS.Timeout;
 
     lastUpdatedUnix: unixTimestamp;
 

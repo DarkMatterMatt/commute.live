@@ -70,7 +70,7 @@ class Api {
 
     wsConnect(): Promise<void> {
         this.ws = new WebSocket(this.wsUrl);
-        let wsHeartbeatInterval: number;
+        let wsHeartbeatInterval: NodeJS.Timeout;
 
         this.ws.addEventListener("open", () => {
             this.resolveWhenWsConnect();

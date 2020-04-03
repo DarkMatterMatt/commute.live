@@ -1,5 +1,4 @@
-@import url("0-899.css") (max-width: 899px);
-@import url("900-.css") (min-width: 900px);
+@import "../../node_modules/normalize.css/normalize.css";
 
 html, body {
     height: 100%;
@@ -21,4 +20,11 @@ body {
 *:before,
 *:after {
     box-sizing: inherit
+}
+
+@media (max-width: 899px) {
+    @import "./0-899";
+}
+@media (min-width: 900px) {
+    @import "./900-";
 }

@@ -1,3 +1,5 @@
+import "../scss/styles.scss";
+
 import { LiveVehicle } from "./types";
 import State from "./State";
 import Api from "./Api";
