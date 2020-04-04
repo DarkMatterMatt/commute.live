@@ -4,6 +4,10 @@ $spacing: 5vw;
     display: none !important;
 }
 
+.small {
+    font-size: 0.8em;
+}
+
 #map {
     z-index: 1;
     position: absolute;
@@ -153,10 +157,6 @@ $spacing: 5vw;
 
         .message {
             font-size: 4.5vw;
-
-            .copyright {
-                font-size: 3.5vw;
-            }
         }
     }
 }

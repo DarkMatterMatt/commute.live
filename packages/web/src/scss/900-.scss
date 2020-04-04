@@ -7,6 +7,10 @@ $menu-max-width: 1920px;
     display: none !important;
 }
 
+.small {
+    font-size: 0.8em;
+}
+
 @keyframes fadeIn {
     0% {
         display: none;
@@ -225,10 +229,6 @@ body {
             p {
                 margin-block-start: 0.2em;
                 margin-block-end: 0.2em;
-            }
-
-            .copyright {
-                font-size: 0.8rem;
             }
         }
     }
