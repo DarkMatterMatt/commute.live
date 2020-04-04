@@ -1,4 +1,4 @@
-import { LiveVehicle } from "./types";
+import { LiveVehicle, TransitType } from "./types";
 
 // eslint-disable-next-line max-len
 type QueryRouteInfo = "shortName" | "longName" | "longNames" | "routeIds" | "shapeIds" | "vehicles" | "type" | "agencyId" | "polylines";
@@ -9,8 +9,8 @@ interface RoutesResult {
     longNames?: string[];
     routeIds?: string[];
     shapeIds?: string[];
-    vehicles?: LiveVehicle[];
-    type?: "bus" | "rail" | "ferry";
+    vehicles?: Record<string, LiveVehicle>;
+    type?: TransitType;
     agencyId?: string;
     polylines?: google.maps.LatLngLiteral[][];
 }
@@ -22,7 +22,9 @@ class Api {
 
     wsUrl: string;
 
-    subscriptions: Set<string>;
+    webSocketConnectedPreviously: boolean;
+
+    _onWebSocketReconnect: (ws: WebSocket, ev: Event) => void;
 
     _onMessage: (data: Record<string, any>) => void;
 
@@ -34,8 +36,9 @@ class Api {
         this.ws = null;
         this.apiUrl = process.env.API_URL;
         this.wsUrl = process.env.WS_URL;
-        this.subscriptions = new Set();
+        this._onWebSocketReconnect = null;
         this._onMessage = null;
+        this.webSocketConnectedPreviously = false;
 
         this.promiseWsConnect = new Promise<void>(resolve => {
             this.resolveWhenWsConnect = resolve;
@@ -69,10 +72,13 @@ class Api {
         this.ws = new WebSocket(this.wsUrl);
         let wsHeartbeatInterval: NodeJS.Timeout;
 
-        this.ws.addEventListener("open", () => {
+        this.ws.addEventListener("open", ev => {
             this.resolveWhenWsConnect();
 
-            this.subscriptions.forEach(this.subscribe);
+            if (this.webSocketConnectedPreviously && this._onWebSocketReconnect !== null) {
+                this._onWebSocketReconnect(this.ws, ev);
+            }
+            this.webSocketConnectedPreviously = true;
 
             // send a heartbeat every 5 seconds
             wsHeartbeatInterval = setInterval(() => {
@@ -99,7 +105,6 @@ class Api {
     }
 
     subscribe(shortName: string): void {
-        this.subscriptions.add(shortName);
         this.ws.send(JSON.stringify({
             route: "subscribe",
             shortName,
@@ -107,11 +112,14 @@ class Api {
     }
 
     unsubscribe(shortName: string): void {
-        this.subscriptions.delete(shortName);
         this.ws.send(JSON.stringify({
             route: "unsubscribe",
             shortName,
         }));
+    }
+
+    onWebSocketReconnect(listener: (ws: WebSocket, ev: Event) => void): void {
+        this._onWebSocketReconnect = listener;
     }
 
     onMessage(listener: (data: Record<string, any>) => void): void {

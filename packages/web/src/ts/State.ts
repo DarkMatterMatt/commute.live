@@ -131,6 +131,21 @@ class State {
         await route.activate();
         this.save();
     }
+
+    async loadRouteVehicles({ shortName }: SearchRoute): Promise<void> {
+        const route = this.routesByShortName.get(shortName);
+        if (route === undefined) {
+            console.error(`Could not reload vehicles for route: ${shortName}. Route is not in routesByShortName.`);
+            return;
+        }
+        await route.loadVehicles();
+    }
+
+    async loadActiveRoutesVehicles(): Promise<void> {
+        await Promise.all([...this.routesByShortName.values()]
+            .filter(r => r.isActive())
+            .map(r => this.loadRouteVehicles(r)));
+    }
 }
 
 export default State;

@@ -82,19 +82,20 @@ class Route {
         this.vehicleMarkers.forEach(m => m.setIcon(this.generateMarkerIcon(m.directionId)));
     }
 
+    async loadVehicles(): Promise<void> {
+        Api.subscribe(this.shortName);
+        const { vehicles } = await Api.queryRoute(this.shortName, ["vehicles"]);
+        Object.values(vehicles).map(v => this.showVehicle(v));
+    }
+
     async activate(): Promise<void> {
         if (this.active) {
             return;
         }
         this.active = true;
-        Api.subscribe(this.shortName);
-
-        const [
-            { longName, polylines },
-            { vehicles },
-        ] = await Promise.all([
+        const [{ longName, polylines }] = await Promise.all([
             Api.queryRoute(this.shortName, ["longName", "polylines"]),
-            Api.queryRoute(this.shortName, ["vehicles"]),
+            this.loadVehicles(),
         ]);
 
         this.longName = longName;
@@ -110,8 +111,6 @@ class Route {
             new google.maps.Polyline({ map, path: polylines[0], strokeColor: this.color, strokeOpacity, zIndex: 1 }),
             new google.maps.Polyline({ map, path: polylines[1], strokeColor: this.color, strokeOpacity, zIndex: 2 }),
         ];
-
-        Object.values(vehicles).map(v => this.showVehicle(v));
     }
 
     deactivate(): void {
@@ -125,6 +124,10 @@ class Route {
         this.polylines = [];
 
         this.vehicleMarkers.forEach(m => m.setMap(null));
+    }
+
+    isActive(): boolean {
+        return this.active;
     }
 }
 

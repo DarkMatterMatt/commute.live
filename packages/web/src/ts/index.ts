@@ -130,6 +130,8 @@ function openAddRouteInput(): void {
         console.log(data.route, data.message, data);
     });
 
+    Api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
+
     $openMenu.addEventListener("click", openMenu);
 
     $closeMenu.addEventListener("click", closeMenu);
