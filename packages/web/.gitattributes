@@ -1,6 +1,7 @@
 # Enforce Unix newlines
 LICENSE         text eol=lf
 .babelrc        text eol=lf
+.browserslistrc text eol=lf
 .gitattributes  text eol=lf
 .gitignore      text eol=lf
 

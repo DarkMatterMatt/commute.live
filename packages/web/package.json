@@ -3,9 +3,15 @@
     "version": "1.0.0",
     "description": "The front-end of AT Live Server, provides bus, train and ferry tracking on a map.",
     "main": "src/ts/index.ts",
-    "dependencies": {},
+    "dependencies": {
+        "@babel/runtime": "^7.9.2",
+        "core-js": "^3.6.4",
+        "regenerator-runtime": "^0.13.5"
+    },
     "devDependencies": {
         "@babel/core": "^7.9.0",
+        "@babel/plugin-transform-runtime": "^7.9.0",
+        "@babel/preset-env": "^7.9.0",
         "@babel/preset-typescript": "^7.9.0",
         "@simonwep/pickr": "^1.5.1",
         "@types/googlemaps": "^3.39.3",

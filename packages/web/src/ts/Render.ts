@@ -33,6 +33,10 @@ interface MarkerIconOptions {
     dotOpacity?: number;
 }
 
+function largeScreen(): boolean {
+    return window.matchMedia("(min-width: 900px)").matches;
+}
+
 abstract class Render {
     static createMarkerIcon(options: MarkerIconOptions): google.maps.Icon {
         /* eslint-disable max-len */
@@ -167,7 +171,7 @@ abstract class Render {
     }
 
     static renderFilterDropdown($dropdown: HTMLElement, routes: SearchRoute[], onAdd: (routeData: SearchRoute) => void): void {
-        // eslint-disable-next-line no-param-reassign
+        /* eslint-disable no-param-reassign */
         $dropdown.innerHTML = "";
 
         if (routes.length === 0) {
@@ -178,6 +182,18 @@ abstract class Render {
         $dropdown.classList.add("show");
         for (const route of routes.slice(0, MAX_FILTER_RESULTS)) {
             $dropdown.append(Render.createSearchResult(route, onAdd));
+        }
+
+        if (largeScreen()) {
+            $dropdown.style.maxWidth = "none";
+            $dropdown.style.borderBottomRightRadius = "";
+            const rect = $dropdown.getBoundingClientRect();
+
+            // prevent overflowing body
+            if (rect.right > document.documentElement.clientWidth) {
+                $dropdown.style.maxWidth = `${document.documentElement.clientWidth - rect.left}px`;
+                $dropdown.style.borderBottomRightRadius = 0;
+            }
         }
     }
 }
