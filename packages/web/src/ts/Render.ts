@@ -192,7 +192,7 @@ abstract class Render {
             // prevent overflowing body
             if (rect.right > document.documentElement.clientWidth) {
                 $dropdown.style.maxWidth = `${document.documentElement.clientWidth - rect.left}px`;
-                $dropdown.style.borderBottomRightRadius = 0;
+                $dropdown.style.borderBottomRightRadius = "0";
             }
         }
     }

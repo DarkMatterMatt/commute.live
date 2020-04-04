@@ -1,1 +1,26 @@
-{}
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "moduleResolution": "node",
+        "allowJs": true,
+        "noEmit": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "strictBindCallApply": true,
+        "strictNullChecks": false,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": false,
+
+        "baseUrl": "./",
+        "paths": {
+            "*" : ["src/ts/types/*"]
+        }
+    },
+    "include": [
+        "src"
+    ]
+}

@@ -1,8 +1,15 @@
 import Route from "./Route";
 import Render from "./Render";
-import { LiveVehicle, SearchRoute } from "./types";
+import { LiveVehicle, SearchRoute, TransitType } from "./types";
 
 const STATE_VERSION = 1;
+
+interface ParsedStateV1 {
+    version: number;
+
+    // routes: array of [TransitType, shortName, active, color]
+    routes: [TransitType, string, boolean, string][];
+}
 
 class State {
     map: google.maps.Map;
@@ -21,15 +28,20 @@ class State {
         this.load();
     }
 
-    static migrate(data: Record<string, any>): Record<string, any> {
+    static migrate(data: Record<string, any>): ParsedStateV1 {
         /* eslint-disable no-param-reassign */
-        data.version = STATE_VERSION;
-        return data;
+        if (data.routes === undefined) {
+            data.routes = [];
+        }
+        return {
+            version: STATE_VERSION,
+            routes:  data.routes,
+        };
     }
 
     toJSON(): Record<string, any> {
         return {
-            version: this.version,
+            version: STATE_VERSION,
             routes:  [...this.routesByShortName.values()].map(r => [r.type, r.shortName, r.active, r.color]),
         };
     }
@@ -39,17 +51,7 @@ class State {
     }
 
     load(): void {
-        let data: Record<string, any> = {
-            version: STATE_VERSION,
-            routes:  [],
-        };
-
-        const dataStr = localStorage.getItem("state");
-        if (dataStr !== null) {
-            data = State.migrate({ ...data, ...JSON.parse(dataStr) });
-        }
-
-        this.version = data.version;
+        const data = State.migrate(JSON.parse(localStorage.getItem("state")) || {});
 
         this.routesByShortName = new Map();
         data.routes.forEach(([type, shortName, active, color]) => {
