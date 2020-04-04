@@ -30,8 +30,10 @@ class State {
 
     static migrate(data: Record<string, any>): ParsedStateV1 {
         /* eslint-disable no-param-reassign */
+
+        // on first load, show route 25B and 70
         if (data.routes === undefined) {
-            data.routes = [];
+            data.routes = [["bus", "25B", true, "#9400D3"], ["bus", "70", true, "#E67C13"]];
         }
         return {
             version: STATE_VERSION,
