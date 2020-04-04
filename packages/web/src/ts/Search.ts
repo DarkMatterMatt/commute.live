@@ -37,7 +37,8 @@ class Search {
         const routes: SearchRoute[] = Object.values(response.routes) as SearchRoute[];
 
         const regexWord = /[a-z]+/g;
-        for (const route of routes) {
+        routes.forEach(route => {
+            /* eslint-disable no-param-reassign */
             route.shortNameLower = route.shortName.toLowerCase();
             route.longNameLower = route.longName.toLowerCase();
             route.longNameWords = [];
@@ -49,7 +50,7 @@ class Search {
                     route.longNameWords.push(m[0]);
                 }
             } while (m);
-        }
+        });
 
         const regexTwoDigits = /^\d\d\D?$/;
         routes.sort((a, b) => {

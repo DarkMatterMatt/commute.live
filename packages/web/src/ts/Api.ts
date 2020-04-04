@@ -72,9 +72,7 @@ class Api {
         this.ws.addEventListener("open", () => {
             this.resolveWhenWsConnect();
 
-            for (const shortName of this.subscriptions.values()) {
-                this.subscribe(shortName);
-            }
+            this.subscriptions.forEach(this.subscribe);
 
             // send a heartbeat every 5 seconds
             wsHeartbeatInterval = setInterval(() => {

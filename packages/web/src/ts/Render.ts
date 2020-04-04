@@ -180,9 +180,9 @@ abstract class Render {
         }
 
         $dropdown.classList.add("show");
-        for (const route of routes.slice(0, MAX_FILTER_RESULTS)) {
+        routes.slice(0, MAX_FILTER_RESULTS).forEach(route => {
             $dropdown.append(Render.createSearchResult(route, onAdd));
-        }
+        });
 
         if (largeScreen()) {
             $dropdown.style.maxWidth = "none";

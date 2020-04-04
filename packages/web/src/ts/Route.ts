@@ -79,9 +79,7 @@ class Route {
             this.polylines[2].setOptions({ strokeColor: color });
             this.polylines[3].setOptions({ strokeColor: color });
         }
-        for (const m of this.vehicleMarkers.values()) {
-            m.setIcon(this.generateMarkerIcon(m.directionId));
-        }
+        this.vehicleMarkers.forEach(m => m.setIcon(this.generateMarkerIcon(m.directionId)));
     }
 
     async activate(): Promise<void> {
@@ -123,14 +121,10 @@ class Route {
         this.active = false;
         Api.unsubscribe(this.shortName);
 
-        for (const polyline of this.polylines) {
-            polyline.setMap(null);
-            this.polylines = [];
-        }
+        this.polylines.forEach(p => p.setMap(null));
+        this.polylines = [];
 
-        for (const marker of this.vehicleMarkers.values()) {
-            marker.setMap(null);
-        }
+        this.vehicleMarkers.forEach(m => m.setMap(null));
     }
 }
 

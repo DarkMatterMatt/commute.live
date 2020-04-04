@@ -52,7 +52,7 @@ class State {
         this.version = data.version;
 
         this.routesByShortName = new Map();
-        for (const [type, shortName, active, color] of data.routes) {
+        data.routes.forEach(([type, shortName, active, color]) => {
             const route = new Route({
                 shortName,
                 color,
@@ -67,7 +67,7 @@ class State {
                 this.$addRoute.parentNode.insertBefore($activeRoute, this.$addRoute);
                 route.activate();
             }
-        }
+        });
     }
 
     // eslint-disable-next-line class-methods-use-this
