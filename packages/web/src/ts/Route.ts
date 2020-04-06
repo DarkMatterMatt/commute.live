@@ -3,6 +3,14 @@ import VehicleMarker from "./VehicleMarker";
 import Api from "./Api";
 import Render from "./Render";
 
+/**
+ * Calculates a bezier blend curve
+ * @param t position on the curve, 0 <= t <= 1
+ */
+function bezierBlend(t: number): number {
+    return t * t * (3 - 2 * t);
+}
+
 interface RouteOptions {
     map: google.maps.Map;
     type: Route["type"];
@@ -40,10 +48,11 @@ class Route {
         this.vehicleMarkers = new Map();
     }
 
-    generateMarkerIcon(directionId: LiveVehicle["directionId"], colorOverride?: string): google.maps.Icon {
-        const fill = colorOverride || this.color;
+    generateMarkerIcon(directionId: LiveVehicle["directionId"], opacity? = 1): google.maps.Icon {
+        const fill = this.color;
         const dotFill = directionId === 0 ? "#000" : "#FFF";
-        return Render.createMarkerIcon({ fill, dotFill });
+        const dotOpacity = 0.5 * opacity;
+        return Render.createMarkerIcon({ fill, dotFill, opacity, dotOpacity, borderOpacity: opacity });
     }
 
     showVehicle({ vehicleId, position, lastUpdatedUnix, directionId }: LiveVehicle): void {
@@ -53,16 +62,18 @@ class Route {
             this.vehicleMarkers.set(vehicleId, marker);
 
             marker.interval = setInterval(() => {
-            // delete marker after no update for 90 seconds
+                // delete marker after no update for 90 seconds
                 const now = (new Date()).getTime() / 1000;
                 if (marker.lastUpdatedUnix < now - 90) {
                     marker.setMap(null);
                     clearInterval(marker.interval);
                     this.vehicleMarkers.delete(vehicleId);
                 }
-                // make marker gray after no update for 30 seconds
-                else if (marker.lastUpdatedUnix < now - 30) {
-                    marker.setIcon(this.generateMarkerIcon(directionId, "gray"));
+                // marker starts going transparent after no update for 20 seconds
+                else if (marker.lastUpdatedUnix < now - 20) {
+                    // bezier from 20 to 90 secs, minimum of 0.3 opacity
+                    const opacity = 1 - 0.7 * bezierBlend((now - marker.lastUpdatedUnix - 20) / (90 - 20));
+                    marker.setIcon(this.generateMarkerIcon(directionId, opacity));
                 }
             }, 1000 + Math.floor(Math.random() * 200));
         }
