@@ -48,7 +48,7 @@ class Route {
         this.vehicleMarkers = new Map();
     }
 
-    generateMarkerIcon(directionId: LiveVehicle["directionId"], opacity? = 1): google.maps.Icon {
+    generateMarkerIcon(directionId: LiveVehicle["directionId"], opacity = 1): google.maps.Icon {
         const fill = this.color;
         const dotFill = directionId === 0 ? "#000" : "#FFF";
         const dotOpacity = 0.5 * opacity;

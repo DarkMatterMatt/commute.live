@@ -1,6 +1,7 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
 import Pickr from "@simonwep/pickr";
 import { SearchRoute } from "./types";
+import { largeScreen } from "./Helpers";
 
 import RemoveIcon from "../assets/remove.svg";
 import BusIcon from "../assets/bus-filled.svg";
@@ -31,10 +32,6 @@ interface MarkerIconOptions {
     borderOpacity?: number;
     dotFill: string;
     dotOpacity?: number;
-}
-
-function largeScreen(): boolean {
-    return window.matchMedia("(min-width: 900px)").matches;
 }
 
 abstract class Render {

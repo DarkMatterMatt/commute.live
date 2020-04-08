@@ -6,6 +6,7 @@ import { LiveVehicle } from "./types";
 import State from "./State";
 import Api from "./Api";
 import Search from "./Search";
+import { largeScreen, onClickOutside } from "./Helpers";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -27,31 +28,6 @@ const $helpBtn = $help.getElementsByClassName("btn")[0];
 /*
  * Functions
  */
-
-function largeScreen(): boolean {
-    return window.matchMedia("(min-width: 900px)").matches;
-}
-
-function isVisible($e: HTMLElement): boolean {
-    return Boolean($e && ($e.offsetWidth || $e.offsetHeight || $e.getClientRects().length));
-}
-
-function onClickOutside($e: HTMLElement, cb: (ev: MouseEvent) => void): void {
-    const outsideClickListener = (ev: MouseEvent): void => {
-        if (!$e.contains(ev.target as Node) && isVisible($e)) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            removeClickListener();
-            cb(ev);
-        }
-    };
-
-    const removeClickListener = (): void => {
-        document.removeEventListener("click", outsideClickListener);
-    };
-
-    document.addEventListener("click", outsideClickListener);
-}
-
 function closeMenu(): void {
     $menu.classList.remove("show");
 }
@@ -91,15 +67,17 @@ function openAddRouteInput(): void {
      * Init
      */
 
-    await Api.wsConnect();
-    const state = new State(new google.maps.Map($map, {
+    const map = new google.maps.Map($map, {
         center:            AUCKLAND_COORDS,
         zoom:              13,
         fullscreenControl: false,
         streetViewControl: false,
         mapTypeControl:    false,
-    }), $addRoute);
-    navigator.geolocation.getCurrentPosition(r => state.map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
+    });
+    navigator.geolocation.getCurrentPosition(r => map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
+
+    await Api.wsConnect();
+    const state = new State(map, $addRoute);
 
     const search = new Search(state, $searchInput, $dropdownFilter);
     search.load();
