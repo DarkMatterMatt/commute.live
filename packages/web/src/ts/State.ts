@@ -1,6 +1,8 @@
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import Route from "./Route";
 import Render from "./Render";
 import { LiveVehicle, SearchRoute, TransitType } from "./types";
+import { localStorageEnabled } from "./Helpers";
 
 const STATE_VERSION = 1;
 
@@ -41,22 +43,36 @@ class State {
         };
     }
 
-    toJSON(): Record<string, any> {
+    toJSON(onlyActive = false): ParsedStateV1 {
+        const routes = [...this.routesByShortName.values()].filter(r => !onlyActive || r.active);
         return {
             version: STATE_VERSION,
-            routes:  [...this.routesByShortName.values()].map(r => [r.type, r.shortName, r.active, r.color]),
+            routes:  routes.map(r => [r.type, r.shortName, r.active, r.color]),
         };
     }
 
     save(): void {
-        localStorage.setItem("state", JSON.stringify(this));
+        if (localStorageEnabled()) {
+            localStorage.setItem("state", JSON.stringify(this));
+        }
+        else {
+            window.location.hash = compressToEncodedURIComponent(JSON.stringify(this.toJSON(true)));
+        }
     }
 
     load(): void {
-        const data = State.migrate(JSON.parse(localStorage.getItem("state")) || {});
+        let data;
+        if (window.location.hash) {
+            // trim leading # off location.hash and decompress
+            data = decompressFromEncodedURIComponent(window.location.hash.replace(/^#/, ""));
+        }
+        else if (localStorageEnabled()) {
+            data = localStorage.getItem("state");
+        }
+        const parsed = State.migrate(data ? JSON.parse(data) : {});
 
         this.routesByShortName = new Map();
-        data.routes.forEach(([type, shortName, active, color]) => {
+        parsed.routes.forEach(([type, shortName, active, color]) => {
             const route = new Route({
                 shortName,
                 color,
