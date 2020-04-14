@@ -24,6 +24,14 @@ export function localStorageEnabled(): boolean {
 }
 
 /**
+ * Test if the specified object is empty
+ * @param obj The object to test
+ */
+export function isEmptyObject(obj): boolean {
+    return Object.keys(obj).length === 0 && obj.constructor === Object;
+}
+
+/**
  * Test if the specified HTMLElement is visible
  * @param $e The HTMLElement to check the visibility of
  */

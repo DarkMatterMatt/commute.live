@@ -2,11 +2,11 @@ import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from
 import Route from "./Route";
 import Render from "./Render";
 import { LiveVehicle, SearchRoute, TransitType } from "./types";
-import { localStorageEnabled } from "./Helpers";
+import { localStorageEnabled, isEmptyObject } from "./Helpers";
 
 const STATE_VERSION = 1;
 
-interface ParsedStateV1 {
+interface ParsedState {
     version: number;
 
     // routes: array of [TransitType, shortName, active, color]
@@ -30,11 +30,11 @@ class State {
         this.load();
     }
 
-    static migrate(data: Record<string, any>): ParsedStateV1 {
+    static migrate(data: Record<string, any>): ParsedState {
         /* eslint-disable no-param-reassign */
 
         // on first load, show route 25B and 70
-        if (data.routes === undefined) {
+        if (isEmptyObject(data)) {
             data.routes = [["bus", "25B", true, "#9400D3"], ["bus", "70", true, "#E67C13"]];
         }
         return {
@@ -43,7 +43,7 @@ class State {
         };
     }
 
-    toJSON(onlyActive = false): ParsedStateV1 {
+    toJSON(onlyActive = false): ParsedState {
         const routes = [...this.routesByShortName.values()].filter(r => !onlyActive || r.active);
         return {
             version: STATE_VERSION,
@@ -54,6 +54,7 @@ class State {
     save(): void {
         if (localStorageEnabled()) {
             localStorage.setItem("state", JSON.stringify(this));
+            window.location.hash = "";
         }
         else {
             window.location.hash = compressToEncodedURIComponent(JSON.stringify(this.toJSON(true)));
@@ -61,10 +62,12 @@ class State {
     }
 
     load(): void {
+        // trim leading # off location.hash
+        const hash = window.location.hash.replace(/^#/, "");
+
         let data;
-        if (window.location.hash) {
-            // trim leading # off location.hash and decompress
-            data = decompressFromEncodedURIComponent(window.location.hash.replace(/^#/, ""));
+        if (hash) {
+            data = decompressFromEncodedURIComponent(hash);
         }
         else if (localStorageEnabled()) {
             data = localStorage.getItem("state");
