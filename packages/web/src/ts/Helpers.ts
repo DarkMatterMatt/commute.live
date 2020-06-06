@@ -27,7 +27,7 @@ export function localStorageEnabled(): boolean {
  * Test if the specified object is empty
  * @param obj The object to test
  */
-export function isEmptyObject(obj): boolean {
+export function isEmptyObject(obj: Record<any, any>): boolean {
     return Object.keys(obj).length === 0 && obj.constructor === Object;
 }
 

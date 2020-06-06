@@ -1,7 +1,14 @@
+const os = require("os");
 const path = require("path");
 const Dotenv = require("dotenv-webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+
+// find internal IP
+const ifaces = os.networkInterfaces();
+let iface = ifaces["Ethernet"] || ifaces["Wi-Fi"] || ifaces["eth0"] || ifaces["wlan0"];
+iface = iface && iface.find(i => i.family === "IPv4");
+const ip = iface && iface.address;
 
 module.exports = {
     entry: {
@@ -16,7 +23,9 @@ module.exports = {
     },
     devtool:   "source-map",
     devServer: {
+        host: ip,
         open: true,
+        openPage: `http://${ip}:8080/`,
     },
     module: {
         rules: [
