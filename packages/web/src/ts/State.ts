@@ -4,13 +4,13 @@ import Render from "./Render";
 import { LiveVehicle, SearchRoute, TransitType } from "./types";
 import { localStorageEnabled, isEmptyObject } from "./Helpers";
 
-const STATE_VERSION = 1;
+const STATE_VERSION = 2;
 
 interface ParsedState {
     version: number;
 
-    // routes: array of [TransitType, shortName, active, color]
-    routes: [TransitType, string, boolean, string][];
+    // routes: array of [TransitType, shortName, active, color, longName]
+    routes: [TransitType, string, boolean, string, string][];
 }
 
 class State {
@@ -22,21 +22,31 @@ class State {
 
     routesByShortName: Map<string, Route>;
 
-    $addRoute: HTMLElement;
+    $activeRoutes: HTMLElement;
 
-    constructor(map: google.maps.Map, $addRoute: HTMLElement) {
+    constructor(map: google.maps.Map, $activeRoutes: HTMLElement) {
         this.map = map;
-        this.$addRoute = $addRoute;
+        this.$activeRoutes = $activeRoutes;
         this.load();
     }
 
     static migrate(data: Record<string, any>): ParsedState {
         /* eslint-disable no-param-reassign */
+        const version = { data };
 
         // on first load, show route 25B and 70
         if (isEmptyObject(data)) {
-            data.routes = [["bus", "25B", true, "#9400D3"], ["bus", "70", true, "#E67C13"]];
+            return {
+                version: STATE_VERSION,
+                routes:  [["bus", "25B", true, "#9400D3", "Blockhouse Bay to City Centre via Dominion Rd"], ["bus", "70", true, "#E67C13", "Britomart to Botany via Ellerslie And Panmure"]],
+            };
         }
+
+        if (version < 2) {
+            // add empty longName to route
+            data.routes.forEach(r => r.push(""));
+        }
+
         return {
             version: STATE_VERSION,
             routes:  data.routes,
@@ -47,7 +57,7 @@ class State {
         const routes = [...this.routesByShortName.values()].filter(r => !onlyActive || r.active);
         return {
             version: STATE_VERSION,
-            routes:  routes.map(r => [r.type, r.shortName, r.active, r.color]),
+            routes:  routes.map(r => [r.type, r.shortName, r.active, r.color, r.longName]),
         };
     }
 
@@ -75,9 +85,10 @@ class State {
         const parsed = State.migrate(data ? JSON.parse(data) : {});
 
         this.routesByShortName = new Map();
-        parsed.routes.forEach(([type, shortName, active, color]) => {
+        parsed.routes.forEach(([type, shortName, active, color, longName]) => {
             const route = new Route({
                 shortName,
+                longName,
                 color,
                 type,
                 map: this.map,
@@ -85,9 +96,9 @@ class State {
             this.routesByShortName.set(shortName, route);
 
             if (active) {
-                const $activeRoute = Render.createActiveRoute({ shortName }, route.color, false,
+                const $activeRoute = Render.createActiveRoute({ type, shortName, longName }, route.color, false,
                     this.changeRouteColor.bind(this), this.deactivateRoute.bind(this));
-                this.$addRoute.parentNode.insertBefore($activeRoute, this.$addRoute);
+                this.$activeRoutes.appendChild($activeRoute);
                 route.activate();
             }
         });
@@ -129,13 +140,14 @@ class State {
         this.save();
     }
 
-    async activateRoute({ shortName, type }: SearchRoute): Promise<void> {
+    async activateRoute({ shortName, longName, type }: SearchRoute): Promise<void> {
         let route = this.routesByShortName.get(shortName);
         let showPickr = false;
         if (route === undefined) {
             showPickr = true;
             route = new Route({
                 shortName,
+                longName,
                 type,
                 color:  this.getNewColor(),
                 map:    this.map,
@@ -143,9 +155,9 @@ class State {
             this.routesByShortName.set(shortName, route);
         }
 
-        const $activeRoute = Render.createActiveRoute({ shortName }, route.color, showPickr,
+        const $activeRoute = Render.createActiveRoute({ shortName, longName, type }, route.color, showPickr,
             this.changeRouteColor.bind(this), this.deactivateRoute.bind(this));
-        this.$addRoute.parentNode.insertBefore($activeRoute, this.$addRoute);
+        this.$activeRoutes.appendChild($activeRoute);
 
         await route.activate();
         this.save();

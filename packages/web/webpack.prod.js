@@ -10,7 +10,7 @@ module.exports = {
         main: "./src/ts/index.ts",
     },
     resolve: {
-        extensions: [".ts", ".js"],
+        extensions: [".ts", ".tsx", ".js"],
     },
     output: {
         path:     path.resolve(__dirname, "dist"),
@@ -38,7 +38,7 @@ module.exports = {
                     },
                 ]
             }, {
-                test:    /\.ts$/,
+                test:    /\.tsx?$/,
                 use:     "babel-loader",
                 exclude: /node_modules/,
             }, {

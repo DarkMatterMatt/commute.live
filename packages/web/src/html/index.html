@@ -11,48 +11,49 @@
 </head>
 
 <body>
-    <img id="open-menu" class="btn hide-900" src="../assets/menu.svg">
-    <div id="menu">
-        <div class="spacer hide-0-899"></div>
-        <div id="title">
-            <img src="../assets/logo.svg" alt="AT Live">
-            <div class="hide-0-899">Routes:</div>
-            <div class="hide-900">AT Live</div>
-            <div class="close hide-900"><img src="../assets/close.svg" alt="Close menu"></div>
-        </div>
-        <!-- List of active routes -->
-        <div id="add-route">
-            <img class="btn hide-0-899" src="../assets/plus-circle.svg">
-            <input type="text" placeholder="Search" autocomplete="off">
-            <div id="dropdown-filter">
-                <!-- List of routes -->
-            </div>
-        </div>
-        <div id="about" class="hide-900 show">
-            <div>About</div>
-            <div class="message">
-                <div>AT Live provides live tracking for buses, trains and ferries on the Auckland Transport network.
-                </div>
-                <div class="small">&copy; Matt Moran (2020). <span style="float: right;">v<%= require('../../package.json').version %></span></div>
-            </div>
-        </div>
-        <div id="help" class="hide-0-899">
-            <img class="btn" src="../assets/help-circle.svg">
-            <div class="message">
-                <p>AT Live provides live tracking for buses, trains and ferries on the Auckland Transport
-                    network.</p>
-                <p>Track a new route by clicking the <img class="inline" src="../assets/plus-circle.svg"> and change its
-                    color by clicking on the left of its icon in the menu bar.</p>
-                <p>Markers with a dark center are travelling in the opposite direction to those with a light
-                    center. Dark center dots tend to move towards the city.</p>
-                <div class="small">&copy; Matt Moran (2020).<span style="float: right;">v<%= require('../../package.json').version %></span></div>
-            </div>
-        </div>
-        <div class="spacer hide-0-899"></div>
+    <div id="nav-show" class="hide-0-899 btn">
+        <img src="../assets/menu-24px-white.svg">
     </div>
-    <div id="menu-blend" class="hide-0-899"></div>
-    <div id="map">
+    <div id="map" class="active">
         <!-- Google Maps -->
+    </div>
+    <div id="main">
+        <div id="content">
+            <!-- #map is here on 0-899 site -->
+            <div id="routes"">
+                <div class="container">
+                    <input type="search" autocorrect="off" autocomplete="off" spellcheck="false" required />
+                    <label>Track a new route</label>
+                    <div id="results">
+                        <!-- List of routes that can be added -->
+                    </div>
+                    <div id="active">
+                        <!-- List of active routes -->
+                    </div>
+                </div>
+            </div>
+            <div id="settings">
+                
+            </div>
+        </div>
+        <div id="navbar">
+            <div id="nav-map" class="tab btn active hide-900">
+                <img src="../assets/map-24px-white.svg">
+                <span>Map</span>
+            </div>
+            <div id="nav-routes" class="tab btn">
+                <img src="../assets/search-24px-white.svg">
+                <span>Routes</span>
+            </div>
+            <div id="nav-settings" class="tab btn">
+                <img src="../assets/settings-24px-white.svg">
+                <span>Settings</span>
+            </div>
+            <div id="nav-hide" class="tab btn hide-0-899">
+                <img src="../assets/menu_open-24px-white.svg">
+                <span>Hide Menu</span>
+            </div>
+        </div>
     </div>
     <%= htmlWebpackPlugin.tags.bodyTags %>
 </body>

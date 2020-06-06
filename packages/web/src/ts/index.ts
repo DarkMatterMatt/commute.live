@@ -6,7 +6,6 @@ import { LiveVehicle } from "./types";
 import State from "./State";
 import Api from "./Api";
 import Search from "./Search";
-import { largeScreen, onClickOutside } from "./Helpers";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -15,51 +14,52 @@ const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
  */
 
 const $map = document.getElementById("map");
-const $openMenu = document.getElementById("open-menu");
-const $menu = document.getElementById("menu");
-const $closeMenu = $menu.getElementsByClassName("close")[0];
-const $addRoute = document.getElementById("add-route");
-const $searchBtn = $addRoute.getElementsByClassName("btn")[0];
-const $searchInput = $addRoute.getElementsByTagName("input")[0];
-const $dropdownFilter = document.getElementById("dropdown-filter");
-const $help = document.getElementById("help");
-const $helpBtn = $help.getElementsByClassName("btn")[0];
+const $searchInput = document.querySelector("input[type=search]");
+const $dropdownFilter = document.getElementById("results");
+const $activeRoutes = document.getElementById("active");
+const $main = document.getElementById("main");
+const $navShow = document.getElementById("nav-show");
+const $navHide = document.getElementById("nav-hide");
+
+/*
+ * Nav Map
+ */
+
+const navMap = [
+    [document.getElementById("nav-map"), document.getElementById("map")],
+    [document.getElementById("nav-routes"), document.getElementById("routes")],
+    [document.getElementById("nav-settings"), document.getElementById("settings")],
+];
+let navActive = navMap[0];
 
 /*
  * Functions
  */
-function closeMenu(): void {
-    $menu.classList.remove("show");
+
+function selectNavTab($tab, $target) {
+    if ($tab.classList.contains("active")) {
+        // already active
+        return;
+    }
+    $tab.classList.add("active");
+    $target.classList.add("active");
+
+    navActive[0].classList.remove("active");
+    navActive[1].classList.remove("active");
+    navActive = [$tab, $target];
 }
 
-function openMenu(): void {
-    $menu.classList.add("show");
-}
+function showNav() {
+    $main.classList.add("show");
 
-function showHelp(): void {
-    $help.classList.add("show");
-}
-
-function hideHelp(): void {
-    $help.classList.remove("show");
-}
-
-function helpIsVisible(): boolean {
-    return $help.classList.contains("show");
-}
-
-function closeAddRouteInput(): void {
-    $addRoute.classList.remove("show");
-    if (largeScreen()) {
-        setTimeout(() => {
-            $searchInput.value = "";
-        }, 200);
+    // desktop: select the routes tab if the map tab was selected
+    if (navActive[0] === navMap[0][0]) {
+        selectNavTab(...navMap[1]);
     }
 }
 
-function openAddRouteInput(): void {
-    $addRoute.classList.add("show");
-    $searchInput.focus();
+function hideNav() {
+    $main.classList.remove("show");
 }
 
 (async (): Promise<void> => {
@@ -77,7 +77,7 @@ function openAddRouteInput(): void {
     navigator.geolocation.getCurrentPosition(r => map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
 
     await Api.wsConnect();
-    const state = new State(map, $addRoute);
+    const state = new State(map, $activeRoutes);
 
     const search = new Search(state, $searchInput, $dropdownFilter);
     search.load();
@@ -85,6 +85,22 @@ function openAddRouteInput(): void {
     /*
      * Event Listeners
      */
+
+    $navShow.addEventListener("click", showNav);
+    $navHide.addEventListener("click", hideNav);
+    $map.addEventListener("mousedown", hideNav);
+
+    // navigation
+    navMap.forEach(([$tab, $target]) => {
+        $tab.addEventListener("click", () => selectNavTab($tab, $target));
+
+        $tab.addEventListener("contextmenu", ev => {
+            // disable rightclick/longpress on image
+            ev.preventDefault();
+            ev.stopPropagation();
+            return false;
+        });
+    });
 
     // listen for messages
     Api.onMessage((data: Record<string, any>) => {
@@ -109,32 +125,4 @@ function openAddRouteInput(): void {
     });
 
     Api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
-
-    $openMenu.addEventListener("click", openMenu);
-
-    $closeMenu.addEventListener("click", closeMenu);
-
-    $addRoute.addEventListener("click", ev => {
-        if (!$addRoute.classList.contains("show")) {
-            openAddRouteInput();
-            onClickOutside($addRoute, () => {
-                closeAddRouteInput();
-                search.hideDropdown();
-            });
-        }
-        else if (ev.target === $searchBtn) {
-            closeAddRouteInput();
-            search.hideDropdown();
-        }
-    });
-
-    $helpBtn.addEventListener("click", ev => {
-        if (!helpIsVisible()) {
-            showHelp();
-            onClickOutside($help, hideHelp);
-        }
-        else if (ev.target === $helpBtn) {
-            hideHelp();
-        }
-    });
 })();

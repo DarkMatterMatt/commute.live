@@ -17,18 +17,21 @@ class Search {
         this.$search = $search;
         this.$dropdown = $dropdown;
 
+        $search.addEventListener("input", () => {
+            this.search($search.value);
+        });
+
         $search.addEventListener("keyup", ev => {
             if (ev.key === "Escape") {
-                // eslint-disable-next-line no-param-reassign
-                $search.value = "";
-                this.hideDropdown();
-                return;
+                this.clear();
             }
             if (ev.key === "Enter") {
-                ($dropdown.firstChild as HTMLElement).click();
-                return;
+                const $topResult = $dropdown.firstChild as HTMLElement;
+                if ($topResult !== null) {
+                    $topResult.click();
+                    this.clear();
+                }
             }
-            this.search($search.value);
         });
     }
 
@@ -76,20 +79,22 @@ class Search {
 
     render(routes: SearchRoute[]): void {
         Render.renderFilterDropdown(this.$dropdown, routes, routeData => {
-            this.$search.value = "";
+            this.clear();
             this.state.activateRoute(routeData);
         });
     }
 
-    hideDropdown(): void {
+    clear(): void {
         this.render([]);
+        this.$search.value = "";
+        this.$search.blur();
     }
 
     search(query_: string): void {
         const query = query_.toLowerCase();
 
         if (query === "") {
-            this.hideDropdown();
+            this.clear();
             return;
         }
 

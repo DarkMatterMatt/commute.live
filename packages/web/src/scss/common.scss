@@ -1,0 +1,188 @@
+.btn {
+    cursor: pointer;
+    user-select: none;
+}
+
+.flex-fill-no-overflow {
+    /* note: the parent _must_ be position:relative */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#content {
+    z-index: 2;
+    overflow: auto;
+    width: 100%;
+    background-color: $white;
+
+    >div {
+        display: none;
+
+        &.active {
+            display: block;
+        }
+    }
+
+    #routes {
+        $itemHeight: 48px;
+        padding: 16px;
+
+        .container {
+            position: relative;
+        }
+
+        input {
+            height: 100%;
+            width: 100%;
+            padding: 20px 16px 6px;
+            appearance: none;
+            background-color: #f5f5f5;
+            border: none;
+            border-bottom: 1px solid;
+            border-radius: 4px 4px 0 0;
+            outline: none;
+        }
+
+        label {
+            position: absolute;
+            top: $itemHeight/2;
+            left: 16px;
+            right: initial;
+            transform: translateY(-50%);
+            transform-origin: left top;
+            color: rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+            transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        input:focus, input:valid {
+            border-bottom: 2px solid $blue;
+
+            &~label {
+                transform: translateY(-106%) scale(0.75);
+                color: $blue;
+            }
+
+            &~#results {
+                display: block;
+            }
+
+            &~#active {
+                display: none;
+            }
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            height: $itemHeight;
+            width: 100%;
+        }
+
+        #results {
+            display: none;
+            overflow-y: auto;
+            flex-grow: 1;
+
+            .route {
+                border-bottom: 1px solid $blue;
+
+                img {
+                    height: 32px;
+                }
+
+                .col {
+                    width: calc(100% - 40px);
+
+                    .short.name {
+                        display: block;
+                        font-size: 16px;
+                        font-weight: bold;
+                    }
+                    
+                    .long.name {
+                        display: block;
+                        font-size: 13px;
+                        white-space: nowrap;
+                    }
+                }
+
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
+        }
+
+        #active {
+            .route {
+                --color: transparent;
+                border-bottom: 1px solid $blue;
+
+                img {
+                    height: 32px;
+                }
+
+                .pickr {
+                    height: 32px;
+                    width: 32px;
+                    background-color: var(--color);
+                    border-radius: 4px;
+                }
+
+                .remove {
+                    height: 32px;
+                }
+
+                .col {
+                    width: calc(100% - 2*32px);
+                    padding-left: 4px;
+
+                    .short.name {
+                        display: block;
+                        font-size: 16px;
+                        font-weight: bold;
+                    }
+                    
+                    .long.name {
+                        display: block;
+                        font-size: 13px;
+                        white-space: nowrap;
+                    }
+                }
+
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
+        }
+    }
+}
+
+#navbar {
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    height: $navHeight;
+    background-color: $blue;
+
+    .tab {
+        display: flex;
+        opacity: 0.6;
+        flex: 1 1 0px;
+        flex-direction: column;
+        height: 100%;
+        max-width: 168px;
+        padding-top: 8px;
+        font-size: 12px;
+        color: $white;
+        text-align: center;
+
+        &.active, &:hover {
+            opacity: 1;
+        }
+    }
+}

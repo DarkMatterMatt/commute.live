@@ -32,7 +32,8 @@ module.exports = {
             "functions": "never",
         }],
         "@typescript-eslint/indent": ["error", 4, {
-            "SwitchCase": 1
+            "SwitchCase": 1,
+            "ignoredNodes": ['JSXElement', 'JSXElement > *', 'JSXAttribute', 'JSXIdentifier', 'JSXNamespacedName', 'JSXMemberExpression', 'JSXSpreadAttribute', 'JSXExpressionContainer', 'JSXOpeningElement', 'JSXClosingElement', 'JSXText', 'JSXEmptyExpression', 'JSXSpreadChild'],
         }],
         "key-spacing": ["error", {
             "mode": "minimum",
