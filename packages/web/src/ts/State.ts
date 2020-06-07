@@ -32,19 +32,22 @@ class State {
 
     static migrate(data: Record<string, any>): ParsedState {
         /* eslint-disable no-param-reassign */
-        const version = { data };
+        const version = data.version as number;
 
         // on first load, show route 25B and 70
         if (isEmptyObject(data)) {
             return {
                 version: STATE_VERSION,
-                routes:  [["bus", "25B", true, "#9400D3", "Blockhouse Bay to City Centre via Dominion Rd"], ["bus", "70", true, "#E67C13", "Britomart to Botany via Ellerslie And Panmure"]],
+                routes:  [
+                    ["bus", "25B", true, "#9400D3", "Blockhouse Bay to City Centre via Dominion Rd"],
+                    ["bus", "70", true, "#E67C13", "Britomart to Botany via Ellerslie And Panmure"],
+                ],
             };
         }
 
         if (version < 2) {
             // add empty longName to route
-            data.routes.forEach(r => r.push(""));
+            (data.routes as any[][]).forEach(r => r.push(""));
         }
 
         return {

@@ -6,6 +6,7 @@
         "noEmit": true,
         "isolatedModules": true,
         "esModuleInterop": true,
+        "jsx": "react",
 
         "noImplicitAny": true,
         "noImplicitThis": true,

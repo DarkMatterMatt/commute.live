@@ -15,7 +15,7 @@ const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
  */
 
 const $map = document.getElementById("map");
-const $searchInput = document.querySelector("input[type=search]");
+const $searchInput = document.getElementById("search") as HTMLInputElement;
 const $dropdownFilter = document.getElementById("results");
 const $activeRoutes = document.getElementById("active");
 const $main = document.getElementById("main");
@@ -26,7 +26,7 @@ const $navHide = document.getElementById("nav-hide");
  * Nav Map
  */
 
-const navMap = [
+const navMap: [HTMLElement, HTMLElement][] = [
     [document.getElementById("nav-map"), document.getElementById("map")],
     [document.getElementById("nav-routes"), document.getElementById("routes")],
     [document.getElementById("nav-settings"), document.getElementById("settings")],
@@ -37,7 +37,7 @@ let navActive = navMap[0];
  * Functions
  */
 
-function selectNavTab($tab, $target) {
+function selectNavTab($tab: HTMLElement, $target: HTMLElement) {
     if ($tab.classList.contains("active")) {
         // already active
         return;

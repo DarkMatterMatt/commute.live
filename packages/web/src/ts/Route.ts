@@ -16,6 +16,7 @@ interface RouteOptions {
     type: Route["type"];
     color: string;
     active?: boolean;
+    longName: Route["longName"];
     shortName: Route["shortName"];
 }
 
@@ -36,14 +37,14 @@ class Route {
 
     vehicleMarkers: Map<string, VehicleMarker>;
 
-    constructor({ map, type, color, shortName }: RouteOptions) {
+    constructor({ map, type, color, longName, shortName }: RouteOptions) {
         this.map = map;
         this.type = type;
         this.color = color;
+        this.longName = longName;
         this.shortName = shortName;
 
         this.active = false;
-        this.longName = null;
         this.polylines = [];
         this.vehicleMarkers = new Map();
     }

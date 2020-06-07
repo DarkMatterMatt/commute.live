@@ -24,6 +24,7 @@ module.exports = {
         "arrow-parens": ["error", "as-needed"],
         "arrow-spacing": "error",
         "@typescript-eslint/brace-style": ["error", "stroustrup"],
+        "@typescript-eslint/camelcase": "off",
         "comma-dangle": ["error", {
             "arrays": "always-multiline",
             "objects": "always-multiline",

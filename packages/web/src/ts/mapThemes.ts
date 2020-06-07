@@ -1,4 +1,4 @@
-const mapThemes = {
+const mapThemes: Record<string, google.maps.MapTypeStyle[]> = {
     light: [
         {
             featureType: "administrative.land_parcel",
