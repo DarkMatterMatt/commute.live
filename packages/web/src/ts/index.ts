@@ -6,6 +6,7 @@ import { LiveVehicle } from "./types";
 import State from "./State";
 import Api from "./Api";
 import Search from "./Search";
+import mapThemes from "./mapThemes";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -63,6 +64,8 @@ function hideNav() {
 }
 
 (async (): Promise<void> => {
+    const darkMode = false;
+
     /*
      * Init
      */
@@ -73,6 +76,8 @@ function hideNav() {
         fullscreenControl: false,
         streetViewControl: false,
         mapTypeControl:    false,
+        styles:            darkMode ? mapThemes.dark : mapThemes.light,
+        backgroundColor:   darkMode ? "#17263c" : undefined,
     });
     navigator.geolocation.getCurrentPosition(r => map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
 

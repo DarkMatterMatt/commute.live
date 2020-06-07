@@ -11,8 +11,14 @@ $minNavWidth: 350px;
     left: 32px;
     height: 48px;
     width: 48px;
-    background-color: $blue;
+    background-color: var(--blue);
     border-radius: 4px;
+    color: var(--blue-100);
+
+    &.active,
+    &:hover {
+        color: var(--white);
+    }
 
     img {
         height: 100%;
@@ -26,7 +32,7 @@ $minNavWidth: 350px;
     flex-direction: column-reverse;
     height: 100%;
     width: 0;
-    background-color: $white;
+    background-color: var(--white);
     white-space: nowrap;
     transition: width 150ms cubic-bezier(0.4, 0, 0.2, 1);
 

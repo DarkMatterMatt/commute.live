@@ -50,6 +50,9 @@ module.exports = {
             "allowForLoopAfterthoughts": true
         }],
         "no-underscore-dangle": "off",
+        "react/no-unknown-property": ["error", {
+            "ignore": ["class"],
+        }],
         "@typescript-eslint/no-unused-vars": ["error", {
             "argsIgnorePattern": "^_+$",
         }],

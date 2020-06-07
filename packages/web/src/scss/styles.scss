@@ -1,13 +1,9 @@
 @import "../../node_modules/normalize.css/normalize.css";
 
-$blue: #4b93c0;
-$green: #88aa44;
-$navy: #081937;
-$red: #ea3630;
-$white: #fff;
 $navHeight: 56px;
 
-html, body {
+html,
+body {
     height: 100%;
     width: 100%;
     margin: 0;
@@ -29,10 +25,14 @@ body {
     box-sizing: inherit
 }
 
+@import "./theme";
+
 @import "./common";
+
 @media (max-width: 899px) {
     @import "./0-899";
 }
+
 @media (min-width: 900px) {
     @import "./900-";
 }

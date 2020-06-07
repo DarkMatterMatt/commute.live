@@ -132,15 +132,20 @@ abstract class Render {
             type: routeData.type,
             fill: Render.shouldUseLightText(color) ? "#FFF" : "#000",
         });
-        const $pickr = <img className="pickr btn" src={icon.url} alt="Change colour" />;
-        const $remove = <img className="remove btn" src={RemoveIcon} alt="Remove route" />;
+        const $pickr = <img class="pickr btn" src={icon.url} alt="Change colour" />;
+        const $remove = (
+          <svg class="remove btn" viewBox="0 0 24 24">
+            <path fill="none" d="M0 0h24v24H0V0z" />
+            <path d="M18.3 5.71c-.39-.39-1.02-.39-1.41 0L12 10.59 7.11 5.7c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41L10.59 12 5.7 16.89c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L12 13.41l4.89 4.89c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z" />
+          </svg>
+        );
 
         const $parent = (
-          <div className="route row">
+          <div class="route row">
             {$pickr}
-            <div className="col">
-              <span className="short name">{routeData.shortName}</span>
-              <span className="long name">{routeData.longName}</span>
+            <div class="col">
+              <span class="short name">{routeData.shortName}</span>
+              <span class="long name">{routeData.longName}</span>
             </div>
             {$remove}
           </div>
@@ -218,11 +223,11 @@ abstract class Render {
         });
 
         const $parent = (
-          <div className="route btn row">
+          <div class="route btn row">
             <img src={icon.url} alt={routeData.type} />
-            <div className="col">
-              <span className="short name">{routeData.shortName}</span>
-              <span className="long name">{routeData.longName}</span>
+            <div class="col">
+              <span class="short name">{routeData.shortName}</span>
+              <span class="long name">{routeData.longName}</span>
             </div>
           </div>
         );

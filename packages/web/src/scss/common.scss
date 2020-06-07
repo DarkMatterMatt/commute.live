@@ -1,3 +1,13 @@
+body {
+    color: var(--black);
+}
+
+svg {
+    fill: currentColor;
+    height: 24px;
+    width: 24px;
+}
+
 .btn {
     cursor: pointer;
     user-select: none;
@@ -16,7 +26,7 @@
     z-index: 2;
     overflow: auto;
     width: 100%;
-    background-color: $white;
+    background-color: var(--white);
 
     >div {
         display: none;
@@ -39,7 +49,7 @@
             width: 100%;
             padding: 20px 16px 6px;
             appearance: none;
-            background-color: #f5f5f5;
+            background-color: var(--blue-100);
             border: none;
             border-bottom: 1px solid;
             border-radius: 4px 4px 0 0;
@@ -53,18 +63,19 @@
             right: initial;
             transform: translateY(-50%);
             transform-origin: left top;
-            color: rgba(0, 0, 0, 0.6);
+            color: var(--black-800);
             pointer-events: none;
             transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1);
             will-change: transform;
         }
 
-        input:focus, input:valid {
-            border-bottom: 2px solid $blue;
+        input:focus,
+        input:valid {
+            border-bottom: 2px solid var(--blue);
 
             &~label {
                 transform: translateY(-106%) scale(0.75);
-                color: $blue;
+                color: var(--blue);
             }
 
             &~#results {
@@ -89,7 +100,7 @@
             flex-grow: 1;
 
             .route {
-                border-bottom: 1px solid $blue;
+                border-bottom: 1px solid var(--blue);
 
                 img {
                     height: 32px;
@@ -103,7 +114,7 @@
                         font-size: 16px;
                         font-weight: bold;
                     }
-                    
+
                     .long.name {
                         display: block;
                         font-size: 13px;
@@ -120,7 +131,7 @@
         #active {
             .route {
                 --color: transparent;
-                border-bottom: 1px solid $blue;
+                border-bottom: 1px solid var(--blue);
 
                 img {
                     height: 32px;
@@ -146,7 +157,7 @@
                         font-size: 16px;
                         font-weight: bold;
                     }
-                    
+
                     .long.name {
                         display: block;
                         font-size: 13px;
@@ -160,6 +171,77 @@
             }
         }
     }
+
+    #settings {
+        $itemHeight: 32px;
+        padding: 16px;
+
+        h2 {
+            color: var(--blue);
+            margin-block-start: 0.5em;
+            margin-block-end: 0.5em;
+        }
+
+        .setting {
+            display: flex;
+            align-items: center;
+            height: $itemHeight;
+            width: 100%;
+            cursor: pointer;
+
+            span {
+                flex-grow: 1;
+            }
+
+            .switch-input {
+                display: none;
+            
+                &:checked+.switch-label:before {
+                    background-color: var(--blue-200);
+                }
+            
+                &:checked+.switch-label:after {
+                    background-color: var(--blue);
+                    transform: translate(80%, -50%);
+                }
+            }
+            
+            .switch-label {
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                padding: 10px 0 10px 36px;
+            
+                &:before,
+                &:after {
+                    content: "";
+                    position: absolute;
+                    margin: 0;
+                    outline: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    transition: all 150ms ease;
+                }
+            
+                &:before {
+                    left: 1px;
+                    width: 34px;
+                    height: 14px;
+                    background-color: #9E9E9E;
+                    border-radius: 8px;
+                }
+            
+                &:after {
+                    left: 0;
+                    width: 20px;
+                    height: 20px;
+                    background-color: #FAFAFA;
+                    border-radius: 50%;
+                    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.14), 0 2px 2px 0 rgba(0, 0, 0, 0.098), 0 1px 5px 0 rgba(0, 0, 0, 0.084);
+                }
+            }
+        }
+    }
 }
 
 #navbar {
@@ -167,22 +249,26 @@
     display: flex;
     justify-content: center;
     height: $navHeight;
-    background-color: $blue;
+    background-color: var(--blue);
 
     .tab {
         display: flex;
-        opacity: 0.6;
         flex: 1 1 0px;
         flex-direction: column;
         height: 100%;
         max-width: 168px;
         padding-top: 8px;
         font-size: 12px;
-        color: $white;
+        color: var(--blue-200);
         text-align: center;
 
-        &.active, &:hover {
-            opacity: 1;
+        &.active,
+        &:hover {
+            color: var(--white);
+        }
+
+        svg {
+            margin: 0 auto;
         }
     }
 }
