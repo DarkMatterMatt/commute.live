@@ -4,6 +4,7 @@ import Render from "./Render";
 import { LiveVehicle, SearchRoute, TransitType } from "./types";
 import { localStorageEnabled, isEmptyObject } from "./Helpers";
 import { api } from "./Api";
+import { settings } from "./Settings";
 
 const STATE_VERSION = 2;
 
@@ -12,6 +13,9 @@ interface ParsedState {
 
     // routes: array of [shortName, active, color]
     routes: [string, boolean, string][];
+
+    // map of <settingName, value>
+    settings: Record<string, any>;
 }
 
 let instance: State = null;
@@ -24,13 +28,15 @@ class State {
     $activeRoutes: HTMLElement = document.createElement("div");
 
     private constructor() {
-        //
+        settings.settings.forEach(s => s.addChangeListener(() => this.save()));
     }
 
     static getInstance(): State {
         if (instance == null) {
             instance = new State();
         }
+        window.state = instance;
+        window.settings = settings;
         return instance;
     }
 
@@ -46,17 +52,20 @@ class State {
                     ["25B", true, "#9400D3"],
                     ["70", true, "#E67C13"],
                 ],
+                settings: {},
             };
         }
 
         if (version < 2) {
             // remove type from route
             (data.routes as [TransitType, string, boolean, string][]).forEach(r => r.splice(0, 1));
+            data.settings = {};
         }
 
         return {
-            version: STATE_VERSION,
-            routes:  data.routes,
+            version:  STATE_VERSION,
+            routes:   data.routes,
+            settings: data.settings,
         };
     }
 
@@ -77,6 +86,7 @@ class State {
         return {
             version: STATE_VERSION,
             routes:  routes.map(r => [r.shortName, r.active, r.color]),
+            settings,
         };
     }
 
@@ -102,6 +112,8 @@ class State {
             data = localStorage.getItem("state");
         }
         const parsed = State.migrate(data ? JSON.parse(data) : {});
+
+        settings.import(parsed.settings);
 
         const routesData = await api.queryRoutes(null, ["shortName", "longName", "type"]);
 

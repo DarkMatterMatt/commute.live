@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 
 export default abstract class Setting {
-    private changeListeners: ((name: string, value: any) => void)[] = [];
+    private changeListeners: ((value: any, name: string) => void)[] = [];
 
     protected $elem: HTMLInputElement;
 
@@ -11,7 +11,7 @@ export default abstract class Setting {
         this.name = name;
         this.$elem = $elem;
 
-        this.$elem.addEventListener("change", () => this.changeListeners.forEach(l => l(this.name, this.value)));
+        this.$elem.addEventListener("change", () => this.triggerChange());
     }
 
     abstract get value(): any;
@@ -19,12 +19,16 @@ export default abstract class Setting {
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     abstract set value(x: any);
 
-    addChangeListener(l: (name: string, value: any) => void): void {
+    addChangeListener(l: (value: any, name: string) => void): void {
         this.changeListeners.push(l);
     }
 
-    removeChangeListener(l: (name: string, value: any) => void): void {
+    removeChangeListener(l: (value: any, name: string) => void): void {
         this.changeListeners = this.changeListeners.filter(x => x !== l);
+    }
+
+    triggerChange(): void {
+        this.changeListeners.forEach(l => l(this.value, this.name));
     }
 }
 
@@ -37,11 +41,11 @@ export class BooleanSetting extends Setting {
         this.$elem.checked = x;
     }
 
-    addChangeListener(l: (name: string, value: boolean) => void): void {
+    addChangeListener(l: (value: boolean, name: string) => void): void {
         super.addChangeListener(l);
     }
 
-    removeChangeListener(l: (name: string, value: boolean) => void): void {
+    removeChangeListener(l: (value: boolean, name: string) => void): void {
         super.removeChangeListener(l);
     }
 }
@@ -55,11 +59,11 @@ export class StringSetting extends Setting {
         this.$elem.value = x;
     }
 
-    addChangeListener(l: (name: string, value: string) => void): void {
+    addChangeListener(l: (value: string, name: string) => void): void {
         super.addChangeListener(l);
     }
 
-    removeChangeListener(l: (name: string, value: string) => void): void {
+    removeChangeListener(l: (value: string, name: string) => void): void {
         super.removeChangeListener(l);
     }
 }
@@ -73,11 +77,11 @@ export class NumberSetting extends Setting {
         this.$elem.value = x.toString();
     }
 
-    addChangeListener(l: (name: string, value: number) => void): void {
+    addChangeListener(l: (value: number, name: string) => void): void {
         super.addChangeListener(l);
     }
 
-    removeChangeListener(l: (name: string, value: number) => void): void {
+    removeChangeListener(l: (value: number, name: string) => void): void {
         super.removeChangeListener(l);
     }
 }

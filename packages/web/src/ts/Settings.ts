@@ -15,6 +15,15 @@ class Settings {
 
     private constructor() {
         SETTINGS.forEach(s => this.settings.set(s.name, s));
+
+        this.settings.get("darkMode").addChangeListener(v => {
+            if (v) {
+                document.body.classList.add("theme-dark");
+            }
+            else {
+                document.body.classList.remove("theme-dark");
+            }
+        });
     }
 
     static getInstance(): Settings {
@@ -26,10 +35,16 @@ class Settings {
 
     import(newSettings: Record<string, any>): void {
         Object.entries(newSettings).forEach(([k, v]) => {
-            if (this.settings.has(k)) {
-                this.settings.get(k).value = v;
+            const s = this.settings.get(k);
+            if (s != null) {
+                s.value = v;
+                s.triggerChange();
             }
         });
+    }
+
+    toJSON(): Record<string, any> {
+        return Object.fromEntries([...this.settings.values()].map(s => [s.name, s.value]));
     }
 
     getBool(name: string): boolean {

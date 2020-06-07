@@ -7,6 +7,7 @@ import { state } from "./State";
 import { api } from "./Api";
 import Search from "./Search";
 import mapThemes from "./mapThemes";
+import { settings } from "./Settings";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -64,11 +65,12 @@ function hideNav() {
 }
 
 (async (): Promise<void> => {
-    const darkMode = false;
-
     /*
      * Init
      */
+
+    state.load();
+    state.setActiveRoutesElem($activeRoutes);
 
     const map = new google.maps.Map($map, {
         center:            AUCKLAND_COORDS,
@@ -76,15 +78,16 @@ function hideNav() {
         fullscreenControl: false,
         streetViewControl: false,
         mapTypeControl:    false,
-        styles:            darkMode ? mapThemes.dark : mapThemes.light,
-        backgroundColor:   darkMode ? "#17263c" : undefined,
+        styles:            settings.getBool("darkMode") ? mapThemes.dark : mapThemes.light,
+        backgroundColor:   settings.getBool("darkMode") ? "#17263c" : undefined,
+    });
+    settings.settings.get("darkMode").addChangeListener(v => {
+        map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light });
     });
     navigator.geolocation.getCurrentPosition(r => map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
 
     await api.wsConnect();
     state.setMap(map);
-    state.setActiveRoutesElem($activeRoutes);
-    state.load();
 
     const search = new Search(state, $searchInput, $dropdownFilter);
     search.load();
