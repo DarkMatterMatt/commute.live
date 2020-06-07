@@ -54,11 +54,12 @@ class Api {
         return response;
     }
 
-    async queryRoutes(shortNames?: string[], fetch?: QueryRouteInfo[]): Promise<Record<string, RoutesResult[]>> {
+    async queryRoutes(shortNames?: string[], fetch?: QueryRouteInfo[]): Promise<Record<string, RoutesResult>> {
         const query: Record<string, string> = {};
         if (shortNames) query.shortNames = shortNames.join(",");
         if (fetch) query.fetch = fetch.join(",");
-        return await this.query("routes", query) as Record<string, RoutesResult[]>;
+        const response = await this.query("routes", query);
+        return response.routes;
     }
 
     async queryRoute(shortName: string, fetch?: QueryRouteInfo[]): Promise<RoutesResult> {
@@ -127,4 +128,6 @@ class Api {
     }
 }
 
-export default new Api();
+export default Api;
+
+export const api = new Api();

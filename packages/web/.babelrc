@@ -4,6 +4,7 @@
         "@babel/preset-typescript"
     ],
     "plugins": [
-        ["transform-react-jsx"]
+        ["transform-react-jsx"],
+        ["@babel/plugin-proposal-class-properties"]
     ]
 }

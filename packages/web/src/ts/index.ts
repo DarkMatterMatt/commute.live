@@ -3,8 +3,8 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import { LiveVehicle } from "./types";
-import State from "./State";
-import Api from "./Api";
+import { state } from "./State";
+import { api } from "./Api";
 import Search from "./Search";
 import mapThemes from "./mapThemes";
 
@@ -81,8 +81,10 @@ function hideNav() {
     });
     navigator.geolocation.getCurrentPosition(r => map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
 
-    await Api.wsConnect();
-    const state = new State(map, $activeRoutes);
+    await api.wsConnect();
+    state.setMap(map);
+    state.setActiveRoutesElem($activeRoutes);
+    state.load();
 
     const search = new Search(state, $searchInput, $dropdownFilter);
     search.load();
@@ -108,7 +110,7 @@ function hideNav() {
     });
 
     // listen for messages
-    Api.onMessage((data: Record<string, any>) => {
+    api.onMessage((data: Record<string, any>) => {
         if (data.status !== "success") {
             console.error(data.route, data.message, data);
             return;
@@ -129,5 +131,5 @@ function hideNav() {
         console.log(data.route, data.message, data);
     });
 
-    Api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
+    api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
 })();

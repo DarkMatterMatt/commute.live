@@ -1,4 +1,4 @@
-import Api from "./Api";
+import { api } from "./Api";
 import State from "./State";
 import Render from "./Render";
 import { SearchRoute } from "./types";
@@ -36,8 +36,8 @@ class Search {
     }
 
     async load(): Promise<void> {
-        const response = await Api.queryRoutes(null, ["shortName", "longName", "type"]);
-        const routes: SearchRoute[] = Object.values(response.routes) as SearchRoute[];
+        const response = await api.queryRoutes(null, ["shortName", "longName", "type"]);
+        const routes: SearchRoute[] = Object.values(response) as SearchRoute[];
 
         const regexWord = /[a-z]+/g;
         routes.forEach(route => {

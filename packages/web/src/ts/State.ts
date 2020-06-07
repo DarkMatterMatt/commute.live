@@ -3,31 +3,35 @@ import Route from "./Route";
 import Render from "./Render";
 import { LiveVehicle, SearchRoute, TransitType } from "./types";
 import { localStorageEnabled, isEmptyObject } from "./Helpers";
+import { api } from "./Api";
 
 const STATE_VERSION = 2;
 
 interface ParsedState {
     version: number;
 
-    // routes: array of [TransitType, shortName, active, color, longName]
-    routes: [TransitType, string, boolean, string, string][];
+    // routes: array of [shortName, active, color]
+    routes: [string, boolean, string][];
 }
 
+let instance: State = null;
+
 class State {
-    map: google.maps.Map;
+    map: google.maps.Map = null;
 
-    ws: WebSocket;
+    routesByShortName = new Map<string, Route>();
 
-    version: number;
+    $activeRoutes: HTMLElement = document.createElement("div");
 
-    routesByShortName: Map<string, Route>;
+    private constructor() {
+        //
+    }
 
-    $activeRoutes: HTMLElement;
-
-    constructor(map: google.maps.Map, $activeRoutes: HTMLElement) {
-        this.map = map;
-        this.$activeRoutes = $activeRoutes;
-        this.load();
+    static getInstance(): State {
+        if (instance == null) {
+            instance = new State();
+        }
+        return instance;
     }
 
     static migrate(data: Record<string, any>): ParsedState {
@@ -39,15 +43,15 @@ class State {
             return {
                 version: STATE_VERSION,
                 routes:  [
-                    ["bus", "25B", true, "#9400D3", "Blockhouse Bay to City Centre via Dominion Rd"],
-                    ["bus", "70", true, "#E67C13", "Britomart to Botany via Ellerslie And Panmure"],
+                    ["25B", true, "#9400D3"],
+                    ["70", true, "#E67C13"],
                 ],
             };
         }
 
         if (version < 2) {
-            // add empty longName to route
-            (data.routes as any[][]).forEach(r => r.push(""));
+            // remove type from route
+            (data.routes as [TransitType, string, boolean, string][]).forEach(r => r.splice(0, 1));
         }
 
         return {
@@ -56,11 +60,23 @@ class State {
         };
     }
 
+    setMap(map: google.maps.Map): State {
+        this.map = map;
+        this.routesByShortName.forEach(r => r.setMap(map));
+        return this;
+    }
+
+    setActiveRoutesElem($new: HTMLElement): State {
+        $new.append(...this.$activeRoutes.childNodes);
+        this.$activeRoutes = $new;
+        return this;
+    }
+
     toJSON(onlyActive = false): ParsedState {
         const routes = [...this.routesByShortName.values()].filter(r => !onlyActive || r.active);
         return {
             version: STATE_VERSION,
-            routes:  routes.map(r => [r.type, r.shortName, r.active, r.color, r.longName]),
+            routes:  routes.map(r => [r.shortName, r.active, r.color]),
         };
     }
 
@@ -74,7 +90,7 @@ class State {
         }
     }
 
-    load(): void {
+    async load(): Promise<void> {
         // trim leading # off location.hash
         const hash = window.location.hash.replace(/^#/, "");
 
@@ -82,13 +98,19 @@ class State {
         if (hash) {
             data = decompressFromEncodedURIComponent(hash);
         }
-        else if (localStorageEnabled()) {
+        if (!data && localStorageEnabled()) {
             data = localStorage.getItem("state");
         }
         const parsed = State.migrate(data ? JSON.parse(data) : {});
 
-        this.routesByShortName = new Map();
-        parsed.routes.forEach(([type, shortName, active, color, longName]) => {
+        const routesData = await api.queryRoutes(null, ["shortName", "longName", "type"]);
+
+        parsed.routes.forEach(([shortName, active, color]) => {
+            if (routesData[shortName] == null) {
+                return;
+            }
+            const { longName, type } = routesData[shortName];
+
             const route = new Route({
                 shortName,
                 longName,
@@ -183,3 +205,5 @@ class State {
 }
 
 export default State;
+
+export const state = State.getInstance();

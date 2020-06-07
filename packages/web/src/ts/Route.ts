@@ -1,6 +1,6 @@
 import { LiveVehicle } from "./types";
 import VehicleMarker from "./VehicleMarker";
-import Api from "./Api";
+import { api } from "./Api";
 import Render from "./Render";
 
 /**
@@ -94,9 +94,15 @@ class Route {
         this.vehicleMarkers.forEach(m => m.setIcon(this.generateMarkerIcon(m.directionId)));
     }
 
+    setMap(map: google.maps.Map): void {
+        this.map = map;
+        this.polylines.forEach(p => p.setMap(map));
+        this.vehicleMarkers.forEach(m => m.setMap(map));
+    }
+
     async loadVehicles(): Promise<void> {
-        Api.subscribe(this.shortName);
-        const { vehicles } = await Api.queryRoute(this.shortName, ["vehicles"]);
+        api.subscribe(this.shortName);
+        const { vehicles } = await api.queryRoute(this.shortName, ["vehicles"]);
         Object.values(vehicles).map(v => this.showVehicle(v));
     }
 
@@ -105,12 +111,10 @@ class Route {
             return;
         }
         this.active = true;
-        const [{ longName, polylines }] = await Promise.all([
-            Api.queryRoute(this.shortName, ["longName", "polylines"]),
+        const [{ polylines }] = await Promise.all([
+            api.queryRoute(this.shortName, ["polylines"]),
             this.loadVehicles(),
         ]);
-
-        this.longName = longName;
 
         const { map } = this;
         const strokeOpacity = 0.7;
@@ -130,7 +134,7 @@ class Route {
             return;
         }
         this.active = false;
-        Api.unsubscribe(this.shortName);
+        api.unsubscribe(this.shortName);
 
         this.polylines.forEach(p => p.setMap(null));
         this.polylines = [];
