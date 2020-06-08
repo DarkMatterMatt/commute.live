@@ -147,7 +147,7 @@ class State {
 
     // eslint-disable-next-line class-methods-use-this
     getNewColor(): string {
-        return "#E94537";
+        return Render.getNewColor([...this.routesByShortName.values()]);
     }
 
     isActive({ shortName }: SearchRoute): boolean {

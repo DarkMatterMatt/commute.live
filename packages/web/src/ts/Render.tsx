@@ -49,6 +49,11 @@ abstract class Render {
         return red * 0.299 + green * 0.587 + blue * 0.114 <= 186;
     }
 
+    static getNewColor(existingRoutes: { color: string }[]): string {
+        // return the first SUGGESTED_COLOR that hasn't already been used
+        return SUGGESTED_COLORS.find(c => !existingRoutes.find(r => r.color === c)) || SUGGESTED_COLORS[0];
+    }
+
     static createTransitIcon(options: TransitIconOptions): google.maps.Icon {
         /* eslint-disable max-len */
         const defaults = {
