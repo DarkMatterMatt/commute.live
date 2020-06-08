@@ -108,9 +108,7 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
         styles:            settings.getBool("darkMode") ? mapThemes.dark : mapThemes.light,
         backgroundColor:   settings.getBool("darkMode") ? "#17263c" : undefined,
     });
-    settings.settings.get("darkMode").addChangeListener(v => {
-        map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light });
-    });
+    settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
     navigator.geolocation.getCurrentPosition(r => map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
 
     await api.wsConnect();

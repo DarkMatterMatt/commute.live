@@ -15,34 +15,38 @@ interface RoutesResult {
     polylines?: google.maps.LatLngLiteral[][];
 }
 
+let instance: Api = null;
+
 class Api {
-    ws: WebSocket;
+    ws: WebSocket = null;
 
-    apiUrl: string;
+    apiUrl = process.env.API_URL;
 
-    wsUrl: string;
+    wsUrl = process.env.WS_URL;
 
-    webSocketConnectedPreviously: boolean;
+    webSocketConnectedPreviously = false;
 
-    _onWebSocketReconnect: (ws: WebSocket, ev: Event) => void;
+    _onWebSocketReconnect: (ws: WebSocket, ev: Event) => void = null;
 
-    _onMessage: (data: Record<string, any>) => void;
+    _onMessage: (data: Record<string, any>) => void = null;
 
     promiseWsConnect: Promise<void>;
 
     resolveWhenWsConnect: (value?: void | PromiseLike<void>) => void;
 
-    constructor() {
-        this.ws = null;
-        this.apiUrl = process.env.API_URL;
-        this.wsUrl = process.env.WS_URL;
-        this._onWebSocketReconnect = null;
-        this._onMessage = null;
-        this.webSocketConnectedPreviously = false;
+    subscriptions: string[] = [];
 
+    private constructor() {
         this.promiseWsConnect = new Promise<void>(resolve => {
             this.resolveWhenWsConnect = resolve;
         });
+    }
+
+    static getInstance(): Api {
+        if (instance == null) {
+            instance = new Api();
+        }
+        return instance;
     }
 
     async query(path: string, params: Record<string, string>): Promise<Record<string, any>> {
@@ -76,6 +80,13 @@ class Api {
         this.ws.addEventListener("open", ev => {
             this.resolveWhenWsConnect();
 
+            this.subscriptions.forEach(shortName => {
+                this.ws.send(JSON.stringify({
+                    route: "subscribe",
+                    shortName,
+                }));
+            });
+
             if (this.webSocketConnectedPreviously && this._onWebSocketReconnect !== null) {
                 this._onWebSocketReconnect(this.ws, ev);
             }
@@ -106,17 +117,31 @@ class Api {
     }
 
     subscribe(shortName: string): void {
-        this.ws.send(JSON.stringify({
-            route: "subscribe",
-            shortName,
-        }));
+        if (this.subscriptions.includes(shortName)) {
+            return;
+        }
+
+        this.subscriptions.push(shortName);
+        if (this.ws != null && this.ws.readyState === this.ws.OPEN) {
+            this.ws.send(JSON.stringify({
+                route: "subscribe",
+                shortName,
+            }));
+        }
     }
 
     unsubscribe(shortName: string): void {
-        this.ws.send(JSON.stringify({
-            route: "unsubscribe",
-            shortName,
-        }));
+        if (!this.subscriptions.includes(shortName)) {
+            return;
+        }
+
+        this.subscriptions = this.subscriptions.filter(n => n !== shortName);
+        if (this.ws != null && this.ws.readyState === this.ws.OPEN) {
+            this.ws.send(JSON.stringify({
+                route: "unsubscribe",
+                shortName,
+            }));
+        }
     }
 
     onWebSocketReconnect(listener: (ws: WebSocket, ev: Event) => void): void {
@@ -130,4 +155,4 @@ class Api {
 
 export default Api;
 
-export const api = new Api();
+export const api = Api.getInstance();
