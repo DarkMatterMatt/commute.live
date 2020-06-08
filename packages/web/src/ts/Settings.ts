@@ -68,7 +68,7 @@ class Settings {
     }
 
     getNames(): string[] {
-        return Object.keys(this.settings);
+        return [...this.settings.keys()];
     }
 
     addChangeListener(name: string, l: (value: any, name: string) => void): void {
