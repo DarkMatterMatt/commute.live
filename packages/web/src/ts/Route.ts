@@ -140,6 +140,7 @@ class Route {
         this.polylines = [];
 
         this.vehicleMarkers.forEach(m => m.setMap(null));
+        this.vehicleMarkers.clear();
     }
 
     isActive(): boolean {
