@@ -28,15 +28,13 @@ class State {
     $activeRoutes: HTMLElement = document.createElement("div");
 
     private constructor() {
-        settings.settings.forEach(s => s.addChangeListener(() => this.save()));
+        //
     }
 
     static getInstance(): State {
         if (instance == null) {
             instance = new State();
         }
-        window.state = instance;
-        window.settings = settings;
         return instance;
     }
 
@@ -100,24 +98,10 @@ class State {
         }
     }
 
-    async load(): Promise<void> {
-        // trim leading # off location.hash
-        const hash = window.location.hash.replace(/^#/, "");
-
-        let data;
-        if (hash) {
-            data = decompressFromEncodedURIComponent(hash);
-        }
-        if (!data && localStorageEnabled()) {
-            data = localStorage.getItem("state");
-        }
-        const parsed = State.migrate(data ? JSON.parse(data) : {});
-
-        settings.import(parsed.settings);
-
+    async loadRoutes(routes: ParsedState["routes"]): Promise<void> {
         const routesData = await api.queryRoutes(null, ["shortName", "longName", "type"]);
 
-        parsed.routes.forEach(([shortName, active, color]) => {
+        routes.forEach(([shortName, active, color]) => {
             if (routesData[shortName] == null) {
                 return;
             }
@@ -139,6 +123,26 @@ class State {
                 route.activate();
             }
         });
+    }
+
+    load(): void {
+        // trim leading # off location.hash
+        const hash = window.location.hash.replace(/^#/, "");
+
+        let data;
+        if (hash) {
+            data = decompressFromEncodedURIComponent(hash);
+        }
+        if (!data && localStorageEnabled()) {
+            data = localStorage.getItem("state");
+        }
+        const parsed = State.migrate(data ? JSON.parse(data) : {});
+
+        settings.import(parsed.settings);
+        settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save()));
+
+        // run async
+        this.loadRoutes(parsed.routes);
     }
 
     // eslint-disable-next-line class-methods-use-this

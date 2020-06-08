@@ -22,6 +22,7 @@ const $activeRoutes = document.getElementById("active");
 const $main = document.getElementById("main");
 const $navShow = document.getElementById("nav-show");
 const $navHide = document.getElementById("nav-hide");
+const $navAbout = document.getElementById("nav-about");
 
 /*
  * Nav Map
@@ -31,6 +32,7 @@ const navMap: [HTMLElement, HTMLElement][] = [
     [document.getElementById("nav-map"), document.getElementById("map")],
     [document.getElementById("nav-routes"), document.getElementById("routes")],
     [document.getElementById("nav-settings"), document.getElementById("settings")],
+    [document.getElementById("nav-about"), document.getElementById("about")],
 ];
 let navActive = navMap[0];
 
@@ -64,7 +66,32 @@ function hideNav() {
     $main.classList.remove("show");
 }
 
+function setClass($elem: HTMLElement, name: string, enabled: boolean) {
+    if (enabled) {
+        $elem.classList.add(name);
+    }
+    else {
+        $elem.classList.remove(name);
+    }
+}
+
 (async (): Promise<void> => {
+    // export things to global scope for development
+    if (process.env.NODE_ENV === "development") {
+        Object.assign(window, {
+            api,
+            settings,
+            state,
+        });
+    }
+
+    /*
+     * Add settings event listeners
+     */
+
+    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
+    settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
+
     /*
      * Init
      */

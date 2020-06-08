@@ -6,24 +6,16 @@ function getInput(id: string): HTMLInputElement {
 
 const SETTINGS = [
     new BooleanSetting("darkMode", getInput("sw-dark-mode")),
+    new BooleanSetting("hideAbout", getInput("sw-hide-about")),
 ];
 
 let instance: Settings = null;
 
 class Settings {
-    settings = new Map<string, Setting>();
+    private settings = new Map<string, Setting>();
 
     private constructor() {
         SETTINGS.forEach(s => this.settings.set(s.name, s));
-
-        this.settings.get("darkMode").addChangeListener(v => {
-            if (v) {
-                document.body.classList.add("theme-dark");
-            }
-            else {
-                document.body.classList.remove("theme-dark");
-            }
-        });
     }
 
     static getInstance(): Settings {
@@ -69,6 +61,28 @@ class Settings {
             throw Error(`Cannot call getNum on a setting of type ${setting.constructor.name}`);
         }
         return setting && setting.value;
+    }
+
+    getSetting(name: string): Setting {
+        return this.settings.get(name);
+    }
+
+    getNames(): string[] {
+        return Object.keys(this.settings);
+    }
+
+    addChangeListener(name: string, l: (value: any, name: string) => void): void {
+        const setting = this.settings.get(name);
+        if (setting != null) {
+            setting.addChangeListener(l);
+        }
+    }
+
+    removeChangeListener(name: string, l: (value: any, name: string) => void): void {
+        const setting = this.settings.get(name);
+        if (setting != null) {
+            setting.removeChangeListener(l);
+        }
     }
 }
 

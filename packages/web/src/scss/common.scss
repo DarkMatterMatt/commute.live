@@ -2,10 +2,20 @@ body {
     color: var(--black);
 }
 
+h2 {
+    color: var(--blue);
+    margin-block-start: 0.5em;
+    margin-block-end: 0.5em;
+}
+
 svg {
     fill: currentColor;
     height: 24px;
     width: 24px;
+}
+
+.hide {
+    display: none !important;
 }
 
 .btn {
@@ -30,6 +40,7 @@ svg {
 
     >div {
         display: none;
+        padding: 16px;
 
         &.active {
             display: block;
@@ -38,7 +49,6 @@ svg {
 
     #routes {
         $itemHeight: 48px;
-        padding: 16px;
 
         .container {
             position: relative;
@@ -50,6 +60,7 @@ svg {
             padding: 20px 16px 6px;
             appearance: none;
             background-color: var(--blue-100);
+            color: var(--black);
             border: none;
             border-bottom: 1px solid;
             border-radius: 4px 4px 0 0;
@@ -174,13 +185,6 @@ svg {
 
     #settings {
         $itemHeight: 32px;
-        padding: 16px;
-
-        h2 {
-            color: var(--blue);
-            margin-block-start: 0.5em;
-            margin-block-end: 0.5em;
-        }
 
         .setting {
             display: flex;
