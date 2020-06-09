@@ -64,6 +64,30 @@ class Settings {
         return setting && setting.value;
     }
 
+    setBool(name: string, val: boolean): void {
+        const setting = this.settings.get(name);
+        if (!(setting instanceof BooleanSetting)) {
+            throw Error(`Cannot call setBool on a setting of type ${setting.constructor.name}`);
+        }
+        setting.value = val;
+    }
+
+    setStr(name: string, val: string): void {
+        const setting = this.settings.get(name);
+        if (!(setting instanceof StringSetting)) {
+            throw Error(`Cannot call setStr on a setting of type ${setting.constructor.name}`);
+        }
+        setting.value = val;
+    }
+
+    setNum(name: string, val: number): void {
+        const setting = this.settings.get(name);
+        if (!(setting instanceof NumberSetting)) {
+            throw Error(`Cannot call setNum on a setting of type ${setting.constructor.name}`);
+        }
+        setting.value = val;
+    }
+
     getSetting(name: string): Setting {
         return this.settings.get(name);
     }

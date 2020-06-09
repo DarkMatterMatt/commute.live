@@ -76,6 +76,18 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
     }
 }
 
+function onGeolocationError(err: PositionError) {
+    if (err.code === err.PERMISSION_DENIED) {
+        // disable settings that require the location
+        settings.setBool("showLocation", false);
+        settings.setBool("centerOnLocation", false);
+
+        // eslint-disable-next-line no-alert
+        window.alert("You've denied access your location, so I can't enable this setting.");
+    }
+    console.warn(err);
+}
+
 (async (): Promise<void> => {
     // export things to global scope for development
     if (process.env.NODE_ENV === "development") {
@@ -121,7 +133,9 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
     settings.addChangeListener("centerOnLocation", centerOnLocation => {
         if (centerOnLocation) {
             navigator.geolocation.getCurrentPosition(
-                pos => map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+                pos => map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                onGeolocationError,
+                { maximumAge: 60 * 1000 }
             );
         }
     });
@@ -131,7 +145,7 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
         if (showLocation) {
             geoWatch = navigator.geolocation.watchPosition(
                 pos => render.showLocation(map, pos.coords),
-                console.warn,
+                onGeolocationError,
                 { enableHighAccuracy: true }
             );
         }

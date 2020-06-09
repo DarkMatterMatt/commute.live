@@ -7,6 +7,8 @@ export default abstract class Setting {
 
     name: string;
 
+    defaultValue: any;
+
     constructor(name: string, $elem: HTMLInputElement) {
         this.name = name;
         this.$elem = $elem;
@@ -38,12 +40,15 @@ export default abstract class Setting {
 }
 
 export class BooleanSetting extends Setting {
+    defaultValue = this.value;
+
     get value(): boolean {
         return this.$elem.checked;
     }
 
     set value(x: boolean) {
         this.$elem.checked = x;
+        this.triggerChange();
     }
 
     addChangeListener(l: (value: boolean, name: string) => void, triggerNow = true): void {
@@ -56,12 +61,15 @@ export class BooleanSetting extends Setting {
 }
 
 export class StringSetting extends Setting {
+    defaultValue = this.value;
+
     get value(): string {
         return this.$elem.value;
     }
 
     set value(x: string) {
         this.$elem.value = x;
+        this.triggerChange();
     }
 
     addChangeListener(l: (value: string, name: string) => void, triggerNow = true): void {
@@ -74,12 +82,15 @@ export class StringSetting extends Setting {
 }
 
 export class NumberSetting extends Setting {
+    defaultValue = this.value;
+
     get value(): number {
         return Number.parseFloat(this.$elem.value);
     }
 
     set value(x: number) {
         this.$elem.value = x.toString();
+        this.triggerChange();
     }
 
     addChangeListener(l: (value: number, name: string) => void, triggerNow = true): void {
