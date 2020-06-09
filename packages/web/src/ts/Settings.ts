@@ -37,7 +37,11 @@ class Settings {
     }
 
     toJSON(): Record<string, any> {
-        return Object.fromEntries([...this.settings.values()].map(s => [s.name, s.value]));
+        return Object.fromEntries(
+            [...this.settings.values()]
+                .filter(s => s.value !== s.defaultValue)
+                .map(s => [s.name, s.value])
+        );
     }
 
     getBool(name: string): boolean {

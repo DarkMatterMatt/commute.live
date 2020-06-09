@@ -54,7 +54,7 @@
     },
     "scripts": {
         "start": "npm run build:dev",
-        "build:dev": "webpack-dev-server --env dev --mode none",
+        "build:dev": "webpack-dev-server --env dev --mode development",
         "build:prod": "webpack --env prod --mode production",
         "typecheck": "tsc"
     },
