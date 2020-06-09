@@ -94,7 +94,7 @@ class Search {
         const query = query_.toLowerCase();
 
         if (query === "") {
-            this.clear();
+            this.render([]);
             return;
         }
 
