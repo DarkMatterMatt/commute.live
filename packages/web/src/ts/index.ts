@@ -8,6 +8,7 @@ import { api } from "./Api";
 import Search from "./Search";
 import mapThemes from "./mapThemes";
 import { settings } from "./Settings";
+import { render } from "./Render";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -86,13 +87,6 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
     }
 
     /*
-     * Add settings event listeners
-     */
-
-    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
-    settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
-
-    /*
      * Init
      */
 
@@ -108,14 +102,43 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
         styles:            settings.getBool("darkMode") ? mapThemes.dark : mapThemes.light,
         backgroundColor:   settings.getBool("darkMode") ? "#17263c" : undefined,
     });
-    settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
-    navigator.geolocation.getCurrentPosition(r => map.panTo({ lat: r.coords.latitude, lng: r.coords.longitude }));
-
-    await api.wsConnect();
     state.setMap(map);
 
-    const search = new Search(state, $searchInput, $dropdownFilter);
-    search.load();
+    api.wsConnect().then(() => {
+        const search = new Search(state, $searchInput, $dropdownFilter);
+        search.load();
+    });
+
+    /*
+     * Add settings event listeners
+     */
+
+    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
+    settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
+
+    settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
+
+    settings.addChangeListener("centerOnLocation", centerOnLocation => {
+        if (centerOnLocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+            );
+        }
+    });
+
+    let geoWatch: number = null;
+    settings.addChangeListener("showLocation", showLocation => {
+        if (showLocation) {
+            geoWatch = navigator.geolocation.watchPosition(
+                pos => render.showLocation(map, pos.coords),
+                console.warn,
+                { enableHighAccuracy: true }
+            );
+        }
+        else {
+            navigator.geolocation.clearWatch(geoWatch);
+        }
+    });
 
     /*
      * Event Listeners

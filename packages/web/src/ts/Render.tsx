@@ -39,7 +39,54 @@ interface TransitIconOptions {
     backgroundBorderRadius?: number;
 }
 
-abstract class Render {
+let instance: Render = null;
+
+class Render {
+    locationCenter: google.maps.Marker;
+
+    locationAccuracy: google.maps.Circle;
+
+    private constructor() {
+        //
+    }
+
+    static getInstance(): Render {
+        if (instance == null) {
+            instance = new Render();
+        }
+        return instance;
+    }
+
+    showLocation(map: google.maps.Map, coords: Coordinates): void {
+        if (map == null) {
+            this.locationCenter.setMap(null);
+            this.locationAccuracy.setMap(null);
+            return;
+        }
+
+        if (this.locationCenter == null) {
+            this.locationCenter = new google.maps.Marker({
+                icon:   Render.createLocationIcon(),
+                zIndex: 100,
+            });
+        }
+        if (this.locationAccuracy == null) {
+            this.locationAccuracy = new google.maps.Circle({
+                fillColor:    "#4286f5",
+                fillOpacity:  0.2,
+                strokeColor:  "#4286f5",
+                strokeWeight: 0.5,
+            });
+        }
+        const pos = new google.maps.LatLng(coords.latitude, coords.longitude);
+
+        this.locationCenter.setPosition(pos);
+        this.locationCenter.setMap(map);
+        this.locationAccuracy.setRadius(coords.accuracy);
+        this.locationAccuracy.setCenter(pos);
+        this.locationAccuracy.setMap(map);
+    }
+
     /**
      * Choose to use light/dark text based on the background color
      * @see https://stackoverflow.com/a/3943023/6595777
@@ -52,6 +99,22 @@ abstract class Render {
     static getNewColor(existingRoutes: { color: string }[]): string {
         // return the first SUGGESTED_COLOR that hasn't already been used
         return SUGGESTED_COLORS.find(c => !existingRoutes.find(r => r.color === c)) || SUGGESTED_COLORS[0];
+    }
+
+    static createLocationIcon(): google.maps.Icon {
+        /* eslint-disable max-len */
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="12" style="fill: #fff"/>
+                <circle cx="12" cy="12" r="10.5" style="fill: #4286f5"/>
+            </svg>
+        `;
+
+        return {
+            url:        `data:image/svg+xml;utf8,${svg.replace(/\s+/g, " ").replace(/#/g, "%23")}`,
+            scaledSize: new google.maps.Size(12, 12),
+            anchor:     new google.maps.Point(6, 6),
+        };
     }
 
     static createTransitIcon(options: TransitIconOptions): google.maps.Icon {
@@ -97,7 +160,7 @@ abstract class Render {
 
         return {
             url:    `data:image/svg+xml;utf8,${svg.replace(/\s+/g, " ").replace(/#/g, "%23")}`,
-            origin: new google.maps.Point(12, 12),
+            anchor: new google.maps.Point(12, 12),
         };
     }
 
@@ -272,3 +335,5 @@ abstract class Render {
 }
 
 export default Render;
+
+export const render = Render.getInstance();

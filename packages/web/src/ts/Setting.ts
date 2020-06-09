@@ -19,8 +19,13 @@ export default abstract class Setting {
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     abstract set value(x: any);
 
-    addChangeListener(l: (value: any, name: string) => void): void {
+    addChangeListener(l: (value: any, name: string) => void, triggerNow = true): void {
         this.changeListeners.push(l);
+
+        if (triggerNow) {
+            // trigger the listener once with the current value
+            l(this.value, this.name);
+        }
     }
 
     removeChangeListener(l: (value: any, name: string) => void): void {
@@ -41,8 +46,8 @@ export class BooleanSetting extends Setting {
         this.$elem.checked = x;
     }
 
-    addChangeListener(l: (value: boolean, name: string) => void): void {
-        super.addChangeListener(l);
+    addChangeListener(l: (value: boolean, name: string) => void, triggerNow = true): void {
+        super.addChangeListener(l, triggerNow);
     }
 
     removeChangeListener(l: (value: boolean, name: string) => void): void {
@@ -59,8 +64,8 @@ export class StringSetting extends Setting {
         this.$elem.value = x;
     }
 
-    addChangeListener(l: (value: string, name: string) => void): void {
-        super.addChangeListener(l);
+    addChangeListener(l: (value: string, name: string) => void, triggerNow = true): void {
+        super.addChangeListener(l, triggerNow);
     }
 
     removeChangeListener(l: (value: string, name: string) => void): void {
@@ -77,8 +82,8 @@ export class NumberSetting extends Setting {
         this.$elem.value = x.toString();
     }
 
-    addChangeListener(l: (value: number, name: string) => void): void {
-        super.addChangeListener(l);
+    addChangeListener(l: (value: number, name: string) => void, triggerNow = true): void {
+        super.addChangeListener(l, triggerNow);
     }
 
     removeChangeListener(l: (value: number, name: string) => void): void {

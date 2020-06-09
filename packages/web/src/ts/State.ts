@@ -139,7 +139,7 @@ class State {
         const parsed = State.migrate(data ? JSON.parse(data) : {});
 
         settings.import(parsed.settings);
-        settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save()));
+        settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save(), false));
 
         // run async
         this.loadRoutes(parsed.routes);

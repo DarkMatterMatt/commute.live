@@ -7,6 +7,8 @@ function getInput(id: string): HTMLInputElement {
 const SETTINGS = [
     new BooleanSetting("darkMode", getInput("sw-dark-mode")),
     new BooleanSetting("hideAbout", getInput("sw-hide-about")),
+    new BooleanSetting("showLocation", getInput("sw-show-location")),
+    new BooleanSetting("centerOnLocation", getInput("sw-center-location")),
 ];
 
 let instance: Settings = null;
@@ -30,7 +32,6 @@ class Settings {
             const s = this.settings.get(k);
             if (s != null) {
                 s.value = v;
-                s.triggerChange();
             }
         });
     }
@@ -71,10 +72,10 @@ class Settings {
         return [...this.settings.keys()];
     }
 
-    addChangeListener(name: string, l: (value: any, name: string) => void): void {
+    addChangeListener(name: string, l: (value: any, name: string) => void, triggerNow = true): void {
         const setting = this.settings.get(name);
         if (setting != null) {
-            setting.addChangeListener(l);
+            setting.addChangeListener(l, triggerNow);
         }
     }
 
