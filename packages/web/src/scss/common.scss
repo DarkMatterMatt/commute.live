@@ -1,10 +1,11 @@
 body {
     font-family: "Roboto", sans-serif;
-    color: var(--black);
+    color: var(--on-background);
+    background-color: var(--background);
 }
 
 h2 {
-    color: var(--blue);
+    color: var(--primary-darker);
     margin-block-start: 0.5em;
     margin-block-end: 0.5em;
 }
@@ -37,7 +38,7 @@ svg {
     z-index: 2;
     overflow: auto;
     width: 100%;
-    background-color: var(--white);
+    background-color: var(--background);
 
     >div {
         display: none;
@@ -60,8 +61,8 @@ svg {
             width: 100%;
             padding: 20px 16px 6px;
             appearance: none;
-            background-color: var(--blue-100);
-            color: var(--black);
+            background-color: var(--primary-lighter);
+            color: var(--on-background);
             border: none;
             border-bottom: 1px solid;
             border-radius: 4px 4px 0 0;
@@ -75,7 +76,7 @@ svg {
             right: initial;
             transform: translateY(-50%);
             transform-origin: left top;
-            color: var(--black-800);
+            color: var(--on-background);
             pointer-events: none;
             transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1);
             will-change: transform;
@@ -83,11 +84,11 @@ svg {
 
         input:focus,
         input:valid {
-            border-bottom: 2px solid var(--blue);
+            border-bottom: 2px solid var(--primary);
 
             &~label {
                 transform: translateY(-106%) scale(0.75);
-                color: var(--blue);
+                color: var(--primary-darker);
             }
 
             &~#results {
@@ -112,7 +113,7 @@ svg {
             flex-grow: 1;
 
             .route {
-                border-bottom: 1px solid var(--blue);
+                border-bottom: 1px solid var(--primary);
 
                 img {
                     height: 32px;
@@ -143,7 +144,7 @@ svg {
         #active {
             .route {
                 --color: transparent;
-                border-bottom: 1px solid var(--blue);
+                border-bottom: 1px solid var(--primary);
 
                 img {
                     height: 32px;
@@ -202,11 +203,11 @@ svg {
                 display: none;
             
                 &:checked+.switch-label:before {
-                    background-color: var(--blue-200);
+                    background-color: var(--primary);
                 }
             
                 &:checked+.switch-label:after {
-                    background-color: var(--blue);
+                    background-color: var(--primary-darker);
                     transform: translate(80%, -50%);
                 }
             }
@@ -254,7 +255,7 @@ svg {
     display: flex;
     justify-content: center;
     height: $navHeight;
-    background-color: var(--blue);
+    background-color: var(--primary);
 
     .tab {
         display: flex;
@@ -264,12 +265,13 @@ svg {
         max-width: 168px;
         padding-top: 8px;
         font-size: 12px;
-        color: var(--blue-200);
+        color: var(--on-primary);
         text-align: center;
+        opacity: 0.6;
 
         &.active,
         &:hover {
-            color: var(--white);
+            opacity: 1;
         }
 
         svg {
