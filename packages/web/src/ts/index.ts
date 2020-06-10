@@ -116,7 +116,13 @@ function onGeolocationError(err: PositionError) {
     });
     state.setMap(map);
 
+    const wsConnectTimeout = setTimeout(() => {
+        // eslint-disable-next-line no-alert
+        alert("Failed connecting to server :(\nPlease try again later");
+        document.location.reload();
+    }, 3000);
     api.wsConnect().then(() => {
+        clearInterval(wsConnectTimeout);
         const search = new Search(state, $searchInput, $dropdownFilter);
         search.load();
     });
