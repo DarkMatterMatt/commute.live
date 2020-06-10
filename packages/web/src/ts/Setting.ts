@@ -47,8 +47,10 @@ export class BooleanSetting extends Setting {
     }
 
     set value(x: boolean) {
-        this.$elem.checked = x;
-        this.triggerChange();
+        if (this.value !== x) {
+            this.$elem.checked = x;
+            this.triggerChange();
+        }
     }
 
     addChangeListener(l: (value: boolean, name: string) => void, triggerNow = true): void {
@@ -68,8 +70,10 @@ export class StringSetting extends Setting {
     }
 
     set value(x: string) {
-        this.$elem.value = x;
-        this.triggerChange();
+        if (this.value !== x) {
+            this.$elem.value = x;
+            this.triggerChange();
+        }
     }
 
     addChangeListener(l: (value: string, name: string) => void, triggerNow = true): void {
@@ -89,8 +93,11 @@ export class NumberSetting extends Setting {
     }
 
     set value(x: number) {
-        this.$elem.value = x.toString();
-        this.triggerChange();
+        const s = x.toString();
+        if (this.$elem.value !== s) {
+            this.$elem.value = s;
+            this.triggerChange();
+        }
     }
 
     addChangeListener(l: (value: number, name: string) => void, triggerNow = true): void {
