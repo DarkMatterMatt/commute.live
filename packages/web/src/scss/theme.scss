@@ -11,7 +11,10 @@ body {
     --primary-lighter: #{lighten($primary, 20%)};
     --primary-darker: #{darken($primary, 25%)};
 
-    --background: #ffffff;
+    $background: #ffffff;
+    --background: #{$background};
+    --background-03dp: #{$background};
+
     --surface: #ffffff;
     --error: #b00020;
 
@@ -27,7 +30,10 @@ body.theme-dark {
     --primary-lighter: #{darken($primary, 15%)};
     --primary-darker: #{lighten($primary, 20%)};
 
-    --background: #121212;
+    $background: #121212;
+    --background: #{$background};
+    --background-03dp: #{lighten($background, 8%)};
+
     --surface: #121212;
     --error: #cf6679;
 
@@ -43,11 +49,14 @@ body.theme-dark {
         --primary: #{$primary};
         --primary-lighter: #{darken($primary, 20%)};
         --primary-darker: #{lighten($primary, 20%)};
-    
-        --background: #121212;
+
+        $background: #121212;
+        --background: #{$background};
+        --background-03dp: #{lighten($background, 8%)};    
+
         --surface: #121212;
         --error: #cf6679;
-    
+
         --on-primary: #ffffff;
         --on-background: #ffffff;
         --on-surface: #ffffff;

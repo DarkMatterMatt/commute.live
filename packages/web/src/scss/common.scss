@@ -55,6 +55,16 @@ svg {
     right: 0;
 }
 
+/* override color-picker styles to match theme */
+.pcr-app {
+    background-color: var(--background-03dp) !important;
+
+    .pcr-result {
+        background-color: var(--primary-lighter) !important;
+        color: var(--on-primary) !important;
+    }
+}
+
 /* GitHub icon colors cannot be changed (legally) */
 body .github {
     color: #191717;
