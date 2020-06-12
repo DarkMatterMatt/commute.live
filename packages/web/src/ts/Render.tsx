@@ -5,7 +5,6 @@ import { SearchRoute, TransitType } from "./types";
 import { largeScreen } from "./Helpers";
 
 import React from "./JsxElem";
-import RemoveIcon from "../assets/remove.svg";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const convert = require("color-convert");
