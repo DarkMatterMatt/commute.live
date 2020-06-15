@@ -9,6 +9,8 @@ const SETTINGS = [
     new BooleanSetting("hideAbout", getInput("sw-hide-about")),
     new BooleanSetting("showLocation", getInput("sw-show-location")),
     new BooleanSetting("centerOnLocation", getInput("sw-center-location")),
+    new BooleanSetting("showZoom", getInput("sw-show-zoom")),
+    new BooleanSetting("showFullscreen", getInput("sw-show-fullscreen")),
 ];
 
 let instance: Settings = null;

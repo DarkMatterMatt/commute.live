@@ -83,7 +83,7 @@ function onGeolocationError(err: PositionError) {
         settings.setBool("centerOnLocation", false);
 
         // eslint-disable-next-line no-alert
-        window.alert("You've denied access your location, so I can't enable this setting.");
+        window.alert("You've denied access to your location, so I can't enable this setting.");
     }
     console.warn(err);
 }
@@ -108,10 +108,8 @@ function onGeolocationError(err: PositionError) {
     const map = new google.maps.Map($map, {
         center:            AUCKLAND_COORDS,
         zoom:              13,
-        fullscreenControl: false,
         streetViewControl: false,
         mapTypeControl:    false,
-        styles:            settings.getBool("darkMode") ? mapThemes.dark : mapThemes.light,
         backgroundColor:   settings.getBool("darkMode") ? "#17263c" : undefined,
     });
     state.setMap(map);
@@ -135,6 +133,8 @@ function onGeolocationError(err: PositionError) {
     settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
 
     settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
+    settings.addChangeListener("showZoom", b => map.setOptions({ zoomControl: b }));
+    settings.addChangeListener("showFullscreen", b => map.setOptions({ fullscreenControl: b }));
 
     settings.addChangeListener("centerOnLocation", centerOnLocation => {
         if (centerOnLocation) {

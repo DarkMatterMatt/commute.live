@@ -48,6 +48,7 @@
                     <input type="checkbox" id="sw-hide-about" class="switch-input">
                     <div class="switch-label"></div>
                 </label>
+                <h2>Map</h2>
                 <label for="sw-center-location" class="setting">
                     <span>Initialise map at my location</span>
                     <input type="checkbox" id="sw-center-location" class="switch-input">
@@ -58,6 +59,27 @@
                     <input type="checkbox" id="sw-show-location" class="switch-input">
                     <div class="switch-label"></div>
                 </label>
+                <label for="sw-show-zoom" class="setting">
+                    <span>Show zoom controls</span>
+                    <input type="checkbox" id="sw-show-zoom" class="switch-input" checked>
+                    <div class="switch-label"></div>
+                </label>
+                <!-- TODO: fix layout when exiting fullscreen on mobile -->
+                <label class="hide" for="sw-show-fullscreen" class="setting">
+                    <span>Show fullscreen button</span>
+                    <input type="checkbox" id="sw-show-fullscreen" class="switch-input">
+                    <div class="switch-label"></div>
+                </label>
+                <!--
+                <label for="s-example-dropdown" class="setting">
+                    <span>Auto-hide address bar</span>
+                    <select id="s-example-dropdown">
+                        <option value="on">Always</option>
+                        <option value="half" selected>Sometimes</option>
+                        <option value="off">Never</option>
+                    </select>
+                </label>
+                -->
             </div>
             <div id="about">
                 <section>
