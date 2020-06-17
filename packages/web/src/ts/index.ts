@@ -203,4 +203,26 @@ function onGeolocationError(err: PositionError) {
     });
 
     api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
+
+    // PWA install to home screen, (event is Chrome only)
+    window.addEventListener("beforeinstallprompt", ev => {
+        // prevent Chrome 67 and earlier from automatically showing the prompt
+        ev.preventDefault();
+
+        /*
+        const deferredPrompt = ev;
+
+        btn.addEventListener("click", () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(choiceResult => {
+                if (choiceResult.outcome === "accepted") {
+                    console.log("User accepted the A2HS prompt");
+                }
+                else {
+                    console.log("User dismissed the A2HS prompt");
+                }
+            });
+        });
+        */
+    });
 })();
