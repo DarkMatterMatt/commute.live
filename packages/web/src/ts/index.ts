@@ -110,6 +110,7 @@ function onGeolocationError(err: PositionError) {
         zoom:              13,
         streetViewControl: false,
         mapTypeControl:    false,
+        fullscreenControl: false,
         backgroundColor:   settings.getBool("darkMode") ? "#17263c" : undefined,
     });
     state.setMap(map);
@@ -134,7 +135,6 @@ function onGeolocationError(err: PositionError) {
 
     settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
     settings.addChangeListener("showZoom", b => map.setOptions({ zoomControl: b }));
-    settings.addChangeListener("showFullscreen", b => map.setOptions({ fullscreenControl: b }));
 
     settings.addChangeListener("centerOnLocation", centerOnLocation => {
         if (centerOnLocation) {
