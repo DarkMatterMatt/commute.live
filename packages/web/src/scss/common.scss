@@ -51,15 +51,6 @@ svg {
     float: right;
 }
 
-.flex-fill-no-overflow {
-    /* note: the parent _must_ be position:relative */
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
 /* override color-picker styles to match theme */
 .pcr-app {
     background-color: var(--background-03dp) !important;

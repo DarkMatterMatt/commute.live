@@ -5,22 +5,22 @@ export function largeScreen(): boolean {
     return window.matchMedia("(min-width: 900px)").matches;
 }
 
-let localStorageEnabled_: boolean = null;
+let localStorageEnabledResult: boolean = null;
 /**
  * Test if localStorage is working
  */
 export function localStorageEnabled(): boolean {
-    if (localStorageEnabled_ === null) {
+    if (localStorageEnabledResult === null) {
         try {
             localStorage.setItem("localStorageTest", "localStorageTest");
             localStorage.removeItem("localStorageTest");
-            localStorageEnabled_ = true;
+            localStorageEnabledResult = true;
         }
         catch (e) {
-            localStorageEnabled_ = false;
+            localStorageEnabledResult = false;
         }
     }
-    return localStorageEnabled_;
+    return localStorageEnabledResult;
 }
 
 /**
