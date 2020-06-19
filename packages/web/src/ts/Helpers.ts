@@ -61,14 +61,11 @@ export function onClickOutside($e: HTMLElement, cb: (ev: MouseEvent) => void): v
 }
 
 /**
- * Test if there is a working network connection. Always returns true in development mode.
+ * Test if there is a working network connection.
  */
 export async function isOnline(): Promise<boolean> {
-    if (process.env.NODE_ENV === "development") {
-        return true;
-    }
     try {
-        const r = await fetch("/generate_204");
+        const r = await fetch("https://httpstat.us/204");
         return r.status === 204;
     }
     catch (e) {
