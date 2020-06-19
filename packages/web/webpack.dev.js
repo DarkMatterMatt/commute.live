@@ -4,7 +4,7 @@ const Dotenv = require("dotenv-webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
-const CopyPlugin = require('copy-webpack-plugin');
+const WorkboxPlugin = require("workbox-webpack-plugin");
 
 // find internal IP
 const ifaces = os.networkInterfaces();
@@ -77,12 +77,12 @@ module.exports = {
                     },
                 ],
             }, {
-                test: /\.(png|svg|jpg|gif)$/,
+                test: /\.(png|svg|jpg|gif|ico|xml)$/,
                 use:  [
                     {
-                        loader: 'url-loader',
+                        loader: "file-loader",
                         options: {
-                            limit: 8192,
+                            name: "[name].[contenthash].[ext]",
                         },
                     },
                 ],
@@ -101,10 +101,6 @@ module.exports = {
             template:      "./src/html/index.html",
         }),
         new WebpackPwaManifest(require("./web_manifest")),
-        new CopyPlugin({
-            patterns: [
-                { from: "src/assets/", to: "assets/" },
-            ],
-        }),
+        new WorkboxPlugin.GenerateSW(),
     ],
 };

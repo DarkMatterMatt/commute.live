@@ -5,7 +5,7 @@ const WebpackMd5Hash = require("webpack-md5-hash");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
-const CopyPlugin = require('copy-webpack-plugin');
+const WorkboxPlugin = require("workbox-webpack-plugin");
 
 module.exports = {
     entry: {
@@ -60,12 +60,12 @@ module.exports = {
                     },
                 ],
             }, {
-                test: /\.(png|svg|jpg|gif)$/,
+                test: /\.(png|svg|jpg|gif|ico|xml)$/,
                 use:  [
                     {
-                        loader: 'url-loader',
+                        loader: "file-loader",
                         options: {
-                            limit: 8192,
+                            name: "[name].[contenthash].[ext]",
                         },
                     },
                 ],
@@ -86,10 +86,6 @@ module.exports = {
         }),
         new WebpackMd5Hash(),
         new WebpackPwaManifest(require("./web_manifest")),
-        new CopyPlugin({
-            patterns: [
-                { from: "src/assets/", to: "assets/" },
-            ],
-        }),
+        new WorkboxPlugin.GenerateSW(),
     ],
 };

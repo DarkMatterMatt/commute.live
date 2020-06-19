@@ -59,3 +59,19 @@ export function onClickOutside($e: HTMLElement, cb: (ev: MouseEvent) => void): v
 
     document.addEventListener("click", outsideClickListener);
 }
+
+/**
+ * Test if there is a working network connection. Always returns true in development mode.
+ */
+export async function isOnline(): Promise<boolean> {
+    if (process.env.NODE_ENV === "development") {
+        return true;
+    }
+    try {
+        const r = await fetch("/generate_204");
+        return r.status === 204;
+    }
+    catch (e) {
+        return false;
+    }
+}

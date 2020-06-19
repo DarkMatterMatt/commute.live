@@ -9,6 +9,7 @@ import Search from "./Search";
 import mapThemes from "./mapThemes";
 import { settings } from "./Settings";
 import { render } from "./Render";
+import { isOnline } from "./Helpers";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -96,6 +97,14 @@ function onGeolocationError(err: PositionError) {
             settings,
             state,
         });
+    }
+
+    /*
+     * Offline
+     */
+    if (google == null || !await isOnline()) {
+        alert("offline");
+        return;
     }
 
     /*
@@ -203,6 +212,13 @@ function onGeolocationError(err: PositionError) {
     });
 
     api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
+
+    /*
+     * PWA
+     */
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js", { scope: "." });
+    }
 
     // PWA install to home screen, (event is Chrome only)
     window.addEventListener("beforeinstallprompt", ev => {
