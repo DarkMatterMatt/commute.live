@@ -40,7 +40,7 @@ body.theme-dark {
     --on-primary: #ffffff;
     --on-background: #ffffff;
     --on-surface: #ffffff;
-    --on-error: #000000;
+    --on-error: #ffffff;
 }
 
 @media (prefers-color-scheme:dark) {
@@ -60,6 +60,6 @@ body.theme-dark {
         --on-primary: #ffffff;
         --on-background: #ffffff;
         --on-surface: #ffffff;
-        --on-error: #000000;
+        --on-error: #ffffff;
     }
 }

@@ -25,6 +25,9 @@ const $main = document.getElementById("main");
 const $navShow = document.getElementById("nav-show");
 const $navHide = document.getElementById("nav-hide");
 const $navAbout = document.getElementById("nav-about");
+const $error = document.getElementById("error");
+const $errorMessage = $error.getElementsByClassName("message")[0];
+const $errorBtn = $error.getElementsByClassName("btn")[0];
 
 /*
  * Nav Map
@@ -41,6 +44,29 @@ let navActive = navMap[0];
 /*
  * Functions
  */
+
+function hideError() {
+    $error.classList.remove("show");
+    setTimeout(() => $errorBtn.classList.remove("show"), 150);
+}
+
+function showError(msg: string, btnText: string, btnCallback?: () => void) {
+    $errorMessage.textContent = msg;
+
+    if (btnText != null) {
+        $errorBtn.textContent = btnText;
+        $errorBtn.classList.add("show");
+    }
+
+    $errorBtn.addEventListener("click", () => {
+        hideError();
+        if (btnCallback != null) {
+            btnCallback();
+        }
+    }, { once: true });
+
+    $error.classList.add("show");
+}
 
 function selectNavTab($tab: HTMLElement, $target: HTMLElement) {
     if ($tab.classList.contains("active")) {
@@ -83,8 +109,7 @@ function onGeolocationError(err: PositionError) {
         settings.setBool("showLocation", false);
         settings.setBool("centerOnLocation", false);
 
-        // eslint-disable-next-line no-alert
-        window.alert("You've denied access to your location, so I can't enable this setting.");
+        showError("You've denied access to your location, so I can't enable this setting.", "Ok");
     }
     console.warn(err);
 }
@@ -100,19 +125,30 @@ function onGeolocationError(err: PositionError) {
     }
 
     /*
+     * Pre-init
+     */
+
+    state.load();
+    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
+
+    /*
      * Offline
      */
+
     if (google == null || !await isOnline()) {
-        alert("offline");
+        if (window.navigator.onLine) {
+            setTimeout(() => window.location.reload(), 5000);
+        }
+        else {
+            window.addEventListener("online", () => window.location.reload());
+        }
+        showError("Waiting for network connection...");
         return;
     }
 
     /*
      * Init
      */
-
-    state.load();
-    state.setActiveRoutesElem($activeRoutes);
 
     const map = new google.maps.Map($map, {
         center:            AUCKLAND_COORDS,
@@ -123,14 +159,14 @@ function onGeolocationError(err: PositionError) {
         backgroundColor:   settings.getBool("darkMode") ? "#17263c" : undefined,
     });
     state.setMap(map);
+    state.setActiveRoutesElem($activeRoutes);
 
     const wsConnectTimeout = setTimeout(() => {
-        // eslint-disable-next-line no-alert
-        alert("Failed connecting to server :(\nPlease try again later");
-        document.location.reload();
-    }, 3000);
+        showError("Waiting to connect to server.... Your internet is fine, it's my server that's broken :(");
+    }, 2000);
     api.wsConnect().then(() => {
         clearInterval(wsConnectTimeout);
+        hideError();
         const search = new Search(state, $searchInput, $dropdownFilter);
         search.load();
     });
@@ -139,7 +175,6 @@ function onGeolocationError(err: PositionError) {
      * Add settings event listeners
      */
 
-    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
     settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
 
     settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
