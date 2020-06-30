@@ -50,7 +50,7 @@ function hideError() {
     setTimeout(() => $errorBtn.classList.remove("show"), 150);
 }
 
-function showError(msg: string, btnText: string, btnCallback?: () => void) {
+function showError(msg: string, btnText: string = null, btnCallback: () => void = null) {
     $errorMessage.textContent = msg;
 
     if (btnText != null) {
