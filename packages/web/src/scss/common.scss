@@ -124,6 +124,27 @@ body.theme-dark .github {
     }
 }
 
+#nav-show {
+    z-index: 1;
+    position: fixed;
+    background-color: var(--primary);
+    border-radius: 4px;
+    color: var(--on-primary);
+
+    &.active,
+    &:hover {
+        svg {
+            opacity: 1;
+        }
+    }
+
+    svg {
+        opacity: 0.6;
+        height: 100%;
+        width: 100%;
+    }
+}
+
 #content {
     z-index: 2;
     overflow: auto;

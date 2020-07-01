@@ -9,7 +9,7 @@ import Search from "./Search";
 import mapThemes from "./mapThemes";
 import { settings } from "./Settings";
 import { render } from "./Render";
-import { isOnline } from "./Helpers";
+import { isOnline, largeScreen } from "./Helpers";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -83,15 +83,26 @@ function selectNavTab($tab: HTMLElement, $target: HTMLElement) {
 
 function showNav() {
     $main.classList.add("show");
+    $map.classList.add("nav-show");
 
     // desktop: select the routes tab if the map tab was selected
-    if (navActive[0] === navMap[0][0]) {
+    if (largeScreen() && navActive[0] === navMap[0][0]) {
         selectNavTab(...navMap[1]);
     }
 }
 
 function hideNav() {
     $main.classList.remove("show");
+    $map.classList.remove("nav-show");
+}
+
+function toggleNav() {
+    if ($main.classList.contains("show")) {
+        hideNav();
+    }
+    else {
+        showNav();
+    }
 }
 
 function setClass($elem: HTMLElement, name: string, enabled: boolean) {
@@ -130,6 +141,9 @@ function onGeolocationError(err: PositionError) {
 
     state.load();
     settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
+    if (!largeScreen()) {
+        showNav();
+    }
 
     /*
      * Offline
@@ -176,6 +190,7 @@ function onGeolocationError(err: PositionError) {
      */
 
     settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
+    settings.addChangeListener("showMenuToggle", v => setClass($navShow, "hide-0-899", !v));
 
     settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
     settings.addChangeListener("showZoom", b => map.setOptions({ zoomControl: b }));
@@ -208,9 +223,9 @@ function onGeolocationError(err: PositionError) {
      * Event Listeners
      */
 
-    $navShow.addEventListener("click", showNav);
+    $navShow.addEventListener("click", toggleNav);
     $navHide.addEventListener("click", hideNav);
-    $map.addEventListener("mousedown", hideNav);
+    $map.addEventListener("mousedown", hideNav); // only auto-hide on desktop
 
     // navigation
     navMap.forEach(([$tab, $target]) => {
@@ -222,6 +237,21 @@ function onGeolocationError(err: PositionError) {
             ev.stopPropagation();
             return false;
         });
+    });
+
+    // window resizing, we might need to show/hide the nav
+    let wasLargeScreen = largeScreen();
+    window.addEventListener("resize", () => {
+        if (wasLargeScreen && !largeScreen()) {
+            // we just went to small screen mode
+            showNav();
+            selectNavTab(...navMap[0]);
+        }
+        else if (!wasLargeScreen && largeScreen()) {
+            // we just went to large screen mode
+            hideNav();
+        }
+        wasLargeScreen = largeScreen();
     });
 
     // listen for messages
@@ -251,6 +281,7 @@ function onGeolocationError(err: PositionError) {
     /*
      * PWA
      */
+
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("service-worker.js", { scope: "." });
     }

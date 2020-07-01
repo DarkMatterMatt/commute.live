@@ -5,28 +5,10 @@ $minNavWidth: 350px;
 }
 
 #nav-show {
-    z-index: 1;
-    position: fixed;
     top: 32px;
     left: 32px;
     height: 48px;
     width: 48px;
-    background-color: var(--primary);
-    border-radius: 4px;
-    color: var(--on-primary);
-
-    &.active,
-    &:hover {
-        svg {
-            opacity: 1;
-        }
-    }
-
-    svg {
-        opacity: 0.6;
-        height: 100%;
-        width: 100%;
-    }
 }
 
 #main {
