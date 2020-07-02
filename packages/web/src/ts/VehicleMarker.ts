@@ -38,7 +38,7 @@ class VehicleMarker extends google.maps.Marker {
             this.animateTo(position);
         }
         else {
-            this.nextPosition = position;
+            this.nextPosition = toLatLngLiteral(position);
             super.setPosition(position);
         }
     }

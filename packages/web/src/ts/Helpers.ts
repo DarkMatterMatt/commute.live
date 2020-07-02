@@ -72,3 +72,27 @@ export async function isOnline(): Promise<boolean> {
         return false;
     }
 }
+
+/**
+ * Convert LatLngBoundsLiteral to LatLngBounds.
+ */
+// eslint-disable-next-line max-len
+export function fromLatLngBoundsLiteral(b: google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral): google.maps.LatLngBounds {
+    if (b instanceof google.maps.LatLngBounds) {
+        return b;
+    }
+    return new google.maps.LatLngBounds(
+        new google.maps.LatLng(b.south, b.west),
+        new google.maps.LatLng(b.north, b.east)
+    );
+}
+
+/**
+ * Convert LatLngLiteral to LatLng.
+ */
+export function fromLatLngLiteral(p: google.maps.LatLng | google.maps.LatLngLiteral): google.maps.LatLng {
+    if (p instanceof google.maps.LatLng) {
+        return p;
+    }
+    return new google.maps.LatLng(p.lat, p.lng);
+}
