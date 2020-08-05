@@ -37,8 +37,19 @@ class React {
             });
             element.appendChild(fragments);
 
-            //  merge element with attributes
-            Object.entries(attrs).forEach(e => element.setAttribute(...e));
+            // merge element with attributes
+            if (attrs != null) {
+                Object.entries(attrs).forEach(([k, v]) => {
+                    if (k === "style" && typeof v === "object") {
+                        Object.entries(v).forEach(([k2, v2]) => {
+                            element.style[k2] = v2;
+                        });
+                    }
+                    else {
+                        element.setAttribute(k, v);
+                    }
+                });
+            }
 
             return element;
         }

@@ -96,3 +96,25 @@ export function fromLatLngLiteral(p: google.maps.LatLng | google.maps.LatLngLite
     }
     return new google.maps.LatLng(p.lat, p.lng);
 }
+
+/**
+ * Call a function after at least one repaint.
+ */
+export function afterRepaint(cb: (...args: any[]) => void, ...args: any[]): void {
+    requestAnimationFrame(() => requestAnimationFrame(() => cb(...args)));
+}
+
+/**
+ * Queue a function's execution. Alias for setTimeout(cb, 1).
+ */
+export function queue(cb: (...args: any[]) => void, ...args: any[]): void {
+    setTimeout(cb, 1, ...args);
+}
+
+/**
+ * Trigger reflow on element.
+ */
+export function triggerReflow(elem: HTMLElement): void {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    elem.offsetHeight;
+}
