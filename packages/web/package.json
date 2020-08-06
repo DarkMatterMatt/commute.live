@@ -1,6 +1,6 @@
 {
     "name": "at-live-client",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "description": "The front-end of AT Live Server, provides bus, train and ferry tracking on a map.",
     "main": "src/ts/index.ts",
     "dependencies": {
@@ -11,6 +11,7 @@
         "bezier-easing": "^2.1.0",
         "color-convert": "^2.0.1",
         "core-js": "^3.6.5",
+        "file-loader": "^6.0.0",
         "lz-string": "^1.4.4",
         "regenerator-runtime": "^0.13.5"
     },

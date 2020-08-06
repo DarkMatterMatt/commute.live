@@ -8,6 +8,12 @@
     <meta content="utf-8" http-equiv="encoding">
     <meta name="msapplication-TileColor" content="#2e7699">
     <meta name="msapplication-config" content="../assets/browserconfig.xml">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= process.env.PWA_BASE_URL %>">
+    <meta property="og:title" content="AT Live">
+    <meta property="og:description" content="Designed for commuters, AT Live provides live tracking for buses, trains and ferries on the Auckland Transport network.">
+    <meta property="og:image" content="<%= process.env.PWA_BASE_URL %><%= require('../assets/open_graph_image.png').default %>">
     <link rel="mask-icon" href="../assets/safari-pinned-tab.svg" color="#5bbad5">
     <link rel="shortcut icon" href="../assets/icon_maskable_rounded.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/icon_maskable_rounded_32.png">
