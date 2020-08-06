@@ -1,15 +1,7 @@
 import { LiveVehicle } from "./types";
 import VehicleMarker from "./VehicleMarker";
 import { api } from "./Api";
-import Render from "./Render";
-
-/**
- * Calculates a bezier blend curve
- * @param t position on the curve, 0 <= t <= 1
- */
-function bezierBlend(t: number): number {
-    return t * t * (3 - 2 * t);
-}
+import HtmlMarkerView from "./HtmlMarkerView";
 
 interface RouteOptions {
     map: google.maps.Map;
@@ -17,11 +9,14 @@ interface RouteOptions {
     color: string;
     active?: boolean;
     longName: Route["longName"];
+    markerView: HtmlMarkerView;
     shortName: Route["shortName"];
 }
 
 class Route {
     map: google.maps.Map;
+
+    markerView: HtmlMarkerView = null;
 
     type: "bus" | "rail" | "ferry";
 
@@ -37,11 +32,12 @@ class Route {
 
     vehicleMarkers: Map<string, VehicleMarker>;
 
-    constructor({ map, type, color, longName, shortName }: RouteOptions) {
+    constructor({ map, type, color, longName, markerView, shortName }: RouteOptions) {
         this.map = map;
         this.type = type;
         this.color = color;
         this.longName = longName;
+        this.markerView = markerView;
         this.shortName = shortName;
 
         this.active = false;
@@ -49,40 +45,36 @@ class Route {
         this.vehicleMarkers = new Map();
     }
 
-    generateMarkerIcon(directionId: LiveVehicle["directionId"], opacity = 1): google.maps.Icon {
-        const fill = this.color;
-        const dotFill = directionId === 0 ? "#000" : "#FFF";
-        const dotOpacity = 0.5 * opacity;
-        return Render.createMarkerIcon({ fill, dotFill, opacity, dotOpacity, borderOpacity: opacity });
+    removeVehicle(markerOrId: VehicleMarker | string): void {
+        const marker = typeof markerOrId === "string" ? this.vehicleMarkers.get(markerOrId) : markerOrId;
+        if (marker == null) {
+            return;
+        }
+        if (this.markerView != null) {
+            this.markerView.removeMarker(marker);
+        }
+        this.vehicleMarkers.delete(marker.getId());
+        marker.destroy();
     }
 
     showVehicle({ vehicleId, position, lastUpdatedUnix, directionId }: LiveVehicle): void {
         let marker = this.vehicleMarkers.get(vehicleId);
-        if (marker === undefined) {
-            marker = new VehicleMarker({ map: this.map });
+        if (marker == null) {
+            marker = new VehicleMarker({
+                id:       vehicleId,
+                color:    this.color,
+                onExpiry: () => this.removeVehicle(vehicleId),
+            });
             this.vehicleMarkers.set(vehicleId, marker);
-
-            marker.interval = setInterval(() => {
-                // delete marker after no update for 90 seconds
-                const now = (new Date()).getTime() / 1000;
-                if (marker.lastUpdatedUnix < now - 90) {
-                    marker.setMap(null);
-                    clearInterval(marker.interval);
-                    this.vehicleMarkers.delete(vehicleId);
-                }
-                // marker starts going transparent after no update for 20 seconds
-                else if (marker.lastUpdatedUnix < now - 20) {
-                    // bezier from 20 to 90 secs, minimum of 0.3 opacity
-                    const opacity = 1 - 0.7 * bezierBlend((now - marker.lastUpdatedUnix - 20) / (90 - 20));
-                    marker.setIcon(this.generateMarkerIcon(directionId, opacity));
-                }
-            }, 1000 + Math.floor(Math.random() * 200));
+            if (this.markerView != null) {
+                this.markerView.addMarker(marker);
+            }
         }
-
-        marker.setPosition(position);
-        marker.setIcon(this.generateMarkerIcon(directionId));
-        marker.lastUpdatedUnix = lastUpdatedUnix;
-        marker.directionId = directionId;
+        marker.updateLiveData({
+            directionId,
+            lastUpdated: lastUpdatedUnix * 1000,
+            position,
+        });
     }
 
     setColor(color: string): void {
@@ -91,13 +83,23 @@ class Route {
             this.polylines[2].setOptions({ strokeColor: color });
             this.polylines[3].setOptions({ strokeColor: color });
         }
-        this.vehicleMarkers.forEach(m => m.setIcon(this.generateMarkerIcon(m.directionId)));
+        this.vehicleMarkers.forEach(m => m.setColor(color));
     }
 
     setMap(map: google.maps.Map): void {
         this.map = map;
         this.polylines.forEach(p => p.setMap(map));
-        this.vehicleMarkers.forEach(m => m.setMap(map));
+        if (this.markerView != null) {
+            this.markerView.setMap(map);
+        }
+    }
+
+    setMarkerView(markerView: HtmlMarkerView): void {
+        if (this.markerView != null) {
+            this.vehicleMarkers.forEach(m => this.markerView.removeMarker(m));
+        }
+        this.markerView = markerView;
+        this.vehicleMarkers.forEach(m => this.markerView.addMarker(m));
     }
 
     async loadVehicles(): Promise<void> {
@@ -139,8 +141,7 @@ class Route {
         this.polylines.forEach(p => p.setMap(null));
         this.polylines = [];
 
-        this.vehicleMarkers.forEach(m => m.setMap(null));
-        this.vehicleMarkers.clear();
+        this.vehicleMarkers.forEach(m => this.removeVehicle(m));
     }
 
     isActive(): boolean {

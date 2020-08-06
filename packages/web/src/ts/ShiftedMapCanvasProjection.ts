@@ -9,6 +9,10 @@ class ShiftedMapCanvasProjection {
         this.update(proj, top, left);
     }
 
+    isValid(): boolean {
+        return this.proj != null;
+    }
+
     update(proj: ShiftedMapCanvasProjection | google.maps.MapCanvasProjection, top: number, left: number): void {
         this.proj = proj;
         this.top = top;

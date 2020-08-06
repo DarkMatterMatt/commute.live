@@ -1,43 +1,31 @@
-import { fromLatLngBoundsLiteral } from "./Helpers";
 import ShiftedMapCanvasProjection from "./ShiftedMapCanvasProjection";
 import HtmlMarker from "./HtmlMarker";
 
 class HtmlMarkerView extends google.maps.OverlayView {
-    root = document.createElement("div");
+    private root = document.createElement("div");
 
-    bounds: google.maps.LatLngBounds;
+    private referencePoint: google.maps.LatLng;
 
-    markers: Map<string, HtmlMarker> = new Map();
+    private markers: Map<string, HtmlMarker> = new Map();
 
-    top: number;
+    private worldWidth: number;
 
-    left: number;
+    private shiftedProj = new ShiftedMapCanvasProjection(null, 0, 0);
 
-    height: number;
+    private hasDrawn = false;
 
-    width: number;
-
-    shiftedProj = new ShiftedMapCanvasProjection(null, 0, 0);
-
-    hasDrawn = false;
-
-    constructor(bounds: google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral, map: google.maps.Map) {
+    constructor(map: google.maps.Map) {
         super();
-        this.setBounds(bounds);
+        this.referencePoint = map.getCenter();
         this.setMap(map);
-    }
-
-    setBounds(bounds: google.maps.LatLngBounds | google.maps.LatLngBoundsLiteral): HtmlMarkerView {
-        this.bounds = fromLatLngBoundsLiteral(bounds);
-        return this;
     }
 
     onAdd(): void {
         this.root.style.position = "absolute";
+        this.root.style.height = "0";
+        this.root.style.width = "0";
         this.getPanes().markerLayer.appendChild(this.root);
-
-        this.root.style.backgroundColor = "red";
-        this.root.style.opacity = "0.2";
+        this.markers.forEach(m => m.onAdd());
     }
 
     onRemove(): void {
@@ -49,45 +37,42 @@ class HtmlMarkerView extends google.maps.OverlayView {
         this.hasDrawn = true;
 
         const proj = this.getProjection();
-        const sw = proj.fromLatLngToDivPixel(this.bounds.getSouthWest());
-        const ne = proj.fromLatLngToDivPixel(this.bounds.getNorthEast());
+        const pos = proj.fromLatLngToDivPixel(this.referencePoint);
+        this.shiftedProj.update(proj, pos.y, pos.x);
 
-        this.top = ne.y;
-        this.left = sw.x;
-        this.root.style.top = `${this.top}px`;
-        this.root.style.left = `${this.left}px`;
+        this.root.style.top = `${pos.y}px`;
+        this.root.style.left = `${pos.x}px`;
 
-        this.shiftedProj.update(proj, this.top, this.left);
-
-        const [height, width] = [sw.y - ne.y, ne.x - sw.x];
-        if (height !== this.height || width !== this.width) {
-            [this.height, this.width] = [height, width];
-            this.root.style.height = `${height}px`;
-            this.root.style.width = `${width}px`;
-
+        // only redraw markers when zoom/width changes (don't redraw when panning)
+        if (proj.getWorldWidth() !== this.worldWidth) {
+            this.worldWidth = proj.getWorldWidth();
             this.markers.forEach(m => m.draw(false));
         }
     }
 
-    getDomElement(): HTMLDivElement {
+    getRootElement(): HTMLDivElement {
         return this.root;
     }
 
     addMarker(m: HtmlMarker): void {
-        if (this.markers.has(m.id)) {
-            throw new Error(`Marker with id '${m.id}' already exists.`);
+        if (this.markers.has(m.getId())) {
+            throw new Error(`Marker with id '${m.getId()}' already exists.`);
         }
-        this.markers.set(m.id, m);
+        this.markers.set(m.getId(), m);
 
-        this.root.appendChild(m.getDomElement());
+        this.root.appendChild(m.getRootElement());
         m.setProjection(this.shiftedProj);
         if (this.hasDrawn) {
             m.draw(false);
         }
     }
 
-    removeMarker({ id }: { id: string }): void {
-        this.markers.delete(id);
+    removeMarker(m_: HtmlMarker | string): void {
+        const m = typeof m_ === "string" ? this.markers.get(m_) : m_;
+        if (m != null) {
+            this.markers.delete(m.getId());
+            this.root.removeChild(m.getRootElement());
+        }
     }
 }
 

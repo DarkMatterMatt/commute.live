@@ -5,6 +5,7 @@ import { LiveVehicle, SearchRoute, TransitType } from "./types";
 import { localStorageEnabled, isEmptyObject } from "./Helpers";
 import { api } from "./Api";
 import { settings } from "./Settings";
+import HtmlMarkerView from "./HtmlMarkerView";
 
 const STATE_VERSION = 2;
 
@@ -21,11 +22,13 @@ interface ParsedState {
 let instance: State = null;
 
 class State {
-    map: google.maps.Map = null;
+    private map: google.maps.Map = null;
 
-    routesByShortName = new Map<string, Route>();
+    private markerView: HtmlMarkerView;
 
-    $activeRoutes: HTMLElement = document.createElement("div");
+    private routesByShortName = new Map<string, Route>();
+
+    private $activeRoutes: HTMLElement = document.createElement("div");
 
     private constructor() {
         //
@@ -73,6 +76,12 @@ class State {
         return this;
     }
 
+    setMarkerView(markerView: HtmlMarkerView): State {
+        this.markerView = markerView;
+        this.routesByShortName.forEach(r => r.setMarkerView(markerView));
+        return this;
+    }
+
     setActiveRoutesElem($new: HTMLElement): State {
         $new.append(...this.$activeRoutes.childNodes);
         this.$activeRoutes = $new;
@@ -112,7 +121,8 @@ class State {
                 longName,
                 color,
                 type,
-                map: this.map,
+                map:        this.map,
+                markerView: this.markerView,
             });
             this.routesByShortName.set(shortName, route);
 
@@ -190,8 +200,9 @@ class State {
                 shortName,
                 longName,
                 type,
-                color:  this.getNewColor(),
-                map:    this.map,
+                color:      this.getNewColor(),
+                map:        this.map,
+                markerView: this.markerView,
             });
             this.routesByShortName.set(shortName, route);
         }

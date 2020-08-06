@@ -1,80 +1,115 @@
-import BezierEasing from "bezier-easing";
-import { UnixTimestamp } from "./types";
+import { LiveVehicle } from "./types";
 import { settings } from "./Settings";
+import HtmlMarker from "./HtmlMarker";
+import Render, { MarkerIconOptions } from "./Render";
+import { queue, afterRepaint } from "./Helpers";
 
 const ANIMATE_POSITION_DURATION = 1000;
-const ANIMATE_POSITION_EASING = BezierEasing(0.4, 0, 0.2, 1);
+const FADE_OUT_EASING = "ease-in";
+const FADE_OUT_DELAY = 20 * 1000;
+const FADE_OUT_DURATION = (70 * 1000) / 0.8; // divide by 0.8 so we expire with 30% opacity
+const EXPIRES_AFTER = 90 * 1000;
 
-function toLatLngLiteral(pos: google.maps.LatLng | google.maps.LatLngLiteral): google.maps.LatLngLiteral {
-    return pos instanceof google.maps.LatLng ? pos.toJSON() : pos;
+interface VehicleMarkerOptions {
+    id: string;
+    color: string;
+    onExpiry?: () => void;
 }
 
-interface VehicleMarkerOptions extends google.maps.ReadonlyMarkerOptions {
-    directionId?: 0 | 1;
-    lastUpdatedUnix?: UnixTimestamp;
-}
+class VehicleMarker extends HtmlMarker {
+    private color: string;
 
-class VehicleMarker extends google.maps.Marker {
-    interval: NodeJS.Timeout;
+    private directionId: LiveVehicle["directionId"];
 
-    directionId: 0 | 1;
+    private expiryTimeout: ReturnType<typeof setTimeout>;
 
-    lastUpdatedUnix: UnixTimestamp;
+    private lastUpdated: number = null;
 
-    lastPosition: google.maps.LatLngLiteral;
+    private markerType: MarkerIconOptions["type"] = "marker";
 
-    nextPosition: google.maps.LatLngLiteral;
+    private onExpiry: () => void = null;
 
-    finishAnimatePositionAt: DOMHighResTimeStamp;
-
-    constructor(opts: VehicleMarkerOptions) {
-        super(opts);
-        this.directionId = opts.directionId;
-        this.lastUpdatedUnix = opts.lastUpdatedUnix;
-    }
-
-    setPosition(position: google.maps.LatLng | google.maps.LatLngLiteral): void {
-        if (settings.getBool("animateMarkerPosition")) {
-            this.animateTo(position);
-        }
-        else {
-            this.nextPosition = toLatLngLiteral(position);
-            super.setPosition(position);
-        }
-    }
-
-    animateTo(position_: google.maps.LatLng | google.maps.LatLngLiteral): void {
-        const position = toLatLngLiteral(position_);
-
-        if (this.lastPosition == null) {
-            this.lastPosition = position;
-            this.nextPosition = position;
-            super.setPosition(position);
-            return;
-        }
-
-        this.lastPosition = this.nextPosition;
-        this.nextPosition = position;
-
-        this.finishAnimatePositionAt = performance.now() + ANIMATE_POSITION_DURATION;
-        window.requestAnimationFrame(this.animatePositionStep.bind(this));
-    }
-
-    private animatePositionStep(time: number) {
-        const progress = 1 - (this.finishAnimatePositionAt - time) / ANIMATE_POSITION_DURATION;
-
-        if (progress >= 1) {
-            super.setPosition(this.nextPosition);
-            return;
-        }
-
-        const easeProgress = ANIMATE_POSITION_EASING(progress);
-        super.setPosition({
-            lat: this.lastPosition.lat + (this.nextPosition.lat - this.lastPosition.lat) * easeProgress,
-            lng: this.lastPosition.lng + (this.nextPosition.lng - this.lastPosition.lng) * easeProgress,
+    public constructor(o: VehicleMarkerOptions) {
+        super({
+            ...o,
+            elem:                   document.createElement("div"),
+            smoothMovementDuration: settings.getBool("animateMarkerPosition") ? ANIMATE_POSITION_DURATION : 0,
         });
 
-        window.requestAnimationFrame(this.animatePositionStep.bind(this));
+        this.color = o.color;
+        this.onExpiry = o.onExpiry;
+    }
+
+    public onAdd(): void {
+        super.onAdd();
+        this.startOpacityTransition();
+    }
+
+    private loadIcon(): void {
+        const elem = Render.createMarkerSvg({
+            type:        this.markerType,
+            color:       this.color,
+            directionId: this.directionId,
+        });
+        // set opacity so CSS transition has something to work from
+        elem.style.opacity = "1";
+        this.setHtmlElement(elem);
+    }
+
+    private removeOpacityTransition(): void {
+        const elem = this.getHtmlElement();
+        elem.style.transition = "";
+        elem.style.opacity = "1";
+    }
+
+    private startOpacityTransition(): void {
+        if (this.isAdded()) {
+            const elapsed = Date.now() - this.lastUpdated;
+            const elem = this.getHtmlElement();
+            elem.style.transitionProperty = "opacity";
+            elem.style.transitionTimingFunction = FADE_OUT_EASING;
+            elem.style.transitionDelay = `${FADE_OUT_DELAY - elapsed}ms`;
+            elem.style.transitionDuration = `${FADE_OUT_DURATION}ms`;
+            afterRepaint(() => {
+                elem.style.opacity = "0";
+            });
+        }
+    }
+
+    public setColor(color: string): void {
+        if (color !== this.color) {
+            this.color = color;
+            this.loadIcon();
+        }
+    }
+
+    public updateLiveData({ position, lastUpdated, directionId } : {
+        position: google.maps.LatLng | google.maps.LatLngLiteral;
+        lastUpdated: number;
+        directionId: LiveVehicle["directionId"];
+    }): void {
+        this.lastUpdated = lastUpdated;
+
+        // direction changed, regenerate icon
+        if (directionId !== this.directionId) {
+            this.directionId = directionId;
+            this.loadIcon();
+        }
+
+        // update expiry time
+        const elapsed = Date.now() - this.lastUpdated;
+        clearTimeout(this.expiryTimeout);
+        this.expiryTimeout = setTimeout(() => {
+            if (this.onExpiry != null) {
+                this.onExpiry();
+            }
+        }, EXPIRES_AFTER - elapsed);
+
+        // start opacity transition (fade out over time)
+        this.removeOpacityTransition();
+        afterRepaint(() => this.startOpacityTransition());
+
+        this.setPosition(position);
     }
 }
 

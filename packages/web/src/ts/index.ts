@@ -10,6 +10,8 @@ import mapThemes from "./mapThemes";
 import { settings } from "./Settings";
 import { render } from "./Render";
 import { isOnline, largeScreen } from "./Helpers";
+import HtmlMarkerView from "./HtmlMarkerView";
+import VehicleMarker from "./VehicleMarker";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -174,6 +176,9 @@ function onGeolocationError(err: PositionError) {
     });
     state.setMap(map);
     state.setActiveRoutesElem($activeRoutes);
+
+    const markerView = new HtmlMarkerView(map);
+    state.setMarkerView(markerView);
 
     const wsConnectTimeout = setTimeout(() => {
         showError("Waiting to connect to server.... Your internet is fine, it's my server that's broken :(");
