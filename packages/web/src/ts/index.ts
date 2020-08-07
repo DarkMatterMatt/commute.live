@@ -220,6 +220,7 @@ function onGeolocationError(err: PositionError) {
         }
         else {
             navigator.geolocation.clearWatch(geoWatch);
+            render.showLocation(null, null);
         }
     });
 
