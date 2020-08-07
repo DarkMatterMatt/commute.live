@@ -55,8 +55,12 @@ class Render {
 
     showLocation(map: google.maps.Map, coords: Coordinates): void {
         if (map == null) {
-            this.locationCenter.setMap(null);
-            this.locationAccuracy.setMap(null);
+            if (this.locationCenter != null) {
+                this.locationCenter.setMap(null);
+            }
+            if (this.locationAccuracy != null) {
+                this.locationAccuracy.setMap(null);
+            }
             return;
         }
 
