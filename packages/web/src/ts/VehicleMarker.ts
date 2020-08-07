@@ -1,8 +1,7 @@
 import { LiveVehicle } from "./types";
-import { settings } from "./Settings";
 import HtmlMarker from "./HtmlMarker";
 import Render, { MarkerIconOptions } from "./Render";
-import { queue, afterRepaint } from "./Helpers";
+import { afterRepaint } from "./Helpers";
 
 const ANIMATE_POSITION_DURATION = 1000;
 const FADE_OUT_EASING = "ease-in";
@@ -14,6 +13,7 @@ interface VehicleMarkerOptions {
     id: string;
     color: string;
     onExpiry?: () => void;
+    animatePosition: boolean;
 }
 
 class VehicleMarker extends HtmlMarker {
@@ -33,7 +33,7 @@ class VehicleMarker extends HtmlMarker {
         super({
             ...o,
             elem:                   document.createElement("div"),
-            smoothMovementDuration: settings.getBool("animateMarkerPosition") ? ANIMATE_POSITION_DURATION : 0,
+            smoothMovementDuration: o.animatePosition ? ANIMATE_POSITION_DURATION : 0,
         });
 
         this.color = o.color;
@@ -81,6 +81,10 @@ class VehicleMarker extends HtmlMarker {
             this.color = color;
             this.loadIcon();
         }
+    }
+
+    public setAnimatePosition(smooth: boolean): void {
+        this.setSmoothMovementDuration(smooth ? ANIMATE_POSITION_DURATION : 0);
     }
 
     public updateLiveData({ position, lastUpdated, directionId } : {

@@ -11,7 +11,6 @@ import { settings } from "./Settings";
 import { render } from "./Render";
 import { isOnline, largeScreen } from "./Helpers";
 import HtmlMarkerView from "./HtmlMarkerView";
-import VehicleMarker from "./VehicleMarker";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 
@@ -222,6 +221,10 @@ function onGeolocationError(err: PositionError) {
         else {
             navigator.geolocation.clearWatch(geoWatch);
         }
+    });
+
+    settings.addChangeListener("animateMarkerPosition", b => {
+        state.getRoutesByShortName().forEach(r => r.setAnimatePosition(b));
     });
 
     /*

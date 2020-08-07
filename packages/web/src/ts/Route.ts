@@ -11,6 +11,7 @@ interface RouteOptions {
     longName: Route["longName"];
     markerView: HtmlMarkerView;
     shortName: Route["shortName"];
+    animateMarkerPosition: boolean;
 }
 
 class Route {
@@ -30,15 +31,18 @@ class Route {
 
     polylines: google.maps.Polyline[];
 
+    animateMarkerPosition: boolean;
+
     vehicleMarkers: Map<string, VehicleMarker>;
 
-    constructor({ map, type, color, longName, markerView, shortName }: RouteOptions) {
+    constructor({ map, type, color, longName, markerView, shortName, animateMarkerPosition }: RouteOptions) {
         this.map = map;
         this.type = type;
         this.color = color;
         this.longName = longName;
         this.markerView = markerView;
         this.shortName = shortName;
+        this.animateMarkerPosition = animateMarkerPosition;
 
         this.active = false;
         this.polylines = [];
@@ -61,9 +65,10 @@ class Route {
         let marker = this.vehicleMarkers.get(vehicleId);
         if (marker == null) {
             marker = new VehicleMarker({
-                id:       vehicleId,
-                color:    this.color,
-                onExpiry: () => this.removeVehicle(vehicleId),
+                id:              vehicleId,
+                color:           this.color,
+                onExpiry:        () => this.removeVehicle(vehicleId),
+                animatePosition: this.animateMarkerPosition,
             });
             this.vehicleMarkers.set(vehicleId, marker);
             if (this.markerView != null) {
@@ -84,6 +89,11 @@ class Route {
             this.polylines[3].setOptions({ strokeColor: color });
         }
         this.vehicleMarkers.forEach(m => m.setColor(color));
+    }
+
+    setAnimatePosition(animate: boolean): void {
+        this.animateMarkerPosition = animate;
+        this.vehicleMarkers.forEach(m => m.setAnimatePosition(animate));
     }
 
     setMap(map: google.maps.Map): void {
