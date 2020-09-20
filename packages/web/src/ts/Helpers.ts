@@ -64,13 +64,11 @@ export function onClickOutside($e: HTMLElement, cb: (ev: MouseEvent) => void): v
  * Test if there is a working network connection.
  */
 export async function isOnline(): Promise<boolean> {
-    try {
-        const r = await fetch("https://httpstat.us/204");
-        return r.status === 204;
+    if (navigator.onLine == null) {
+        // doesn't support navigator.onLine, assume we're online and hope for the best
+        return true;
     }
-    catch (e) {
-        return false;
-    }
+    return navigator.onLine;
 }
 
 /**
