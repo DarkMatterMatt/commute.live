@@ -10,10 +10,16 @@ const WorkboxPlugin = require("workbox-webpack-plugin");
 module.exports = (async () => {
     // find internal IP
     const ifaces = os.networkInterfaces();
-    let iface = ifaces["Ethernet"] || ifaces["Wi-Fi"] || ifaces["eth0"] || ifaces["wlan0"];
-    iface = iface && iface.find(i => i.family === "IPv4");
-    const ip = iface ? iface.address : "127.0.0.1";
-
+    let ip = "127.0.0.1";
+    for (const n of ["Ethernet", "eth0", "Wi-Fi", "WiFi", "wlan0"]) {
+        if (ifaces[n]) {
+            const ipv4 = ifaces[n].find(i => i.family === "IPv4");
+            if (ipv4 && ipv4.address && !ipv4.address.startsWith("169.254.")) {
+                ip = ipv4.address;
+                break;
+            }
+        }
+    }
     const port = await getPort({ host: ip, port: getPort.makeRange(8080, 9000) });
 
     return {
