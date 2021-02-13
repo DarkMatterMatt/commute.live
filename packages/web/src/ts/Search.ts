@@ -1,7 +1,6 @@
 import { api } from "./Api";
 import State from "./State";
 import Render from "./Render";
-import { SearchRoute } from "./types";
 
 class Search {
     routes: SearchRoute[];

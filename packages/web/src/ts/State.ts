@@ -1,7 +1,6 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import Route from "./Route";
 import Render from "./Render";
-import { LiveVehicle, SearchRoute, TransitType } from "./types";
 import { localStorageEnabled, isEmptyObject } from "./Helpers";
 import { api } from "./Api";
 import { settings } from "./Settings";

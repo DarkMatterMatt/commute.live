@@ -1,4 +1,3 @@
-import { LiveVehicle } from "./types";
 import HtmlMarker from "./HtmlMarker";
 import Render, { MarkerIconOptions } from "./Render";
 import { afterRepaint } from "./Helpers";

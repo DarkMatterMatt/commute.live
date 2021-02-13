@@ -2,7 +2,6 @@ import "../scss/styles.scss";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-import { LiveVehicle } from "./types";
 import { state } from "./State";
 import { api } from "./Api";
 import Search from "./Search";

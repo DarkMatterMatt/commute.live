@@ -1,4 +1,3 @@
-import { LiveVehicle } from "./types";
 import VehicleMarker from "./VehicleMarker";
 import { api } from "./Api";
 import HtmlMarkerView from "./HtmlMarkerView";

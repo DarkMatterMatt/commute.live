@@ -1,7 +1,6 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
 import Pickr from "@simonwep/pickr";
 import { hex } from "color-convert/route";
-import { SearchRoute, TransitType, LiveVehicle } from "./types";
 import { largeScreen } from "./Helpers";
 
 import React from "./JsxElem";

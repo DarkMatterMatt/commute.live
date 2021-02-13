@@ -1,5 +1,3 @@
-import { LiveVehicle, TransitType } from "./types";
-
 // eslint-disable-next-line max-len
 type QueryRouteInfo = "shortName" | "longName" | "longNames" | "routeIds" | "shapeIds" | "vehicles" | "type" | "agencyId" | "polylines";
 
