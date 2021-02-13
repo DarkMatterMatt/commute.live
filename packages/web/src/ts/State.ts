@@ -109,6 +109,7 @@ class State {
     async loadRoutes(routes: ParsedState["routes"]): Promise<void> {
         const routesData = await api.queryRoutes(null, ["shortName", "longName", "type"]);
         const animateMarkerPosition = settings.getBool("animateMarkerPosition");
+        const markerType = settings.getStr("markerType") as MarkerType;
 
         routes.forEach(([shortName, active, color]) => {
             if (routesData[shortName] == null) {
@@ -124,6 +125,7 @@ class State {
                 type,
                 map:        this.map,
                 markerView: this.markerView,
+                markerType,
             });
             this.routesByShortName.set(shortName, route);
 
@@ -201,6 +203,7 @@ class State {
         let showPickr = false;
         if (route === undefined) {
             const animateMarkerPosition = settings.getBool("animateMarkerPosition");
+            const markerType = settings.getStr("markerType") as MarkerType;
             showPickr = true;
             route = new Route({
                 animateMarkerPosition,
@@ -210,6 +213,7 @@ class State {
                 color:      this.getNewColor(),
                 map:        this.map,
                 markerView: this.markerView,
+                markerType,
             });
             this.routesByShortName.set(shortName, route);
         }

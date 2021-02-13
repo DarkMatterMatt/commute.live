@@ -20,7 +20,7 @@ const SUGGESTED_COLORS = [
 ];
 
 export interface MarkerIconOptions {
-    type: "marker" | "pointyCircle";
+    type: MarkerType;
     transitType: TransitType;
     color: string;
     directionId: LiveVehicle["directionId"];

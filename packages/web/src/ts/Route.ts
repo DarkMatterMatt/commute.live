@@ -2,6 +2,9 @@ import VehicleMarker from "./VehicleMarker";
 import { api } from "./Api";
 import HtmlMarkerView from "./HtmlMarkerView";
 
+/** Snap location to route if within this many meters */
+const VEHICLE_SNAP_THRESHOLD = 40;
+
 interface RouteOptions {
     map: google.maps.Map;
     type: Route["type"];
@@ -9,6 +12,7 @@ interface RouteOptions {
     active?: boolean;
     longName: Route["longName"];
     markerView: HtmlMarkerView;
+    markerType: MarkerType;
     shortName: Route["shortName"];
     animateMarkerPosition: boolean;
 }
@@ -18,13 +22,15 @@ class Route {
 
     markerView: HtmlMarkerView = null;
 
-    type: "bus" | "rail" | "ferry";
+    type: TransitType;
 
     color: string;
 
     active: boolean;
 
     longName: string;
+
+    markerType: MarkerType;
 
     shortName: string;
 
@@ -34,14 +40,15 @@ class Route {
 
     vehicleMarkers: Map<string, VehicleMarker>;
 
-    constructor({ map, type, color, longName, markerView, shortName, animateMarkerPosition }: RouteOptions) {
-        this.map = map;
-        this.type = type;
-        this.color = color;
-        this.longName = longName;
-        this.markerView = markerView;
-        this.shortName = shortName;
-        this.animateMarkerPosition = animateMarkerPosition;
+    constructor(o: RouteOptions) {
+        this.map = o.map;
+        this.type = o.type;
+        this.color = o.color;
+        this.longName = o.longName;
+        this.markerType = o.markerType;
+        this.markerView = o.markerView;
+        this.shortName = o.shortName;
+        this.animateMarkerPosition = o.animateMarkerPosition;
 
         this.active = false;
         this.polylines = [];
@@ -60,24 +67,29 @@ class Route {
         marker.destroy();
     }
 
-    showVehicle({ vehicleId, position, lastUpdatedUnix, directionId }: LiveVehicle): void {
-        let marker = this.vehicleMarkers.get(vehicleId);
+    showVehicle(v: LiveVehicle): void {
+        let marker = this.vehicleMarkers.get(v.vehicleId);
         if (marker == null) {
             marker = new VehicleMarker({
-                id:              vehicleId,
+                id:              v.vehicleId,
                 color:           this.color,
-                onExpiry:        () => this.removeVehicle(vehicleId),
+                onExpiry:        () => this.removeVehicle(v.vehicleId),
                 animatePosition: this.animateMarkerPosition,
+                transitType:     this.type,
+                markerType:      this.markerType,
             });
-            this.vehicleMarkers.set(vehicleId, marker);
+            this.vehicleMarkers.set(v.vehicleId, marker);
             if (this.markerView != null) {
                 this.markerView.addMarker(marker);
             }
         }
+
+        const shouldSnap = v.snapDeviation < VEHICLE_SNAP_THRESHOLD;
+
         marker.updateLiveData({
-            directionId,
-            lastUpdated: lastUpdatedUnix * 1000,
-            position,
+            lastUpdated: v.lastUpdated,
+            position:    shouldSnap ? v.snapPosition : v.position,
+            bearing:     shouldSnap ? v.snapBearing : -1,
         });
     }
 

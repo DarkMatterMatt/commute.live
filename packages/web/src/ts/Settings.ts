@@ -12,6 +12,7 @@ const SETTINGS = [
     new BooleanSetting("centerOnLocation", getInput("sw-center-location")),
     new BooleanSetting("showZoom", getInput("sw-show-zoom")),
     new BooleanSetting("animateMarkerPosition", getInput("sw-animate-marker-position")),
+    new StringSetting("markerType", getInput("s-marker-type")),
 ];
 
 let instance: Settings = null;

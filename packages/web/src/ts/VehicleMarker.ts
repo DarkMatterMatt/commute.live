@@ -1,6 +1,6 @@
-import HtmlMarker from "./HtmlMarker";
-import Render, { MarkerIconOptions } from "./Render";
 import { afterRepaint } from "./Helpers";
+import HtmlMarker from "./HtmlMarker";
+import Render from "./Render";
 
 const ANIMATE_POSITION_DURATION = 1000;
 const FADE_OUT_EASING = "ease-in";
@@ -12,10 +12,20 @@ interface VehicleMarkerOptions {
     id: string;
     color: string;
     onExpiry?: () => void;
+    markerType: MarkerType;
     animatePosition: boolean;
+    transitType: TransitType;
+}
+
+interface UpdateLiveDataOpts {
+    position: google.maps.LatLng | google.maps.LatLngLiteral;
+    lastUpdated: number;
+    bearing: number;
 }
 
 class VehicleMarker extends HtmlMarker {
+    private bearing = -1;
+
     private color: string;
 
     private directionId: LiveVehicle["directionId"];
@@ -24,9 +34,11 @@ class VehicleMarker extends HtmlMarker {
 
     private lastUpdated: number = null;
 
-    private markerType: MarkerIconOptions["type"] = "marker";
+    private markerType: MarkerType;
 
     private onExpiry: () => void = null;
+
+    private transitType: TransitType;
 
     public constructor(o: VehicleMarkerOptions) {
         super({
@@ -36,7 +48,9 @@ class VehicleMarker extends HtmlMarker {
         });
 
         this.color = o.color;
+        this.markerType = o.markerType;
         this.onExpiry = o.onExpiry;
+        this.transitType = o.transitType;
     }
 
     public onAdd(): void {
@@ -49,6 +63,8 @@ class VehicleMarker extends HtmlMarker {
             type:        this.markerType,
             color:       this.color,
             directionId: this.directionId,
+            transitType: this.transitType,
+            bearing:     this.bearing,
         });
         // set opacity so CSS transition has something to work from
         elem.style.opacity = "1";
@@ -86,18 +102,12 @@ class VehicleMarker extends HtmlMarker {
         this.setSmoothMovementDuration(smooth ? ANIMATE_POSITION_DURATION : 0);
     }
 
-    public updateLiveData({ position, lastUpdated, directionId } : {
-        position: google.maps.LatLng | google.maps.LatLngLiteral;
-        lastUpdated: number;
-        directionId: LiveVehicle["directionId"];
-    }): void {
-        this.lastUpdated = lastUpdated;
+    public updateLiveData(data: UpdateLiveDataOpts): void {
+        this.lastUpdated = data.lastUpdated;
+        this.bearing = data.bearing;
 
-        // direction changed, regenerate icon
-        if (directionId !== this.directionId) {
-            this.directionId = directionId;
-            this.loadIcon();
-        }
+        // regenerate icon
+        this.loadIcon();
 
         // update expiry time
         const elapsed = Date.now() - this.lastUpdated;
@@ -112,7 +122,7 @@ class VehicleMarker extends HtmlMarker {
         this.removeOpacityTransition();
         afterRepaint(() => this.startOpacityTransition());
 
-        this.setPosition(position);
+        this.setPosition(data.position);
     }
 }
 
