@@ -20,9 +20,11 @@ const SUGGESTED_COLORS = [
 ];
 
 export interface MarkerIconOptions {
-    type: "marker";
+    type: "marker" | "pointyCircle";
+    transitType: TransitType;
     color: string;
     directionId: LiveVehicle["directionId"];
+    bearing: number;
 }
 
 interface TransitIconOptions {
@@ -163,21 +165,49 @@ class Render {
         };
     }
 
-    static createMarkerSvg({ type, color, directionId }: MarkerIconOptions): HTMLDivElement {
+    static createMarkerSvg(opts: MarkerIconOptions): HTMLDivElement {
         /* eslint-disable max-len */
-        switch (type) {
+        switch (opts.type) {
             default:
-                throw new Error(`Invalid marker icon type: ${type}`);
+                throw new Error(`Invalid marker icon type: ${opts.type}`);
             case "marker":
                 return (
                   <div style={{ position: "absolute", left: "-13.5px", top: "-43px" }}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 57.96 90" style={{ height: "43px" }}>
-                      <path style={{ fill: color }} d="M29,89c-1.28,0-2.81-.64-2.9-3.67C25.75,74.12,20,65.18,13.92,55.73l-.14-.23c-.94-1.45-1.9-2.89-2.86-4.33C8.58,47.64,6.15,44,4.11,40.2a25.74,25.74,0,0,1,.57-25.53A28.11,28.11,0,0,1,29,1a28.09,28.09,0,0,1,24.3,13.67,25.74,25.74,0,0,1,.57,25.53c-2,3.79-4.46,7.44-6.81,11-1,1.44-1.92,2.88-2.85,4.33l-.14.23C38,65.18,32.2,74.12,31.88,85.33,31.8,88.36,30.26,89,29,89Z" />
+                      <path style={{ fill: opts.color }} d="M29,89c-1.28,0-2.81-.64-2.9-3.67C25.75,74.12,20,65.18,13.92,55.73l-.14-.23c-.94-1.45-1.9-2.89-2.86-4.33C8.58,47.64,6.15,44,4.11,40.2a25.74,25.74,0,0,1,.57-25.53A28.11,28.11,0,0,1,29,1a28.09,28.09,0,0,1,24.3,13.67,25.74,25.74,0,0,1,.57,25.53c-2,3.79-4.46,7.44-6.81,11-1,1.44-1.92,2.88-2.85,4.33l-.14.23C38,65.18,32.2,74.12,31.88,85.33,31.8,88.36,30.26,89,29,89Z" />
                       <path style={{ fill: "#FFF" }} d="M29,2c20.09.12,33.22,20.53,24,37.73C50.13,45,46.59,49.91,43.34,55c-6,9.4-12.13,18.76-12.45,30.34,0,1.24-.31,2.7-1.9,2.7h0c-1.59,0-1.86-1.46-1.9-2.7C26.74,73.72,20.66,64.36,14.62,55,11.36,49.91,7.82,45,5,39.73-4.25,22.53,8.88,2.12,29,2m0-2h0A29.11,29.11,0,0,0,3.82,14.16a26.74,26.74,0,0,0-.59,26.52c2.06,3.83,4.5,7.5,6.86,11C11,53.14,12,54.6,12.93,56.05l.15.22c6,9.34,11.68,18.16,12,29.08.12,4.31,3,4.65,3.9,4.65s3.79-.34,3.91-4.65c.31-10.92,6-19.74,12-29.08l.14-.22c.93-1.45,1.9-2.91,2.84-4.32,2.36-3.55,4.8-7.22,6.86-11a26.74,26.74,0,0,0-.59-26.52A29.08,29.08,0,0,0,29,0Z" />
-                      <path style={{ fill: directionId === 0 ? "#000" : "#FFF", opacity: 0.5 }} d="M19.48,29a9.5,9.5 0 1,0 19,0a9.5,9.5 0 1,0 -19,0" />
+                      <path style={{ fill: opts.directionId === 0 ? "#000" : "#FFF", opacity: 0.5 }} d="M19.48,29a9.5,9.5 0 1,0 19,0a9.5,9.5 0 1,0 -19,0" />
                     </svg>
                   </div>
                 );
+            case "pointyCircle": {
+                let icon: string;
+                switch (opts.transitType) {
+                    case "bus":
+                        icon = "M25.56 52.72a6.74 6.74 0 002.25 5v4A2.26 2.26 0 0030.06 64h2.25a2.25 2.25 0 002.25-2.25v-2.28h18v2.25A2.26 2.26 0 0054.81 64h2.25a2.25 2.25 0 002.25-2.25v-4a6.71 6.71 0 002.25-5V30.22c0-7.87-8.05-9-18-9s-18 1.13-18 9zM33.44 55a3.38 3.38 0 113.37-3.37A3.37 3.37 0 0133.44 55zm20.25 0a3.38 3.38 0 113.37-3.37A3.37 3.37 0 0153.69 55zm3.37-13.5h-27V30.22h27z";
+                        break;
+                    case "ferry":
+                        icon = "M60.4 59.5c-2.9 0-5.8-1-8.4-2.8-5.1 3.6-11.7 3.6-16.8 0-2.6 1.8-5.5 2.8-8.4 2.8h-4.2v4.2h4.2c2.9 0 5.8-.7 8.4-2.1 5.3 2.7 11.5 2.7 16.8 0 2.6 1.4 5.5 2.1 8.4 2.1h4.2v-4.2h-4.2zm-33.7-4.2h.1c3.4 0 6.3-1.8 8.4-4.2 2.1 2.4 5 4.2 8.4 4.2 3.4 0 6.3-1.8 8.4-4.2 2.1 2.4 5 4.2 8.4 4.2h.1l4-14c.2-.5.1-1.1-.1-1.6s-.7-.9-1.3-1l-2.7-.9V28c0-2.3-1.9-4.2-4.2-4.2h-6.3v-6.3H37.3v6.3H31c-2.3 0-4.2 1.9-4.2 4.2v9.7l-2.7.9c-.5.2-1 .5-1.3 1-.3.5-.3 1.1-.1 1.6l4 14.1zM31 28h25.2v8.3l-12.6-4.1L31 36.3V28z";
+                        break;
+                    case "rail":
+                        icon = "M25.6 52.7c0 4.3 3.5 7.9 7.9 7.9L30.1 64v1.1h27V64l-3.4-3.4c4.3 0 7.9-3.5 7.9-7.9V29.1c0-7.9-8.1-9-18-9s-18 1.1-18 9v23.6zm18 3.4c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2.1 4.5-4.5 4.5zm13.5-15.7h-27V29.1h27v11.3z";
+                        break;
+                    default:
+                        // impossible
+                }
+                const secondaryColor = Render.shouldUseLightText(opts.color) ? "#FFF" : "#000";
+                const rotate = `rotate(${opts.bearing}, 43.57, 43.57)`; // center of viewbox
+
+                return (
+                  <div style={{ position: "absolute", left: "-21.5px", top: "-21.5px" }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.13 87.13" style={{ width: "43px", height: "43px" }}>
+                      <path style={{ fill: opts.color, stroke: secondaryColor, "stroke-miterlimit": 10 }} transform={rotate} d="M20.94 21a32 32 0 1045.25 0L46.39 1.17a4 4 0 00-5.65 0z" />
+                      <path style={{ fill: secondaryColor }} d={icon} />
+                      <path style={{ fill: "transparent" }} d="M0,43.57a43.57,43.57 0 1,0 87.14,0a43.57,43.57 0 1,0 -87.14,0" />
+                    </svg>
+                  </div>
+                );
+            }
         }
     }
 
