@@ -53,7 +53,7 @@ class Render {
         return instance;
     }
 
-    showLocation(map: google.maps.Map, coords: Coordinates): void {
+    showLocation(map: google.maps.Map, coords: GeolocationCoordinates): void {
         if (map == null) {
             if (this.locationCenter != null) {
                 this.locationCenter.setMap(null);

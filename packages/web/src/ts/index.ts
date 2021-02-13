@@ -115,7 +115,7 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
     }
 }
 
-function onGeolocationError(err: PositionError) {
+function onGeolocationError(err: GeolocationPositionError) {
     if (err.code === err.PERMISSION_DENIED) {
         // disable settings that require the location
         settings.setBool("showLocation", false);

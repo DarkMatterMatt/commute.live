@@ -58,6 +58,7 @@
         "workbox-webpack-plugin": "^6.1.0"
     },
     "scripts": {
+        "bs": "npm run typecheck && npm start",
         "start": "npm run build:dev",
         "build:dev": "webpack serve --env dev --mode development",
         "build:prod": "webpack --env prod --mode production",
