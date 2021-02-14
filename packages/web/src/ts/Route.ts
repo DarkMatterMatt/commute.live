@@ -3,7 +3,9 @@ import { api } from "./Api";
 import HtmlMarkerView from "./HtmlMarkerView";
 
 /** Snap location to route if within this many meters */
-const VEHICLE_SNAP_THRESHOLD = 40;
+const VEHICLE_SNAP_THRESHOLD = 50;
+/** Snap bearing to route if within this many degrees */
+const VEHICLE_SNAP_BEARING_THRESHOLD = 30;
 
 interface RouteOptions {
     map: google.maps.Map;
@@ -85,11 +87,13 @@ class Route {
         }
 
         const shouldSnap = v.snapDeviation < VEHICLE_SNAP_THRESHOLD;
+        const snapBearingDeviation = Math.abs(v.bearing - v.snapBearing);
+        const bearing = snapBearingDeviation < VEHICLE_SNAP_BEARING_THRESHOLD ? v.snapBearing : v.bearing;
 
         marker.updateLiveData({
             lastUpdated: v.lastUpdated,
             position:    shouldSnap ? v.snapPosition : v.position,
-            bearing:     shouldSnap ? v.snapBearing : -1,
+            bearing:     shouldSnap ? bearing : -1, // only show bearing for vehicles snapped to route
         });
     }
 
