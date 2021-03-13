@@ -106,6 +106,10 @@ class Route {
         this.vehicleMarkers.forEach(m => m.setColor(color));
     }
 
+    public setMarkerIconType(type: MarkerType): void {
+        this.vehicleMarkers.forEach(m => m.setMarkerIconType(type));
+    }
+
     setAnimatePosition(animate: boolean): void {
         this.animateMarkerPosition = animate;
         this.vehicleMarkers.forEach(m => m.setAnimatePosition(animate));

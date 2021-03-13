@@ -227,6 +227,10 @@ function onGeolocationError(err: GeolocationPositionError) {
         state.getRoutesByShortName().forEach(r => r.setAnimatePosition(b));
     });
 
+    settings.addChangeListener("markerType", s => {
+        state.getRoutesByShortName().forEach(r => r.setMarkerIconType(s));
+    });
+
     /*
      * Event Listeners
      */

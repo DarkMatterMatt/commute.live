@@ -98,6 +98,13 @@ class VehicleMarker extends HtmlMarker {
         }
     }
 
+    public setMarkerIconType(type: MarkerType): void {
+        if (type !== this.markerType) {
+            this.markerType = type;
+            this.loadIcon();
+        }
+    }
+
     public setAnimatePosition(smooth: boolean): void {
         this.setSmoothMovementDuration(smooth ? ANIMATE_POSITION_DURATION : 0);
     }
