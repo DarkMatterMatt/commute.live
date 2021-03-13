@@ -17,6 +17,7 @@ module.exports = {
     output: {
         path:     path.resolve(__dirname, "dist"),
         filename: "[name].[chunkhash].js",
+        publicPath: "",
     },
     // devtool: "source-map",
     module: {
@@ -84,7 +85,6 @@ module.exports = {
             hash:          false,
             template:      "./src/html/index.html",
         }),
-        new WebpackMd5Hash(),
         new WebpackPwaManifest(require("./web_manifest")),
         new WorkboxPlugin.GenerateSW(),
     ],
