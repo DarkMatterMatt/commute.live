@@ -199,10 +199,11 @@ class Render {
                 const rotate = `rotate(${opts.bearing}, 43.57, 43.57)`; // center of viewbox
                 // if bearing is less than zero (i.e. not valid), show not-pointy circle
                 const pointyCircle = opts.bearing > 0 ? "M20.94 21a32 32 0 1045.25 0L46.39 1.17a4 4 0 00-5.65 0z" : "M11.6,43.6a32,32 0 1,0 64,0a32,32 0 1,0 -64,0";
+                const size = 38; // size in pixels
 
                 return (
-                  <div style={{ position: "absolute", left: "-21.5px", top: "-21.5px" }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.13 87.13" style={{ width: "43px", height: "43px" }}>
+                  <div style={{ position: "absolute", left: `${-size / 2}px`, top: `${-size / 2}px` }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.13 87.13" style={{ width: `${size}px`, height: `${size}px` }}>
                       <path style={{ fill: opts.color, stroke: secondaryColor, "stroke-miterlimit": 10 }} transform={rotate} d={pointyCircle} />
                       <path style={{ fill: secondaryColor }} d={icon} />
                       <path style={{ fill: "transparent" }} d="M0,43.57a43.57,43.57 0 1,0 87.14,0a43.57,43.57 0 1,0 -87.14,0" />
