@@ -140,4 +140,29 @@ mapThemes.dark = [
     },
 ];
 
+mapThemes.simpleDark = [
+    ...mapThemes.dark,
+    {
+        featureType: "administrative.neighborhood",
+        stylers:     [{ visibility: "off" }],
+    },
+    {
+        featureType: "landscape",
+        elementType: "labels",
+        stylers:     [{ visibility: "off" }],
+    },
+    {
+        featureType: "poi",
+        stylers:     [{ visibility: "off" }],
+    },
+    {
+        featureType: "poi.park",
+        stylers:     [{ visibility: "on" }],
+    },
+    {
+        featureType: "transit.line",
+        stylers:     [{ visibility: "off" }],
+    },
+];
+
 export default mapThemes;

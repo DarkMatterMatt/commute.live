@@ -130,6 +130,7 @@ function onGeolocationError(err: GeolocationPositionError) {
     if (process.env.NODE_ENV === "development") {
         Object.assign(window, {
             api,
+            mapThemes,
             settings,
             state,
         });
