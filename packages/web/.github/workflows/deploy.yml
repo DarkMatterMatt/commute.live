@@ -40,6 +40,7 @@ jobs:
         with:
           envkey_API_URL: ${{ secrets.API_URL }}
           envkey_GMAPS_KEY: ${{ secrets.GMAPS_KEY }}
+          envkey_GTAG_ID: ${{ secrets.GTAG_ID }}
           envkey_LINK_AT_API: ${{ secrets.LINK_AT_API }}
           envkey_LINK_GITHUB_CLIENT: ${{ secrets.LINK_GITHUB_CLIENT }}
           envkey_LINK_GITHUB_SERVER: ${{ secrets.LINK_GITHUB_SERVER }}
