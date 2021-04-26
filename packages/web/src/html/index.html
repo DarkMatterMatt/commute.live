@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <title>Commute Live</title>
@@ -9,6 +9,7 @@
     <meta name="msapplication-TileColor" content="#2e7699">
     <meta name="msapplication-config" content="../assets/browserconfig.xml">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="description" content="Commute Live provides real-time tracking for buses, trains and ferries on the Auckland Transport network.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="<%= process.env.PWA_BASE_URL %>">
     <meta property="og:title" content="Commute Live">
@@ -21,6 +22,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     <script defer src="https://maps.googleapis.com/maps/api/js?key=<%= process.env.GMAPS_KEY %>"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GTAG_ID %>"></script>
+    <link rel="preconnect" href="https://<%= process.env.API_URL.split('/')[2] %>">
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date);gtag("config","<%= process.env.GTAG_ID %>")</script>
     <%= htmlWebpackPlugin.tags.headTags %>
 </head>
@@ -127,7 +129,7 @@
                 <section>
                     <h2>
                         Open Source
-                        <a class="float-right" href="<%= process.env.LINK_GITHUB_CLIENT %>" target="_blank">
+                        <a class="float-right" href="<%= process.env.LINK_GITHUB_CLIENT %>" target="_blank" rel="noopener">
                             <svg class="github inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 23.41">
                                 <path style="fill-rule: evenodd"
                                     d="M12,0A12,12,0,0,0,8.22,23.39c.6.11.82-.26.82-.58s0-1,0-2c-3.34.72-4-1.61-4-1.61A3.19,3.19,0,0,0,3.64,17.4c-1.08-.74.09-.73.09-.73a2.55,2.55,0,0,1,1.84,1.24,2.56,2.56,0,0,0,3.49,1,2.59,2.59,0,0,1,.76-1.61C7.15,17,4.35,16,4.35,11.37A4.63,4.63,0,0,1,5.59,8.15,4.28,4.28,0,0,1,5.71,5s1-.33,3.3,1.23a11.18,11.18,0,0,1,6,0C17.31,4.65,18.31,5,18.31,5a4.28,4.28,0,0,1,.12,3.17,4.63,4.63,0,0,1,1.23,3.22c0,4.61-2.8,5.63-5.47,5.92A2.88,2.88,0,0,1,15,19.52c0,1.6,0,2.89,0,3.29s.21.69.82.58A12,12,0,0,0,12,0Z" />
@@ -136,8 +138,8 @@
                     </h2>
                     <p>
                         Source code for both the
-                        <a href="<%= process.env.LINK_GITHUB_CLIENT %>" target="_blank">client</a> (website) and the
-                        <a href="<%= process.env.LINK_GITHUB_SERVER %>" target="_blank">server</a> is available on GitHub.
+                        <a href="<%= process.env.LINK_GITHUB_CLIENT %>" target="_blank" rel="noopener">client</a> (website) and the
+                        <a href="<%= process.env.LINK_GITHUB_SERVER %>" target="_blank" rel="noopener">server</a> is available on GitHub.
                     </p>
                     <p>
                         Ideas and contributions are very welcome, especially for anything design-related :)
@@ -147,7 +149,7 @@
                     <h2>Transit Data</h2>
                     <p>
                         Route and real-time vehicle data is sourced from the
-                        <a href="<%= process.env.LINK_AT_API %>" target="_blank">Auckland Transport API</a>.
+                        <a href="<%= process.env.LINK_AT_API %>" target="_blank" rel="noopener">Auckland Transport API</a>.
                     </p>
                 </section>
                 <section>
