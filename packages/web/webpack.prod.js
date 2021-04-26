@@ -89,3 +89,5 @@ module.exports = {
         new WorkboxPlugin.GenerateSW(),
     ],
 };
+
+console.log(`Running production build for ${process.env.PWA_BASE_URL}`);

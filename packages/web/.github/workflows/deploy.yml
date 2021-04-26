@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    environment: "GitHub Pages"
+    environment: github-pages
     runs-on: ubuntu-latest
 
     steps:
