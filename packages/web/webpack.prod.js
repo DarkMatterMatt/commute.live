@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WebpackMd5Hash = require("webpack-md5-hash");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const CnameWebpackPlugin = require("cname-webpack-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
@@ -87,6 +88,7 @@ module.exports = {
         }),
         new WebpackPwaManifest(require("./web_manifest")),
         new WorkboxPlugin.GenerateSW(),
+        new CnameWebpackPlugin({ domain: new URL(process.env.PWA_BASE_URL).hostname }),
     ],
 };
 
