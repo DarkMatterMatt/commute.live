@@ -35,15 +35,18 @@ jobs:
       - name: Typecheck TypeScript
         run: npm run typecheck
 
+      - name: Create .env
+        uses: SpicyPizza/create-envfile@v1
+        with:
+          envkey_API_URL: ${{ secrets.API_URL }}
+          envkey_GMAPS_KEY: ${{ secrets.GMAPS_KEY }}
+          envkey_LINK_AT_API: ${{ secrets.LINK_AT_API }}
+          envkey_LINK_GITHUB_CLIENT: ${{ secrets.LINK_GITHUB_CLIENT }}
+          envkey_LINK_GITHUB_SERVER: ${{ secrets.LINK_GITHUB_SERVER }}
+          envkey_PWA_BASE_URL: ${{ secrets.PWA_BASE_URL }}
+          envkey_WS_URL: ${{ secrets.WS_URL }}
+
       - name: Build
-        env:
-          API_URL: ${{ secrets.API_URL }}
-          GMAPS_KEY: ${{ secrets.GMAPS_KEY }}
-          LINK_AT_API: ${{ secrets.LINK_AT_API }}
-          LINK_GITHUB_CLIENT: ${{ secrets.LINK_GITHUB_CLIENT }}
-          LINK_GITHUB_SERVER: ${{ secrets.LINK_GITHUB_SERVER }}
-          PWA_BASE_URL: ${{ secrets.PWA_BASE_URL }}
-          WS_URL: ${{ secrets.WS_URL }}
         run: npm run build:prod
         
       - name: Deploy to GitHub Pages
