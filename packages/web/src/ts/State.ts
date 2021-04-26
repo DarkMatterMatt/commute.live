@@ -21,6 +21,9 @@ interface ParsedState {
 let instance: State = null;
 
 class State {
+    /** Is the user's first visit (i.e. user has never modified the default routes & settings). */
+    private bIsFirstVisit: boolean;
+
     private map: google.maps.Map = null;
 
     private markerView: HtmlMarkerView;
@@ -40,13 +43,14 @@ class State {
         return instance;
     }
 
-    static migrate(data: Record<string, any>): ParsedState {
+    static migrate(data: Record<string, any>): ParsedState & { isFirstVisit: boolean } {
         /* eslint-disable no-param-reassign */
         const version = data.version as number;
 
         // on first load, show route 25B and 70
         if (isEmptyObject(data)) {
             return {
+                isFirstVisit: true,
                 version: STATE_VERSION,
                 routes:  [
                     ["25B", true, "#9400D3"],
@@ -63,6 +67,7 @@ class State {
         }
 
         return {
+            isFirstVisit: false,
             version:  STATE_VERSION,
             routes:   data.routes,
             settings: data.settings,
@@ -150,6 +155,7 @@ class State {
             data = localStorage.getItem("state");
         }
         const parsed = State.migrate(data ? JSON.parse(data) : {});
+        this.bIsFirstVisit = parsed.isFirstVisit;
 
         settings.import(parsed.settings);
         settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save(), false));
@@ -170,6 +176,11 @@ class State {
     isActive({ shortName }: SearchRoute): boolean {
         const route = this.routesByShortName.get(shortName);
         return route ? route.active : false;
+    }
+
+    /** Is the user's first visit (i.e. user has never modified the default routes & settings). */
+    isFirstVisit(): boolean {
+        return this.bIsFirstVisit;
     }
 
     showVehicle(data: LiveVehicle): void {

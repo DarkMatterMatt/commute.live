@@ -12,6 +12,7 @@ import { isOnline, largeScreen } from "./Helpers";
 import HtmlMarkerView from "./HtmlMarkerView";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
+const OPEN_MENU_ON_FIRST_VISIT_TIMEOUT = 5 * 1000;
 
 /*
  * DOM Element References
@@ -290,6 +291,12 @@ function onGeolocationError(err: GeolocationPositionError) {
     });
 
     api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
+
+    // on a user's first visit, show the menu after $x settings if they have a large screen
+    if (state.isFirstVisit() && largeScreen()) {
+        const timeout = setTimeout(() => showNav(), OPEN_MENU_ON_FIRST_VISIT_TIMEOUT);
+        $navShow.addEventListener("click", () => clearTimeout(timeout), { once: true });
+    }
 
     /*
      * PWA
