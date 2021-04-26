@@ -20,6 +20,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/icon_maskable_rounded_16.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     <script defer src="https://maps.googleapis.com/maps/api/js?key=<%= process.env.GMAPS_KEY %>"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GTAG_ID %>"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date);gtag("config","<%= process.env.GTAG_ID %>")</script>
     <%= htmlWebpackPlugin.tags.headTags %>
 </head>
 
@@ -158,9 +160,6 @@
                         This website does not require cookies or access to your location. However, disabling cookies
                         means that I can't store anything on your device, so your settings will be temporarily stored
                         in the URL. Some optional features require access to your location for obvious reasons.
-                    </p>
-                    <p>
-                        In v<%= require('../../package.json').version %> there are no analytics of any kind.
                     </p>
                 </section>
                 <section class="footer">
