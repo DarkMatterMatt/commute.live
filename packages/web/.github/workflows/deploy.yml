@@ -35,6 +35,14 @@ jobs:
         run: npm run typecheck
 
       - name: Build
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          GMAPS_KEY: ${{ secrets.GMAPS_KEY }}
+          LINK_AT_API: ${{ secrets.LINK_AT_API }}
+          LINK_GITHUB_CLIENT: ${{ secrets.LINK_GITHUB_CLIENT }}
+          LINK_GITHUB_SERVER: ${{ secrets.LINK_GITHUB_SERVER }}
+          PWA_BASE_URL: ${{ secrets.PWA_BASE_URL }}
+          WS_URL: ${{ secrets.WS_URL }}
         run: npm run build:prod
         
       - name: Deploy to GitHub Pages
