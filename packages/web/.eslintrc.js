@@ -37,10 +37,7 @@ module.exports = {
             "SwitchCase": 1,
             "ignoredNodes": ['JSXElement', 'JSXElement > *', 'JSXAttribute', 'JSXIdentifier', 'JSXNamespacedName', 'JSXMemberExpression', 'JSXSpreadAttribute', 'JSXExpressionContainer', 'JSXOpeningElement', 'JSXClosingElement', 'JSXText', 'JSXEmptyExpression', 'JSXSpreadChild'],
         }],
-        "key-spacing": ["error", {
-            "mode": "minimum",
-            "align": "value",
-        }],
+        "key-spacing": "error",
         "max-len": ["warn", {
             "code": 120
         }],

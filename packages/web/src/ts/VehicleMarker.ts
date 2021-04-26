@@ -43,7 +43,7 @@ class VehicleMarker extends HtmlMarker {
     public constructor(o: VehicleMarkerOptions) {
         super({
             ...o,
-            elem:                   document.createElement("div"),
+            elem: document.createElement("div"),
             smoothMovementDuration: o.animatePosition ? ANIMATE_POSITION_DURATION : 0,
         });
 
@@ -60,11 +60,11 @@ class VehicleMarker extends HtmlMarker {
 
     private loadIcon(): void {
         const elem = Render.createMarkerSvg({
-            type:        this.markerType,
-            color:       this.color,
+            type: this.markerType,
+            color: this.color,
             directionId: this.directionId,
             transitType: this.transitType,
-            bearing:     this.bearing,
+            bearing: this.bearing,
         });
         // set opacity so CSS transition has something to work from
         elem.style.opacity = "1";

@@ -67,15 +67,15 @@ class Render {
 
         if (this.locationCenter == null) {
             this.locationCenter = new google.maps.Marker({
-                icon:   Render.createLocationIcon(),
+                icon: Render.createLocationIcon(),
                 zIndex: 100,
             });
         }
         if (this.locationAccuracy == null) {
             this.locationAccuracy = new google.maps.Circle({
-                fillColor:    "#4286f5",
-                fillOpacity:  0.2,
-                strokeColor:  "#4286f5",
+                fillColor: "#4286f5",
+                fillOpacity: 0.2,
+                strokeColor: "#4286f5",
                 strokeWeight: 0.5,
             });
         }
@@ -112,18 +112,18 @@ class Render {
         `;
 
         return {
-            url:        `data:image/svg+xml;utf8,${svg.replace(/\s+/g, " ").replace(/#/g, "%23")}`,
+            url: `data:image/svg+xml;utf8,${svg.replace(/\s+/g, " ").replace(/#/g, "%23")}`,
             scaledSize: new google.maps.Size(12, 12),
-            anchor:     new google.maps.Point(6, 6),
+            anchor: new google.maps.Point(6, 6),
         };
     }
 
     static createTransitIcon(options: TransitIconOptions): google.maps.Icon {
         /* eslint-disable max-len */
         const defaults = {
-            opacity:                1,
-            backgroundFill:         "#FFF",
-            backgroundOpacity:      0,
+            opacity: 1,
+            backgroundFill: "#FFF",
+            backgroundOpacity: 0,
             backgroundBorderRadius: 4,
         };
         const { type, fill, opacity, backgroundFill, backgroundOpacity, backgroundBorderRadius } = { ...defaults, ...options };
@@ -160,7 +160,7 @@ class Render {
         }
 
         return {
-            url:    `data:image/svg+xml;utf8,${svg.replace(/\s+/g, " ").replace(/#/g, "%23")}`,
+            url: `data:image/svg+xml;utf8,${svg.replace(/\s+/g, " ").replace(/#/g, "%23")}`,
             anchor: new google.maps.Point(12, 12),
         };
     }
@@ -247,20 +247,20 @@ class Render {
         $parent.style.setProperty("--color", color);
 
         const pickr = new Pickr({
-            el:          $pickr,
-            theme:       "monolith",
+            el: $pickr,
+            theme: "monolith",
             lockOpacity: true,
             useAsButton: true,
-            default:     color,
-            swatches:    SUGGESTED_COLORS,
+            default: color,
+            swatches: SUGGESTED_COLORS,
 
             components: {
                 preview: true,
-                hue:     true,
+                hue: true,
 
                 interaction: {
                     input: true,
-                    save:  true,
+                    save: true,
                 },
             },
         });

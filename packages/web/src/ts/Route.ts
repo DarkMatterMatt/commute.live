@@ -5,7 +5,7 @@ import HtmlMarkerView from "./HtmlMarkerView";
 /** Snap location to route if within this many meters */
 const VEHICLE_SNAP_THRESHOLD = 50;
 /** Snap bearing to route if within this many degrees */
-const VEHICLE_SNAP_BEARING_THRESHOLD = 30;
+// const VEHICLE_SNAP_BEARING_THRESHOLD = 30;
 
 interface RouteOptions {
     map: google.maps.Map;
@@ -73,12 +73,12 @@ class Route {
         let marker = this.vehicleMarkers.get(v.vehicleId);
         if (marker == null) {
             marker = new VehicleMarker({
-                id:              v.vehicleId,
-                color:           this.color,
-                onExpiry:        () => this.removeVehicle(v.vehicleId),
+                id: v.vehicleId,
+                color: this.color,
+                onExpiry: () => this.removeVehicle(v.vehicleId),
                 animatePosition: this.animateMarkerPosition,
-                transitType:     this.type,
-                markerType:      this.markerType,
+                transitType: this.type,
+                markerType: this.markerType,
             });
             this.vehicleMarkers.set(v.vehicleId, marker);
             if (this.markerView != null) {
@@ -90,8 +90,8 @@ class Route {
 
         marker.updateLiveData({
             lastUpdated: v.lastUpdated,
-            position:    shouldSnap ? v.snapPosition : v.position,
-            bearing:     v.bearing,
+            position: shouldSnap ? v.snapPosition : v.position,
+            bearing: v.bearing,
         });
     }
 

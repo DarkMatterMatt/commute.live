@@ -167,12 +167,12 @@ function onGeolocationError(err: GeolocationPositionError) {
      */
 
     const map = new google.maps.Map($map, {
-        center:            AUCKLAND_COORDS,
-        zoom:              13,
+        center: AUCKLAND_COORDS,
+        zoom: 13,
         streetViewControl: false,
-        mapTypeControl:    false,
+        mapTypeControl: false,
         fullscreenControl: false,
-        backgroundColor:   settings.getBool("darkMode") ? "#17263c" : undefined,
+        backgroundColor: settings.getBool("darkMode") ? "#17263c" : undefined,
     });
     state.setMap(map);
     state.setActiveRoutesElem($activeRoutes);

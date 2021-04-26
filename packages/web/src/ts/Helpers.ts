@@ -98,14 +98,14 @@ export function fromLatLngLiteral(p: google.maps.LatLng | google.maps.LatLngLite
 /**
  * Call a function after at least one repaint.
  */
-export function afterRepaint(cb: (...args: any[]) => void, ...args: any[]): void {
+export function afterRepaint(cb: (...cbArgs: any[]) => void, ...args: any[]): void {
     requestAnimationFrame(() => requestAnimationFrame(() => cb(...args)));
 }
 
 /**
  * Queue a function's execution. Alias for setTimeout(cb, 1).
  */
-export function queue(cb: (...args: any[]) => void, ...args: any[]): void {
+export function queue(cb: (...cbArgs: any[]) => void, ...args: any[]): void {
     setTimeout(cb, 1, ...args);
 }
 

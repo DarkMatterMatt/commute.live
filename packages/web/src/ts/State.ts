@@ -52,7 +52,7 @@ class State {
             return {
                 isFirstVisit: true,
                 version: STATE_VERSION,
-                routes:  [
+                routes: [
                     ["25B", true, "#9400D3"],
                     ["70", true, "#E67C13"],
                 ],
@@ -68,8 +68,8 @@ class State {
 
         return {
             isFirstVisit: false,
-            version:  STATE_VERSION,
-            routes:   data.routes,
+            version: STATE_VERSION,
+            routes: data.routes,
             settings: data.settings,
         };
     }
@@ -96,7 +96,7 @@ class State {
         const routes = [...this.routesByShortName.values()].filter(r => !onlyActive || r.active);
         return {
             version: STATE_VERSION,
-            routes:  routes.map(r => [r.shortName, r.active, r.color]),
+            routes: routes.map(r => [r.shortName, r.active, r.color]),
             settings,
         };
     }
@@ -128,7 +128,7 @@ class State {
                 longName,
                 color,
                 type,
-                map:        this.map,
+                map: this.map,
                 markerView: this.markerView,
                 markerType,
             });
@@ -221,8 +221,8 @@ class State {
                 shortName,
                 longName,
                 type,
-                color:      this.getNewColor(),
-                map:        this.map,
+                color: this.getNewColor(),
+                map: this.map,
                 markerView: this.markerView,
                 markerType,
             });
