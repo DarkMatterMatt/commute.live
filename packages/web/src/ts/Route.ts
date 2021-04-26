@@ -87,13 +87,11 @@ class Route {
         }
 
         const shouldSnap = v.snapDeviation < VEHICLE_SNAP_THRESHOLD;
-        const snapBearingDeviation = Math.abs(v.bearing - v.snapBearing);
-        const bearing = snapBearingDeviation < VEHICLE_SNAP_BEARING_THRESHOLD ? v.snapBearing : v.bearing;
 
         marker.updateLiveData({
             lastUpdated: v.lastUpdated,
             position:    shouldSnap ? v.snapPosition : v.position,
-            bearing:     shouldSnap ? bearing : -1, // only show bearing for vehicles snapped to route
+            bearing:     v.bearing,
         });
     }
 
