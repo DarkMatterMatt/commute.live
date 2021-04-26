@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>AT Live</title>
+    <title>Commute Live</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
@@ -11,8 +11,8 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta property="og:type" content="website">
     <meta property="og:url" content="<%= process.env.PWA_BASE_URL %>">
-    <meta property="og:title" content="AT Live">
-    <meta property="og:description" content="Designed for commuters, AT Live provides live tracking for buses, trains and ferries on the Auckland Transport network.">
+    <meta property="og:title" content="Commute Live">
+    <meta property="og:description" content="Commute Live provides real-time tracking for buses, trains and ferries on the Auckland Transport network.">
     <meta property="og:image" content="<%= process.env.PWA_BASE_URL %><%= require('../assets/open_graph_image.png').default %>">
     <link rel="mask-icon" href="../assets/safari-pinned-tab.svg" color="#5bbad5">
     <link rel="shortcut icon" href="../assets/icon_maskable_rounded.ico">
@@ -115,17 +115,13 @@
             </div>
             <div id="about">
                 <section>
-                    <h1>AT Live</h1>
+                    <h1>Commute Live</h1>
                     <p>
-                        Designed for commuters, AT Live provides live tracking for buses, trains and ferries on the
+                        Commute Live provides real-time tracking for buses, trains and ferries on the
                         Auckland Transport network.
                     </p>
                     <p>
                         Track a new route by selecting the Routes tab, and change a route's colour by clicking on its icon.
-                    </p>
-                    <p>
-                        Markers with a dark center are travelling in the opposite direction to those with a light
-                        center. Dark centered markers tend to move towards the city.
                     </p>
                 </section>
                 <section>
@@ -163,7 +159,7 @@
                     </p>
                 </section>
                 <section class="footer">
-                    <span>&copy; Matt Moran (2020)</span>
+                    <span>&copy; Matt Moran (2021)</span>
                     <span class="float-right">v<%= require('../../package.json').version %></span>
                 </section>
             </div>
