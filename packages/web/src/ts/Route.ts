@@ -1,6 +1,7 @@
 import VehicleMarker from "./VehicleMarker";
 import { api } from "./Api";
 import HtmlMarkerView from "./HtmlMarkerView";
+import { settings } from "./Settings";
 
 /** Snap location to route if within this many meters */
 const VEHICLE_SNAP_THRESHOLD = 50;
@@ -156,7 +157,7 @@ class Route {
             this.loadVehicles(),
         ]);
 
-        const { map } = this;
+        const map = settings.getBool("showTransitRoutes") ? this.map : null;
         const strokeOpacity = 0.7;
         this.polylines = [
             // background line, so the path isn't affected by the map colour
