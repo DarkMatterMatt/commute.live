@@ -196,8 +196,8 @@ class Render {
                         // impossible
                 }
                 const secondaryColor = Render.shouldUseLightText(opts.color) ? "#FFF" : "#000";
-                const rotate = `rotate(${opts.bearing}, 43.57, 43.57)`; // center of viewbox
                 // if bearing is less than zero (i.e. not valid), show not-pointy circle
+                const rotate = opts.bearing >= 0 ? `rotate(${opts.bearing}, 43.57, 43.57)` : ""; // center of viewbox
                 const pointyCircle = opts.bearing >= 0 ? "M20.94 21a32 32 0 1045.25 0L46.39 1.17a4 4 0 00-5.65 0z" : "M11.6,43.6a32,32 0 1,0 64,0a32,32 0 1,0 -64,0";
                 const size = 38; // size in pixels
 
