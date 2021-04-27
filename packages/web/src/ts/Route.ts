@@ -17,6 +17,7 @@ interface RouteOptions {
     markerType: MarkerType;
     shortName: Route["shortName"];
     animateMarkerPosition: boolean;
+    showTransitRoutes: boolean;
 }
 
 class Route {
@@ -40,6 +41,8 @@ class Route {
 
     animateMarkerPosition: boolean;
 
+    showTransitRoutes: boolean;
+
     vehicleMarkers: Map<string, VehicleMarker>;
 
     constructor(o: RouteOptions) {
@@ -51,6 +54,7 @@ class Route {
         this.markerView = o.markerView;
         this.shortName = o.shortName;
         this.animateMarkerPosition = o.animateMarkerPosition;
+        this.showTransitRoutes = o.showTransitRoutes;
 
         this.active = false;
         this.polylines = [];
@@ -127,6 +131,13 @@ class Route {
         }
         this.markerView = markerView;
         this.vehicleMarkers.forEach(m => this.markerView.addMarker(m));
+    }
+
+    setShowTransitRoutes(show: boolean): void {
+        this.showTransitRoutes = show;
+        this.polylines.forEach(p => {
+            p.setMap(show ? this.map : null);
+        });
     }
 
     async loadVehicles(): Promise<void> {

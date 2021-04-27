@@ -233,6 +233,10 @@ function onGeolocationError(err: GeolocationPositionError) {
         state.getRoutesByShortName().forEach(r => r.setMarkerIconType(s));
     });
 
+    settings.addChangeListener("showTransitRoutes", b => {
+        state.getRoutesByShortName().forEach(r => r.setShowTransitRoutes(b));
+    });
+
     /*
      * Event Listeners
      */
