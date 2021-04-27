@@ -1,7 +1,6 @@
-import VehicleMarker from "./VehicleMarker";
 import { api } from "./Api";
 import HtmlMarkerView from "./HtmlMarkerView";
-import { settings } from "./Settings";
+import VehicleMarker from "./VehicleMarker";
 
 /** Snap location to route if within this many meters */
 const VEHICLE_SNAP_THRESHOLD = 50;
@@ -134,11 +133,15 @@ class Route {
         this.vehicleMarkers.forEach(m => this.markerView.addMarker(m));
     }
 
-    setShowTransitRoutes(show: boolean): void {
+    async setShowTransitRoutes(show: boolean): Promise<void> {
         this.showTransitRoutes = show;
-        this.polylines.forEach(p => {
-            p.setMap(show ? this.map : null);
-        });
+        if (show && this.active) {
+            this.loadPolylines();
+        }
+        else {
+            this.polylines.forEach(p => p.setMap(null));
+            this.polylines = [];
+        }
     }
 
     async loadVehicles(): Promise<void> {
@@ -147,27 +150,34 @@ class Route {
         Object.values(vehicles).map(v => this.showVehicle(v));
     }
 
-    async activate(): Promise<void> {
-        if (this.active) {
+    async loadPolylines(): Promise<void> {
+        if (!this.showTransitRoutes) {
             return;
         }
-        this.active = true;
-        const [{ polylines }] = await Promise.all([
-            api.queryRoute(this.shortName, ["polylines"]),
-            this.loadVehicles(),
-        ]);
-
-        const map = settings.getBool("showTransitRoutes") ? this.map : null;
         const strokeOpacity = 0.7;
+        const { map, color } = this;
+
+        const { polylines } = await api.queryRoute(this.shortName, ["polylines"]);
         this.polylines = [
             // background line, so the path isn't affected by the map colour
             new google.maps.Polyline({ map, path: polylines[0], strokeColor: "black" }),
             new google.maps.Polyline({ map, path: polylines[1], strokeColor: "white" }),
 
             // route line, semi-transparent so it's obvious when they overlap
-            new google.maps.Polyline({ map, path: polylines[0], strokeColor: this.color, strokeOpacity, zIndex: 1 }),
-            new google.maps.Polyline({ map, path: polylines[1], strokeColor: this.color, strokeOpacity, zIndex: 2 }),
+            new google.maps.Polyline({ map, path: polylines[0], strokeColor: color, strokeOpacity, zIndex: 11 }),
+            new google.maps.Polyline({ map, path: polylines[1], strokeColor: color, strokeOpacity, zIndex: 12 }),
         ];
+    }
+
+    async activate(): Promise<void> {
+        if (this.active) {
+            return;
+        }
+        this.active = true;
+        await Promise.all([
+            this.loadVehicles(),
+            this.loadPolylines(),
+        ]);
     }
 
     deactivate(): void {
