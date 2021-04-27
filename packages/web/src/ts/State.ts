@@ -1,5 +1,5 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
-import Route from "./Route";
+import Route, { WILDCARD_ROUTE } from "./Route";
 import Render from "./Render";
 import { localStorageEnabled, isEmptyObject } from "./Helpers";
 import { api } from "./Api";
@@ -118,10 +118,20 @@ class State {
         const markerType = settings.getStr("markerType") as MarkerType;
 
         routes.forEach(([shortName, active, color]) => {
-            if (routesData[shortName] == null) {
+            let longName: string;
+            let type: TransitType;
+
+            if (Object.keys(routesData).includes(shortName)) {
+                longName = routesData[shortName].longName;
+                type = routesData[shortName].type;
+            }
+            else if (shortName === WILDCARD_ROUTE.shortName) {
+                longName = WILDCARD_ROUTE.longName;
+                type = WILDCARD_ROUTE.type;
+            }
+            else {
                 return;
             }
-            const { longName, type } = routesData[shortName];
 
             const route = new Route({
                 animateMarkerPosition,
@@ -186,8 +196,11 @@ class State {
     }
 
     showVehicle(data: LiveVehicle): void {
-        const route = this.routesByShortName.get(data.shortName);
-        if (route === undefined) {
+        let route = this.routesByShortName.get(data.shortName);
+        if (route == null || !route.active) {
+            route = this.routesByShortName.get(WILDCARD_ROUTE.shortName);
+        }
+        if (route == null || !route.active) {
             console.log("Skipping vehicle update because the route does not exist", data);
             return;
         }

@@ -1,6 +1,7 @@
 import { api } from "./Api";
 import State from "./State";
 import Render from "./Render";
+import { WILDCARD_ROUTE } from "./Route";
 
 class Search {
     routes: SearchRoute[];
@@ -37,6 +38,7 @@ class Search {
     async load(): Promise<void> {
         const response = await api.queryRoutes(null, ["shortName", "longName", "type"]);
         const routes: SearchRoute[] = Object.values(response) as SearchRoute[];
+        routes.push(WILDCARD_ROUTE);
 
         const regexWord = /[a-z]+/g;
         routes.forEach(route => {
