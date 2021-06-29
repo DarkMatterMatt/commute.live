@@ -7,13 +7,6 @@ const VEHICLE_SNAP_THRESHOLD = 50;
 /** Snap bearing to route if within this many degrees */
 // const VEHICLE_SNAP_BEARING_THRESHOLD = 30;
 
-/** Wildcard route shows all vehicles and routes */
-export const WILDCARD_ROUTE = {
-    shortName: "# ALL",
-    longName: "Show all routes and vehicles. This may crash your browser!",
-    type: "bus" as TransitType,
-};
-
 interface RouteOptions {
     map: google.maps.Map;
     type: Route["type"];
@@ -52,8 +45,6 @@ class Route {
 
     vehicleMarkers: Map<string, VehicleMarker>;
 
-    wildcardRouteLookup: Map<string, TransitType>;
-
     constructor(o: RouteOptions) {
         this.map = o.map;
         this.type = o.type;
@@ -83,18 +74,17 @@ class Route {
     }
 
     showVehicle(v: LiveVehicle): void {
-        const id = this.shortName === WILDCARD_ROUTE.shortName ? `wildcard_${v.vehicleId}` : v.vehicleId;
-        let marker = this.vehicleMarkers.get(id);
+        let marker = this.vehicleMarkers.get(v.vehicleId);
         if (marker == null) {
             marker = new VehicleMarker({
-                id,
+                id: v.vehicleId,
                 color: this.color,
-                onExpiry: () => this.removeVehicle(id),
+                onExpiry: () => this.removeVehicle(v.vehicleId),
                 animatePosition: this.animateMarkerPosition,
                 transitType: this.type,
                 markerType: this.markerType,
             });
-            this.vehicleMarkers.set(id, marker);
+            this.vehicleMarkers.set(v.vehicleId, marker);
             if (this.markerView != null) {
                 this.markerView.addMarker(marker);
             }
@@ -111,11 +101,10 @@ class Route {
 
     setColor(color: string): void {
         this.color = color;
-
-        // don't change the colour of background polylines
-        const skipFirstPolylines = this.shortName === WILDCARD_ROUTE.shortName ? 0 : 2;
-        this.polylines.slice(skipFirstPolylines).forEach(p => p.setOptions({ strokeColor: color }));
-
+        if (this.polylines) {
+            this.polylines[2].setOptions({ strokeColor: color });
+            this.polylines[3].setOptions({ strokeColor: color });
+        }
         this.vehicleMarkers.forEach(m => m.setColor(color));
     }
 
@@ -156,13 +145,6 @@ class Route {
     }
 
     async loadVehicles(): Promise<void> {
-        if (this.shortName === WILDCARD_ROUTE.shortName) {
-            api.subscribe("#");
-            const routes = await api.queryRoutes(null, ["vehicles"]);
-            Object.values(routes).forEach(r => Object.values(r.vehicles).map(v => this.showVehicle(v)));
-            return;
-        }
-
         api.subscribe(this.shortName);
         const { vehicles } = await api.queryRoute(this.shortName, ["vehicles"]);
         Object.values(vehicles).map(v => this.showVehicle(v));
@@ -174,16 +156,6 @@ class Route {
         }
         const strokeOpacity = 0.7;
         const { map, color } = this;
-
-        if (this.shortName === WILDCARD_ROUTE.shortName) {
-            // load all routes
-            const routes = await api.queryRoutes(null, ["polylines"]);
-            this.polylines = Object.values(routes).flatMap(r => [
-                new google.maps.Polyline({ map, path: r.polylines[0], strokeColor: color, strokeOpacity, zIndex: 10 }),
-                new google.maps.Polyline({ map, path: r.polylines[1], strokeColor: color, strokeOpacity, zIndex: 10 }),
-            ]);
-            return;
-        }
 
         const { polylines } = await api.queryRoute(this.shortName, ["polylines"]);
         this.polylines = [
@@ -202,12 +174,6 @@ class Route {
             return;
         }
         this.active = true;
-
-        if (this.shortName === WILDCARD_ROUTE.shortName) {
-            const routes = await api.queryRoutes(null, ["type"]);
-            this.wildcardRouteLookup = new Map(Object.entries(routes).map(([k, v]) => [k, v.type]));
-        }
-
         await Promise.all([
             this.loadVehicles(),
             this.loadPolylines(),
@@ -219,7 +185,7 @@ class Route {
             return;
         }
         this.active = false;
-        api.unsubscribe(this.shortName === WILDCARD_ROUTE.shortName ? "#" : this.shortName);
+        api.unsubscribe(this.shortName);
 
         this.polylines.forEach(p => p.setMap(null));
         this.polylines = [];
