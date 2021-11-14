@@ -17,7 +17,9 @@
     },
     "keywords": [
         "auckland",
+        "public",
         "transport",
+        "commute",
         "live",
         "tracker"
     ],
@@ -27,6 +29,7 @@
         "url": "https://github.com/DarkMatterMatt/AT-Live-Server/issues"
     },
     "homepage": "https://github.com/DarkMatterMatt/AT-Live-Server#readme",
+    "type": "module",
     "_moduleAliases": {
         "~": "./dist"
     },
