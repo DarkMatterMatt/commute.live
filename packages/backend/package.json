@@ -1,0 +1,47 @@
+{
+    "name": "at-live-server",
+    "version": "2.0.0",
+    "description": "An intermediary server to provide normalised live data to [commute.live](https://commute.live).",
+    "main": "dist/index.js",
+    "scripts": {
+        "b": "npm run build",
+        "bs": "npm run build && npm start",
+        "build": "tsc",
+        "lint": "eslint --fix src && tsc --noEmit",
+        "start": "node -r module-alias/register dist/index.js",
+        "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/DarkMatterMatt/AT-Live-Server.git"
+    },
+    "keywords": [
+        "auckland",
+        "transport",
+        "live",
+        "tracker"
+    ],
+    "author": "Matt Moran",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/DarkMatterMatt/AT-Live-Server/issues"
+    },
+    "homepage": "https://github.com/DarkMatterMatt/AT-Live-Server#readme",
+    "_moduleAliases": {
+        "~": "./dist"
+    },
+    "devDependencies": {
+        "@types/node": "^16.11.7",
+        "@typescript-eslint/eslint-plugin": "^5.3.1",
+        "@typescript-eslint/parser": "^5.3.1",
+        "eslint": "^8.2.0",
+        "gtfs-types": "^2.2.0",
+        "typescript": "^4.4.4"
+    },
+    "dependencies": {
+        "gtfs": "^3.1.4",
+        "module-alias": "^2.2.2",
+        "node-fetch": "^3.1.0",
+        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.4.0"
+    }
+}

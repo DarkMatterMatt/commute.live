@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "ES2021",
+        "module": "CommonJS",
+        "lib": ["ES2021"],
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "strict": true,
+
+        "outDir": "dist",
+        "baseUrl": ".",
+        "paths": {
+            "~/*": [
+                "src/*"
+            ],
+            "*": [
+                "node_modules/*",
+                "src/types/*"
+            ]
+        },
+        "typeRoots": [
+            "node_modules/@types",
+            "src/types"
+        ]
+    },
+    "include": [
+        "src"
+    ]
+}
