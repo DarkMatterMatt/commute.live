@@ -2,11 +2,16 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import fetch from "node-fetch";
 import path from "path";
-import { importGtfs } from "gtfs";
+import { SqlDatabase, importGtfs, openDb } from "gtfs";
+
+interface RegionInfo {
+    url: string;
+    db: SqlDatabase;
+}
 
 const regions = new Map([
     ["akl", "https://cdn01.at.govt.nz/data/gtfs.zip"],
-]);
+].map(([r, url]) => [r, { url } as RegionInfo]));
 
 let interval: null | ReturnType<typeof setInterval> = null;
 
@@ -30,6 +35,16 @@ function getZipPath(region: string, timestamp: Date) {
     return path.join(getRegionPath(region), fname);
 }
 
+async function activateDb(region: string, dbPath: string) {
+    const info = regions.get(region);
+    if (info == null) {
+        throw new Error(`Invalid region: ${region}`);
+    }
+
+    // open database
+    info.db = await openDb({ sqlitePath: dbPath });
+}
+
 async function init() {
     // create directories and files for each region
     for (const region of regions.keys()) {
@@ -39,14 +54,24 @@ async function init() {
             await mkdir(dir, { recursive: true });
         }
 
-        // create `cache/REGION/lastUpdate` file
         const lastUpdatePath = getLastUpdatePath(region);
-        if (!existsSync(lastUpdatePath)) {
+        if (existsSync(lastUpdatePath)) {
+            // load database
+            const buf = await readFile(lastUpdatePath);
+            const dbPath = getDbPath(region, new Date(buf.toString()));
+            await activateDb(region, dbPath);
+        }
+        else {
+            // create `cache/REGION/lastUpdate` file
             await writeFile(lastUpdatePath, new Date(0).toUTCString());
         }
     }
 
     isInitialized = true;
+}
+
+export function getRegionDb(region: string) {
+    return regions.get(region)?.db ?? null;
 }
 
 export function startBackgroundUpdateChecks() {
@@ -67,9 +92,17 @@ export async function checkForUpdates() {
     }
 
     // check each region for updates
-    return Promise.allSettled([...regions.entries()].map(
-        ([region, url]) => checkForUpdate(region, url)
+    const updates = await Promise.allSettled([...regions.entries()].map(
+        ([region, info]) => checkForUpdate(region, info.url)
     ));
+
+    // apply updates
+    for (const update of updates) {
+        if (update.status === "fulfilled" && update.value != null) {
+            const { region, timestamp } = update.value;
+            await activateDb(region, getDbPath(region, timestamp));
+        }
+    }
 }
 
 export async function checkForUpdate(region: string, url: string) {
