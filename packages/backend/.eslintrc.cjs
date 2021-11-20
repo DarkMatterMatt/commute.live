@@ -20,13 +20,7 @@ module.exports = {
         "array-bracket-spacing": ["warn", "never"],
         "arrow-spacing": "warn",
         "brace-style": ["warn", "stroustrup"],
-        "comma-dangle": ["warn", {
-            arrays: "always-multiline",
-            objects: "always-multiline",
-            imports: "always-multiline",
-            exports: "always-multiline",
-            functions: "never",
-        }],
+        "comma-dangle": ["warn", "always-multiline"],
         "eqeqeq": ["error", "smart"],
         "@typescript-eslint/indent": ["warn", 4, {
             SwitchCase: 1,
