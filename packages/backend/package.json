@@ -8,7 +8,7 @@
         "bs": "npm run build && npm start",
         "build": "tsc",
         "lint": "eslint --fix src && tsc --noEmit",
-        "start": "node -r module-alias/register dist/index.js",
+        "start": "node --experimental-loader ./dist/loader.js dist/index.js",
         "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
     },
     "repository": {
@@ -30,9 +30,6 @@
     },
     "homepage": "https://github.com/DarkMatterMatt/AT-Live-Server#readme",
     "type": "module",
-    "_moduleAliases": {
-        "~": "./dist"
-    },
     "devDependencies": {
         "@types/node": "^16.11.7",
         "@typescript-eslint/eslint-plugin": "^5.3.1",
@@ -43,7 +40,6 @@
     },
     "dependencies": {
         "gtfs": "^3.1.4",
-        "module-alias": "^2.2.2",
         "node-fetch": "^3.1.0",
         "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.4.0"
     }
