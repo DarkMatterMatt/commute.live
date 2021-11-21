@@ -42,7 +42,7 @@ module.exports = {
             varsIgnorePattern: "_+",
         }],
         "object-curly-spacing": ["warn", "always"],
-        "operator-linebreak": ["warn", "after"],
+        "operator-linebreak": ["warn", "before"],
         "prefer-destructuring": "warn",
         "prefer-template": "warn",
         "quotes": ["warn", "double", {
