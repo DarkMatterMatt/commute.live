@@ -1,4 +1,4 @@
-import { createPromise } from "./index.js";
+import { createPromise } from "./";
 
 /**
  * Sleep for the specified number of milliseconds.

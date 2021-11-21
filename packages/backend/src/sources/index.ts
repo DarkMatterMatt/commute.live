@@ -1,1 +1,1 @@
-export * from "./static/index.js";
+export * from "./regions/";

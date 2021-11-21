@@ -1,4 +1,4 @@
-import { createPromise } from "./index.js";
+import { createPromise } from "./";
 
 /**
  * Stream from `ReadableStream` to a `WritableStream`.

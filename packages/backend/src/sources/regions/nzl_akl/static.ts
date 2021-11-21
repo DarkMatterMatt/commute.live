@@ -6,7 +6,7 @@ import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
 import fetch from "node-fetch";
 import path from "path";
-import { pipeStreamTo, sleep } from "~/helpers/index.js";
+import { pipeStreamTo, sleep } from "~/helpers/";
 
 const GTFS_URL = "https://cdn01.at.govt.nz/data/gtfs.zip";
 
