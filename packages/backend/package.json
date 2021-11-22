@@ -39,7 +39,7 @@
         "typescript": "^4.4.4"
     },
     "dependencies": {
-        "gtfs": "^3.1.4",
+        "gtfs": "^3.2.0",
         "node-fetch": "^3.1.0",
         "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.4.0"
     }
