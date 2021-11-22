@@ -1,3 +1,4 @@
+import type { SqlDatabase } from "gtfs";
 import type { Shapes, TripUpdate, VehicleUpdate } from "gtfs-types";
 
 /**
@@ -21,7 +22,17 @@ interface DataSource {
     /**
      * Returns true if an update was processed. Should be called regularly.
      */
-    checkForStaticUpdate: (tempDir: string) => Promise<boolean>;
+    checkForRealtimeUpdate: () => Promise<boolean>;
+
+    /**
+     * Returns true if an update was processed. Should be called regularly.
+     */
+    checkForStaticUpdate: () => Promise<boolean>;
+
+    /**
+     * Returns the currently opened database instance, or null if no database is open.
+     */
+    getDatabase: () => SqlDatabase;
 
     getShapesByShortName: (shortName: string) => Promise<Shapes[]>;
 
@@ -36,6 +47,11 @@ interface DataSource {
      * contain updates older than two minutes.
      */
     getVehicles: () => VehicleUpdate[];
+
+    /**
+     * Will be executed once on startup.
+     */
+    initialize: (tempDir: string) => Promise<void>;
 
     /**
      * Register a function to be called when an update is available.
