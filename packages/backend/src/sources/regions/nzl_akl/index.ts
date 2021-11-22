@@ -1,6 +1,6 @@
 import type { RegionCode, DataSource } from "~/types";
 import { checkForRealtimeUpdate, getVehicles, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
-import { checkForStaticUpdate, getDatabase, getShapesByShortName, getShortName, getTripId, initializeStatic } from "./static.js";
+import { checkForStaticUpdate, getDatabase, getShapeByShortName, getShortName, getTripId, initializeStatic } from "./static.js";
 
 const regionCode: RegionCode = "NZL_AKL";
 
@@ -13,7 +13,7 @@ export const NZL_AKL: DataSource = {
 
     getDatabase,
 
-    getShapesByShortName,
+    getShapeByShortName,
 
     getShortName,
 
@@ -22,12 +22,10 @@ export const NZL_AKL: DataSource = {
     getVehicles,
 
     initialize: async cacheDir => {
-        /*await Promise.allSettled([
+        await Promise.allSettled([
             initializeRealtime(cacheDir),
             initializeStatic(cacheDir),
-        ]);*/
-        await initializeStatic(cacheDir);
-        console.log("Initialized AKL");
+        ]);
     },
 
     registerTripUpdateListener,

@@ -34,7 +34,7 @@ interface DataSource {
      */
     getDatabase: () => SqlDatabase;
 
-    getShapesByShortName: (shortName: string) => Promise<Shapes[]>;
+    getShapeByShortName: (shortName: string) => Promise<Shapes[]>;
 
     getShortName: (tripId: string) => Promise<string>;
 
