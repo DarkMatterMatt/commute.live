@@ -61,7 +61,6 @@ export async function initializeStatic(cacheDir_: string): Promise<void> {
     else {
         const dbPath = getDbPath(lastUpdate);
         db = await openDb({ sqlitePath: dbPath });
-        await postImport(db);
     }
 }
 
