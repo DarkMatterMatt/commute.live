@@ -1,5 +1,6 @@
 import type { SqlDatabase } from "gtfs";
-import type { Shapes, TripUpdate, VehicleUpdate } from "gtfs-types";
+import type { TripUpdate, VehicleUpdate } from "gtfs-types";
+import type { LatLng } from ".";
 
 /**
  * Globally unique region code.
@@ -34,10 +35,29 @@ interface DataSource {
      */
     getDatabase: () => SqlDatabase;
 
-    getShapeByShortName: (shortName: string) => Promise<Shapes[]>;
+    /**
+     * Returns an appropriate long name for the given short name.
+     *
+     * Selects the longest name (prefer more detailed names), breaks ties by lexicographical order.
+     */
+    getLongNameByShortName(shortName: string): Promise<string>;
 
+    /**
+     * Returns two polyline shapes, one for each direction.
+     *
+     * Selects the longest shape (by distance), breaks ties by version number.
+     * Returns an empty shape if there is no shape for the specified direction/short name.
+     */
+    getShapesByShortName: (shortName: string) => Promise<[LatLng[], LatLng[]]>;
+
+    /**
+     * Return short name for specified trip id.
+     */
     getShortName: (tripId: string) => Promise<string>;
 
+    /**
+     * Return trip id for specified route, direction, and start time.
+     */
     getTripId: (routeId: string, directionId: number, startTime: string) => Promise<string>;
 
     /**

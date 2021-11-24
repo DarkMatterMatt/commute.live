@@ -1,6 +1,6 @@
 import type { SqlDatabase } from "gtfs";
-import type { Shapes } from "gtfs-types";
 import type { Response } from "node-fetch";
+import type { LatLng } from "~/types";
 import { closeDb, openDb, importGtfs } from "gtfs";
 import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
@@ -16,6 +16,9 @@ let cacheDir: string;
 
 let db: null | SqlDatabase = null;
 
+/**
+ * Returns the currently opened database instance, or null if no database is open.
+ */
 export function getDatabase(): SqlDatabase {
     if (db == null) {
         throw new Error("Database is not open yet.");
@@ -46,6 +49,9 @@ async function getLastUpdate(): Promise<null | Date> {
     }
 }
 
+/**
+ * Open database (load from remote source if local cache does not exist).
+ */
 export async function initializeStatic(cacheDir_: string): Promise<void> {
     cacheDir = cacheDir_;
 
@@ -60,6 +66,9 @@ export async function initializeStatic(cacheDir_: string): Promise<void> {
     }
 }
 
+/**
+ * Returns true if an update was processed. Should be called regularly.
+ */
 export async function checkForStaticUpdate(): Promise<boolean> {
     const lastUpdate = await getLastUpdate() ?? new Date(0);
 
@@ -170,7 +179,7 @@ async function postImport(db: SqlDatabase): Promise<void> {
                 SELECT id, shape_pt_lat AS lat, shape_pt_lon AS lng
                 FROM shapes
                 WHERE shape_id=$shapeId
-                ORDER BY shape_pt_sequence
+                ORDER BY shape_pt_sequence ASC
             `, {
                 $shapeId: shapeId,
             });
@@ -218,6 +227,11 @@ async function cleanUp(zipPath: string, oldDatabase: null | SqlDatabase): Promis
     }
 }
 
+/**
+ * Returns an appropriate long name for the given short name.
+ *
+ * Selects the longest name (prefer more detailed names), breaks ties by lexicographical order.
+ */
 export async function getLongNameByShortName(shortName: string): Promise<string> {
     const result = await getDatabase().get(`
         SELECT route_long_name
@@ -240,11 +254,50 @@ export async function getLongNameByShortName(shortName: string): Promise<string>
         .replace(/\./g, "");
 }
 
-export async function getShapeByShortName(_shortName: string): Promise<Shapes[]> {
-    // choosing algorithm:
-    //   1. 
+/**
+ * Returns a polyline shape for the specified short name and direction.
+ *
+ * Selects the longest shape (by distance), breaks ties by version number.
+ * Returns an empty shape if there is no matching shape.
+ */
+async function getShapeByShortName(shortName: string, directionId: number): Promise<LatLng[]> {
+    const shapeIdQuery = `
+        SELECT trips.shape_id
+        FROM routes
+        INNER JOIN trips ON routes.route_id=trips.route_id
+        INNER JOIN shapes ON trips.shape_id=shapes.shape_id
+        WHERE route_short_name=$shortName AND direction_id=$directionId
+        ORDER BY shape_dist_traveled DESC, CAST(SUBSTR(trips.shape_id, INSTR(trips.shape_id, '_v') + 2) AS DECIMAL) DESC
+        LIMIT 1
+    `;
+
+    return getDatabase().all(`
+        SELECT shape_pt_lat AS lat, shape_pt_lon AS lng
+        FROM shapes
+        WHERE shape_id=(${shapeIdQuery})
+        ORDER BY shape_pt_sequence ASC
+    `, {
+        $shortName: shortName,
+        $directionId: directionId,
+    });
 }
 
+/**
+ * Returns two polyline shapes, one for each direction.
+ *
+ * Selects the longest shape (by distance), breaks ties by version number.
+ * Returns an empty shape if there is no shape for the specified direction/short name.
+ */
+export async function getShapesByShortName(shortName: string): Promise<[LatLng[], LatLng[]]> {
+    return Promise.all([
+        getShapeByShortName(shortName, 0),
+        getShapeByShortName(shortName, 1),
+    ]);
+}
+
+/**
+ * Return short name for specified trip id.
+ */
 export async function getShortName(tripId: string): Promise<string> {
     const result = await getDatabase().get(`
         SELECT route_short_name
@@ -261,6 +314,9 @@ export async function getShortName(tripId: string): Promise<string> {
     return result.route_short_name;
 }
 
+/**
+ * Return trip id for specified route, direction, and start time.
+ */
 export async function getTripId(routeId: string, directionId: number, startTime: string): Promise<string> {
     const result = await getDatabase().get(`
         SELECT trips.trip_id
