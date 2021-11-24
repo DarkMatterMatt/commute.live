@@ -298,7 +298,7 @@ export async function getShapesByShortName(shortName: string): Promise<[LatLng[]
 /**
  * Return short name for specified trip id.
  */
-export async function getShortName(tripId: string): Promise<string> {
+export async function getShortNameByTripId(tripId: string): Promise<string> {
     const result = await getDatabase().get(`
         SELECT route_short_name
         FROM trips
@@ -317,7 +317,7 @@ export async function getShortName(tripId: string): Promise<string> {
 /**
  * Return trip id for specified route, direction, and start time.
  */
-export async function getTripId(routeId: string, directionId: number, startTime: string): Promise<string> {
+export async function getTripIdByTripDetails(routeId: string, directionId: number, startTime: string): Promise<string> {
     const result = await getDatabase().get(`
         SELECT trips.trip_id
         FROM trips

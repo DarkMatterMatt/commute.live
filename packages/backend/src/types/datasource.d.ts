@@ -53,12 +53,12 @@ interface DataSource {
     /**
      * Return short name for specified trip id.
      */
-    getShortName: (tripId: string) => Promise<string>;
+    getShortNameByTripId: (tripId: string) => Promise<string>;
 
     /**
      * Return trip id for specified route, direction, and start time.
      */
-    getTripId: (routeId: string, directionId: number, startTime: string) => Promise<string>;
+    getTripIdByTripDetails: (routeId: string, directionId: number, startTime: string) => Promise<string>;
 
     /**
      * Returns a list of realtime vehicle updates.
