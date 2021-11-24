@@ -1,5 +1,5 @@
 import type { SqlDatabase } from "gtfs";
-import type { Shapes, Trip } from "gtfs-types";
+import type { Shapes } from "gtfs-types";
 import type { Response } from "node-fetch";
 import { closeDb, openDb, importGtfs } from "gtfs";
 import { createWriteStream } from "node:fs";
@@ -8,6 +8,7 @@ import { pipeline } from "node:stream/promises";
 import fetch from "node-fetch";
 import path from "path";
 import { sleep } from "~/helpers/";
+import { defaultProjection } from "~/MercatorProjection.js";
 
 const GTFS_URL = "https://cdn01.at.govt.nz/data/gtfs.zip";
 
@@ -34,47 +35,43 @@ function getDbPath(date: Date): string {
     return path.join(cacheDir, `${date.toISOString().replace(/\W/g, "")}.db`);
 }
 
-async function getLastUpdate(): Promise<Date> {
+async function getLastUpdate(): Promise<null | Date> {
     try {
         const fname = getLastUpdatePath();
         const dateStr = await readFile(fname, { encoding: "utf8" });
         return new Date(dateStr);
     }
     catch (err) {
-        return new Date(0);
+        return null;
     }
 }
 
 export async function initializeStatic(cacheDir_: string): Promise<void> {
     cacheDir = cacheDir_;
 
-    try {
-        const lastUpdate = await getLastUpdate();
+    const lastUpdate = await getLastUpdate();
+    if (lastUpdate == null) {
+        await checkForStaticUpdate();
+    }
+    else {
         const dbPath = getDbPath(lastUpdate);
         db = await openDb({ sqlitePath: dbPath });
-    }
-    catch (err) {
-        console.warn(err);
-        await checkForStaticUpdate();
-        console.log("initializeStatic err finished");
+        await postImport(db);
     }
 }
 
 export async function checkForStaticUpdate(): Promise<boolean> {
-    const lastUpdate = await getLastUpdate();
+    const lastUpdate = await getLastUpdate() ?? new Date(0);
 
     const res = await fetch(GTFS_URL, {
         headers: { "If-Modified-Since": lastUpdate.toUTCString() },
     });
-    console.log("checkForStaticUpdate", res.status);
     if (res.status === 304) {
         // we already have the latest data
         return false;
     }
     if (res.status === 200) {
-        console.log("performUpdate start");
         await performUpdate(res);
-        console.log("performUpdate end");
         return true;
     }
 
@@ -89,7 +86,6 @@ async function performUpdate(res: Response): Promise<void> {
         // should never occur
         throw new Error(`Response returned empty body, ${res.url}`);
     }
-    console.log("Performing update");
 
     // fetch & store timestamp for update
     const lastModifiedStr = res.headers.get("Last-Modified");
@@ -112,12 +108,100 @@ async function performUpdate(res: Response): Promise<void> {
     });
 
     const newDb = await openDb({ sqlitePath: dbPath });
+    await postImport(newDb);
 
     // clean up in background
     cleanUp(zipPath, db);
     db = newDb;
 }
 
+/**
+ * Generate any missing data.
+ */
+async function postImport(db: SqlDatabase): Promise<void> {
+    // calculate our own shape_dist_traveled
+    const shapeIds: { shapeId: string }[] = await db.all(`
+        SELECT DISTINCT shape_id as shapeId
+        FROM shapes
+        WHERE shape_dist_traveled IS NULL
+    `);
+
+    if (shapeIds.length > 0) {
+        await db.run(`
+            CREATE TABLE tmp_shapes (
+                id INTEGER PRIMARY KEY,
+                shape_dist_traveled REAL
+            )
+        `);
+
+        const maxInsertVariables = 800;
+        const placeholders: string[] = [];
+        const values: number[] = [];
+
+        const actionBatch = async () => {
+            if (values.length > 0) {
+                await db.run(`
+                    INSERT INTO tmp_shapes (id, shape_dist_traveled)
+                    VALUES ${placeholders.join(",")}
+                `, values);
+            }
+
+            // clear arrays
+            values.length = 0;
+            placeholders.length = 0;
+        };
+
+        const insertInBatch = async (id: number, dist: number) => {
+            placeholders.push("(?, ?)");
+            values.push(id, dist);
+
+            // have filled up this batch, insert them now
+            if (values.length + 2 > maxInsertVariables) {
+                await actionBatch();
+            }
+        };
+
+        for (const { shapeId } of shapeIds) {
+            const points: {
+                id: number,
+                lat: number,
+                lng: number,
+            }[] = await db.all(`
+                SELECT id, shape_pt_lat AS lat, shape_pt_lon AS lng
+                FROM shapes
+                WHERE shape_id=$shapeId
+                ORDER BY shape_pt_sequence
+            `, {
+                $shapeId: shapeId,
+            });
+
+            let dist = 0;
+            await insertInBatch(points[0].id, dist);
+
+            for (let i = 1; i < points.length; i++) {
+                dist += defaultProjection.getDistBetweenLatLngs(points[i - 1], points[i]);
+                await insertInBatch(points[i].id, dist);
+            }
+        }
+
+        // update database with inserted values
+        await db.run(`
+            UPDATE shapes
+            SET shape_dist_traveled=(
+                SELECT shape_dist_traveled
+                FROM tmp_shapes
+                WHERE id=shapes.id) 
+            WHERE EXISTS (
+                SELECT shape_dist_traveled
+                FROM tmp_shapes
+                WHERE id=shapes.id)
+        `);
+
+        await db.run("DROP TABLE tmp_shapes");
+    }
+
+    // rebuilds the database file, repacking it into a minimal amount of disk space
+    await db.run("VACUUM");
 }
 
 /**
