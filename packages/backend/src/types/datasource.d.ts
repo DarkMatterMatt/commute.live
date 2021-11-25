@@ -1,4 +1,3 @@
-import type { SqlDatabase } from "gtfs";
 import type { TripUpdate, VehicleUpdate } from "gtfs-types";
 import type { LatLng } from ".";
 
@@ -7,12 +6,16 @@ import type { LatLng } from ".";
  *
  * Format is COUNTRY_REGION. COUNTRY is an ISO 3166-1 alpha-3 code; REGION is a string.
  */
-type RegionCode = `${string}_${string}`;
+export type RegionCode = `${string}_${string}`;
+
+export type TripUpdateListener = (update: TripUpdate) => void;
+
+export type VehicleUpdateListener = (update: VehicleUpdate) => void;
 
 /**
  * Represents a datasource for a single region.
  */
-interface DataSource {
+export interface DataSource {
     /**
      * Globally unique region code.
      *
@@ -29,11 +32,6 @@ interface DataSource {
      * Returns true if an update was processed. Should be called regularly.
      */
     checkForStaticUpdate: () => Promise<boolean>;
-
-    /**
-     * Returns the currently opened database instance, or null if no database is open.
-     */
-    getDatabase: () => SqlDatabase;
 
     /**
      * Returns an appropriate long name for the given short name.
@@ -61,12 +59,20 @@ interface DataSource {
     getTripIdByTripDetails: (routeId: string, directionId: number, startTime: string) => Promise<string>;
 
     /**
-     * Returns a list of realtime vehicle updates.
+     * Returns a map of realtime trip updates, keyed by `trip_id`.
+     *
+     * The map will contain the most recent update for each trip, but is not required to
+     * contain updates older than two minutes.
+     */
+    getTripUpdates: () => Promise<ReadonlyMap<string, VehicleUpdate>>;
+
+    /**
+     * Returns a map of realtime vehicle updates, keyed by `vehicle_id`.
      *
      * The list will contain the most recent update for each vehicle, but is not required to
      * contain updates older than two minutes.
      */
-    getVehicles: () => VehicleUpdate[];
+    getVehicleUpdates: () => Promise<ReadonlyMap<string, VehicleUpdate>>;
 
     /**
      * Will be executed once on startup.
@@ -76,10 +82,10 @@ interface DataSource {
     /**
      * Register a function to be called when an update is available.
      */
-    registerTripUpdateListener: (listener: (update: TripUpdate) => void) => void;
+    registerTripUpdateListener: (listener: TripUpdateListener) => void;
 
     /**
      * Register a function to be called when an update is available.
      */
-    registerVehicleUpdateListener: (listener: (update: VehicleUpdate) => void) => void;
+    registerVehicleUpdateListener: (listener: VehicleUpdateListener) => void;
 }
