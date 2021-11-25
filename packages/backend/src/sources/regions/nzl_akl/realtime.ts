@@ -5,16 +5,33 @@ import TimedMap from "~/TimedMap.js";
 const MINUTE = 60 * 1000;
 
 /**
+ * Trip updates older than two minutes will be ignored.
+ */
+const KEEP_TRIP_UPDATES_FOR = 2 * MINUTE;
+
+/**
+ * Vehicle updates older than two minutes will be ignored.
+ */
+const KEEP_VEHICLE_UPDATES_FOR = 2 * MINUTE;
+
+/**
  * Map of realtime trip updates, keyed by `trip_id`.
  */
-const tripUpdates = new TimedMap<string, TripUpdate>({ defaultTtl: 2 * MINUTE });
+const tripUpdates = new TimedMap<string, TripUpdate>({ defaultTtl: KEEP_TRIP_UPDATES_FOR });
 
 /**
  * Map of realtime vehicle updates, keyed by `vehicle_id`.
  */
-const vehicleUpdates = new TimedMap<string, VehicleUpdate>({ defaultTtl: 2 * MINUTE });
+const vehicleUpdates = new TimedMap<string, VehicleUpdate>({ defaultTtl: KEEP_VEHICLE_UPDATES_FOR });
 
+/**
+ * Set of functions to be executed when a trip update is received.
+ */
 const tripUpdateListeners = new Set<TripUpdateListener>();
+
+/**
+ * Set of functions to be executed when a vehicle update is received.
+ */
 const vehicleUpdateListeners = new Set<VehicleUpdateListener>();
 
 export async function checkForRealtimeUpdate(): Promise<boolean> {
@@ -30,7 +47,7 @@ export function addTripUpdate(tripUpdate: TripUpdate) {
     }
 
     // valid for two minutes
-    const ttl = (tripUpdate.timestamp * 1000) + (2 * MINUTE) - Date.now();
+    const ttl = (tripUpdate.timestamp * 1000) + KEEP_TRIP_UPDATES_FOR - Date.now();
     if (ttl <= 0) {
         // old data
         return;
@@ -49,7 +66,7 @@ export function addVehicleUpdate(vehicleUpdate: VehicleUpdate) {
     }
 
     // valid for two minutes
-    const ttl = (vehicleUpdate.timestamp * 1000) + (2 * MINUTE) - Date.now();
+    const ttl = (vehicleUpdate.timestamp * 1000) + KEEP_VEHICLE_UPDATES_FOR - Date.now();
     if (ttl <= 0) {
         // old data
         return;
