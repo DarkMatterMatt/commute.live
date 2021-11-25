@@ -22,11 +22,11 @@ interface TimedMapOpts<K, V> {
 /**
  * Map which automatically evicts entries by time. Uses `setTimeout` for each entry.
  */
-export class TimedMap<K, V> implements Map<K, V> {
+export default class TimedMap<K, V> implements Map<K, V> {
     private cache: Map<K, [Timeout, V]>;
     private defaultTtl: number;
 
-    public constructor(partialOpts: TimedMapOpts<K, V>) {
+    public constructor(partialOpts?: TimedMapOpts<K, V>) {
         const opts = {
             entries: null,
             defaultTtl: 60 * 1000,

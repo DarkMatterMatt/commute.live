@@ -3,7 +3,7 @@ import { clamp, degreesToRadians, radiansToDegrees } from "~/helpers/";
 
 const ALMOST_ONE = 1 - 1E-15;
 
-export class MercatorProjection {
+export default class MercatorProjection {
     private tileSize: number;
     private pixelOrigin: Point;
     private pixelsPerLonDegree: number;
