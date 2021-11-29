@@ -1,5 +1,10 @@
 import fs from "fs";
 
+interface Opts {
+    bytesType: string;
+    typeJoinSeq: string;
+}
+
 interface ProtoObj {
     _interfaceType: string;
 
@@ -41,13 +46,14 @@ interface ProtoMessage extends ProtoObj {
 
 type ProtoType = ProtoEnum | ProtoMessage;
 
-const bytesPrimitiveType = "Buffer";
-
-function toFullName(typePath: string[], typeName: string): string {
-    return [...typePath, typeName].join("$");
+/**
+ * Return fully qualified type name for specified path and type.
+ */
+function toFullName(opts: Opts, typePath: string[], typeName: string): string {
+    return [...typePath, typeName.replace(/\./g, opts.typeJoinSeq)].join(opts.typeJoinSeq);
 }
 
-function resolveType(types: Map<string, ProtoType>, typePath: string[], typeName: string): string {
+function resolveType(opts: Opts, types: Map<string, ProtoType>, typePath: string[], typeName: string): string {
     // always resolve primitives first
     const primitives = new Map([
         ["double", "number"],
@@ -64,7 +70,7 @@ function resolveType(types: Map<string, ProtoType>, typePath: string[], typeName
         ["sfixed64", "number"],
         ["bool", "boolean"],
         ["string", "string"],
-        ["bytes", bytesPrimitiveType],
+        ["bytes", opts.bytesType],
     ]);
     const prim = primitives.get(typeName);
     if (prim != null) {
@@ -73,19 +79,20 @@ function resolveType(types: Map<string, ProtoType>, typePath: string[], typeName
 
     // find longest matching type path
     for (let i = typePath.length; i >= 0; i--) {
-        const fullName = toFullName(typePath.slice(0, i), typeName);
+        const fullName = toFullName(opts, typePath.slice(0, i), typeName);
         if (types.has(fullName)) {
             return fullName;
         }
     }
 
     // failed to find type
-    const fullName = toFullName(typePath, typeName);
+    const fullName = toFullName(opts, typePath, typeName);
     console.warn(`Could not find type for ${fullName}`);
     return fullName;
 }
 
 function processLines(
+    opts: Opts,
     types: Map<string, ProtoType>,
     typePath: string[],
     lineParts: string[][],
@@ -102,7 +109,7 @@ function processLines(
             name,
             fields: [],
         };
-        types.set(toFullName(typePath, name), obj);
+        types.set(toFullName(opts, typePath, name), obj);
     }
     const nextTypePath = type === "file" ? typePath : [...typePath, name];
 
@@ -128,7 +135,7 @@ function processLines(
                 if (lineParts[i][0] === "{") openCurlyBraceCount++;
                 if (lineParts[i][0] === "}") openCurlyBraceCount--;
             }
-            processLines(types, nextTypePath, lineParts, newStart, i, firstWord, parts[1]);
+            processLines(opts, types, nextTypePath, lineParts, newStart, i, firstWord, parts[1]);
             continue;
         }
 
@@ -173,7 +180,7 @@ function processLines(
     }
 }
 
-function createOutput(types: Map<string, ProtoType>): string {
+function createOutput(opts: Opts, types: Map<string, ProtoType>): string {
     // sort lexicographically
     const typesArr = [...types.entries()];
     typesArr.sort(([a], [b]) => {
@@ -197,7 +204,7 @@ function createOutput(types: Map<string, ProtoType>): string {
             case "message": {
                 output.push(`export interface ${k} {`);
                 for (const { isRequired, name, typePath, typeName, isArray } of v.fields) {
-                    const type = resolveType(types, typePath, typeName) + (isArray ? "[]" : "");
+                    const type = resolveType(opts, types, typePath, typeName) + (isArray ? "[]" : "");
                     const required = isRequired ? "" : "?";
                     output.push(`    ${name}${required}: ${type};`);
                 }
@@ -212,17 +219,7 @@ function createOutput(types: Map<string, ProtoType>): string {
     return output.join("\n");
 }
 
-async function processFile(protoPath: string) {
-    let text: string;
-    try {
-        text = fs.readFileSync(protoPath, { encoding: "utf8" });
-    }
-    catch (e) {
-        console.error(e);
-        return;
-    }
-    console.log(`Processing: ${protoPath}`);
-
+function processText(opts: Opts, text: string): string {
     const lines = text
         // remove block comments
         .replace(/\/\*.*?\*\//g, "")
@@ -240,26 +237,45 @@ async function processFile(protoPath: string) {
 
     const parts = lines.map(l => l.split(" "));
 
-    // state
     const types = new Map();
+    processLines(opts, types, [], parts, 0, parts.length, "file", null);
 
-    processLines(types, [], parts, 0, parts.length, "file", protoPath);
-    const output = createOutput(types);
-    await fs.writeFileSync(`${protoPath.replace(/\.proto$/, "")}.d.ts`, output);
+    return createOutput(opts, types);
 }
 
-(async () => {
+function processFile(opts: Opts, protoPath: string): void {
+    let text: string;
+    try {
+        text = fs.readFileSync(protoPath, { encoding: "utf8" });
+    }
+    catch (e) {
+        console.error(e);
+        return;
+    }
+    console.log(`Processing: ${protoPath}`);
+
+    const output = processText(opts, text);
+    fs.writeFileSync(`${protoPath.replace(/\.proto$/, "")}.d.ts`, output);
+}
+
+(() => {
     const files = process.argv.slice(2);
     if (files.length === 0) {
         console.log("Usage: proto2ts.js file.proto file2.proto file3.proto");
         return;
     }
 
-    const results = await Promise.allSettled(files.map(processFile));
-    for (let i = 0; i < files.length; i++) {
-        const result = results[i];
-        if (result.status === "rejected") {
-            console.error(`Error processing ${files[i]}`, result.reason);
+    const opts: Opts = {
+        bytesType: "Uint8Array",
+        typeJoinSeq: "$",
+    };
+
+    for (const file of files) {
+        try {
+            processFile(opts, file);
+        }
+        catch (e) {
+            console.error(`Error processing ${file}`, e);
         }
     }
 })();
