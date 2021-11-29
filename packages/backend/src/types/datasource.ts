@@ -1,5 +1,4 @@
-import type { TripUpdate, VehicleUpdate } from "gtfs-types";
-import type { LatLng } from ".";
+import type { LatLng, TripUpdate, VehiclePosition } from "./";
 
 /**
  * Globally unique region code.
@@ -10,7 +9,7 @@ export type RegionCode = `${string}_${string}`;
 
 export type TripUpdateListener = (update: TripUpdate) => void;
 
-export type VehicleUpdateListener = (update: VehicleUpdate) => void;
+export type VehicleUpdateListener = (update: VehiclePosition) => void;
 
 /**
  * Represents a datasource for a single region.
@@ -64,7 +63,7 @@ export interface DataSource {
      * The map will contain the most recent update for each trip, but is not required to
      * contain updates older than two minutes.
      */
-    getTripUpdates: () => Promise<ReadonlyMap<string, VehicleUpdate>>;
+    getTripUpdates: () => Promise<ReadonlyMap<string, VehiclePosition>>;
 
     /**
      * Returns a map of realtime vehicle updates, keyed by `vehicle_id`.
@@ -72,7 +71,7 @@ export interface DataSource {
      * The list will contain the most recent update for each vehicle, but is not required to
      * contain updates older than two minutes.
      */
-    getVehicleUpdates: () => Promise<ReadonlyMap<string, VehicleUpdate>>;
+    getVehicleUpdates: () => Promise<ReadonlyMap<string, VehiclePosition>>;
 
     /**
      * Will be executed once on startup.
