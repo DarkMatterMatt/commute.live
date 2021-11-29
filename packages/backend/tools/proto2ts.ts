@@ -91,27 +91,11 @@ function processLines(
     lineParts: string[][],
     start: number,
     end: number,
-);
-function processLines(
-    types: Map<string, ProtoType>,
-    typePath: string[],
-    lineParts: string[][],
-    start: number,
-    end: number,
-    type: "message" | "enum",
+    type: "file" | "message" | "enum",
     name: string,
-);
-function processLines(
-    types: Map<string, ProtoType>,
-    typePath: string[],
-    lineParts: string[][],
-    start: number,
-    end: number,
-    type?: "message" | "enum",
-    name?: string,
-) {
-    let obj: ProtoType;
-    if (name != null && type != null) {
+): void {
+    let obj: null | ProtoType = null;
+    if (type !== "file") {
         obj = {
             _interfaceType: type,
             typePath,
@@ -120,16 +104,16 @@ function processLines(
         };
         types.set(toFullName(typePath, name), obj);
     }
-    const nextTypePath = name == null ? typePath : [...typePath, name];
+    const nextTypePath = type === "file" ? typePath : [...typePath, name];
 
     for (let i = start; i < end; i++) {
         const parts = lineParts[i];
         const [firstWord] = parts;
 
-        // curly braces
+        // ignore curly braces
         if (["{", "}"].includes(firstWord)) continue;
 
-        // ignore these lines
+        // ignore lines starting with these keywords
         if (["syntax", "package", "option", "extensions", "reserved"].includes(firstWord)) {
             continue;
         }
@@ -149,7 +133,7 @@ function processLines(
         }
 
         // enum specific fields
-        if (obj._interfaceType === "enum") {
+        if (obj?._interfaceType === "enum") {
             // enum field
             obj.fields.push({
                 name: parts[0],
@@ -159,7 +143,7 @@ function processLines(
         }
 
         // message specific fields
-        if (obj._interfaceType === "message") {
+        if (obj?._interfaceType === "message") {
             // singular field
             if (["required", "optional"].includes(parts[0])) {
                 obj.fields.push({
@@ -189,28 +173,39 @@ function processLines(
     }
 }
 
-function createOutput(types: Map<string, ProtoType>) {
-    const output: string[] = [];
-    console.log([...types.keys()]);
+function createOutput(types: Map<string, ProtoType>): string {
+    // sort lexicographically
+    const typesArr = [...types.entries()];
+    typesArr.sort(([a], [b]) => {
+        if (b.startsWith(a)) return -1;
+        if (a.startsWith(b)) return 1;
+        return a.localeCompare(b);
+    });
 
-    for (const [k, v] of types.entries()) {
-        if (v._interfaceType === "enum") {
-            output.push(`export const enum ${k} {`);
-            v.fields.sort((a, b) => a[1] - b[1]);
-            for (const { name, value } of v.fields) {
-                output.push(`    ${name} = ${value},`);
+    const output: string[] = [];
+    for (const [k, v] of typesArr) {
+        switch (v._interfaceType) {
+            case "enum": {
+                output.push(`export const enum ${k} {`);
+                v.fields.sort((a, b) => a[1] - b[1]);
+                for (const { name, value } of v.fields) {
+                    output.push(`    ${name} = ${value},`);
+                }
+                output.push("}\n");
+                break;
             }
-            output.push("}\n");
-            continue;
-        }
-        if (v._interfaceType === "message") {
-            output.push(`export interface ${k} {`);
-            for (const { isRequired, name, typePath, typeName, isArray } of v.fields) {
-                const type = resolveType(types, typePath, typeName) + (isArray ? "[]" : "");
-                const required = isRequired ? "" : "?";
-                output.push(`    ${name}${required}: ${type};`);
+            case "message": {
+                output.push(`export interface ${k} {`);
+                for (const { isRequired, name, typePath, typeName, isArray } of v.fields) {
+                    const type = resolveType(types, typePath, typeName) + (isArray ? "[]" : "");
+                    const required = isRequired ? "" : "?";
+                    output.push(`    ${name}${required}: ${type};`);
+                }
+                output.push("}\n");
+                break;
             }
-            output.push("}\n");
+            default:
+                throw new Error(`Could not convert ${k} to TypeScript`);
         }
     }
 
@@ -247,9 +242,8 @@ async function processFile(protoPath: string) {
 
     // state
     const types = new Map();
-    const typePath: string[] = [];
 
-    processLines(types, typePath, parts, 0, parts.length);
+    processLines(types, [], parts, 0, parts.length, "file", protoPath);
     const output = createOutput(types);
     await fs.writeFileSync(`${protoPath.replace(/\.proto$/, "")}.d.ts`, output);
 }
@@ -258,6 +252,7 @@ async function processFile(protoPath: string) {
     const files = process.argv.slice(2);
     if (files.length === 0) {
         console.log("Usage: proto2ts.js file.proto file2.proto file3.proto");
+        return;
     }
 
     const results = await Promise.allSettled(files.map(processFile));
