@@ -3,6 +3,7 @@ import fs from "fs";
 interface Opts {
     bytesType: string;
     typeJoinSeq: string;
+    enumNumbering: "minimal" | "always-first" | "full";
 }
 
 interface ProtoObj {
@@ -180,6 +181,46 @@ function processLines(
     }
 }
 
+function createEnumOutput(opts: Opts, obj: ProtoEnum): string {
+    const o: string[] = [];
+
+    const fullName = toFullName(opts, obj.typePath, obj.name);
+    o.push(`export const enum ${fullName} {`);
+
+    // sort by value, ascending
+    obj.fields.sort((a, b) => a.value - b.value);
+
+    let lastVal = opts.enumNumbering === "minimal" ? -1 : NaN;
+    for (const { name, value } of obj.fields) {
+        // skip numbering if not required
+        const valStr = (opts.enumNumbering === "full" || lastVal + 1 !== value)
+            ? ` = ${value}`
+            : "";
+
+        o.push(`    ${name}${valStr},`);
+        lastVal = value;
+    }
+
+    o.push("}");
+    return o.join("\n");
+}
+
+function createMessageOutput(opts: Opts, types: Map<string, ProtoType>, obj: ProtoMessage): string {
+    const o: string[] = [];
+
+    const fullName = toFullName(opts, obj.typePath, obj.name);
+    o.push(`export interface ${fullName} {`);
+
+    for (const { name, isRequired, isArray, typePath, typeName } of obj.fields) {
+        const type = resolveType(opts, types, typePath, typeName) + (isArray ? "[]" : "");
+        const required = isRequired ? "" : "?";
+        o.push(`    ${name}${required}: ${type};`);
+    }
+
+    o.push("}");
+    return o.join("\n");
+}
+
 function createOutput(opts: Opts, types: Map<string, ProtoType>): string {
     // sort lexicographically
     const typesArr = [...types.entries()];
@@ -189,34 +230,21 @@ function createOutput(opts: Opts, types: Map<string, ProtoType>): string {
         return a.localeCompare(b);
     });
 
-    const output: string[] = [];
+    const o: string[] = [];
     for (const [k, v] of typesArr) {
         switch (v._interfaceType) {
-            case "enum": {
-                output.push(`export const enum ${k} {`);
-                v.fields.sort((a, b) => a[1] - b[1]);
-                for (const { name, value } of v.fields) {
-                    output.push(`    ${name} = ${value},`);
-                }
-                output.push("}\n");
+            case "enum":
+                o.push(createEnumOutput(opts, v));
                 break;
-            }
-            case "message": {
-                output.push(`export interface ${k} {`);
-                for (const { isRequired, name, typePath, typeName, isArray } of v.fields) {
-                    const type = resolveType(opts, types, typePath, typeName) + (isArray ? "[]" : "");
-                    const required = isRequired ? "" : "?";
-                    output.push(`    ${name}${required}: ${type};`);
-                }
-                output.push("}\n");
+            case "message":
+                o.push(createMessageOutput(opts, types, v));
                 break;
-            }
             default:
                 throw new Error(`Could not convert ${k} to TypeScript`);
         }
     }
 
-    return output.join("\n");
+    return o.join("\n\n");
 }
 
 function processText(opts: Opts, text: string): string {
@@ -268,6 +296,7 @@ function processFile(opts: Opts, protoPath: string): void {
     const opts: Opts = {
         bytesType: "Uint8Array",
         typeJoinSeq: "$",
+        enumNumbering: "always-first",
     };
 
     for (const file of files) {
