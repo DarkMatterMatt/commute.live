@@ -38,8 +38,8 @@ module.exports = {
         "no-mixed-operators": "error",
         "no-trailing-spaces": "warn",
         "@typescript-eslint/no-unused-vars": ["error", {
-            argsIgnorePattern: "_+",
-            varsIgnorePattern: "_+",
+            argsIgnorePattern: "^_+",
+            varsIgnorePattern: "^_+",
         }],
         "object-curly-spacing": ["warn", "always"],
         "operator-linebreak": ["warn", "before"],
