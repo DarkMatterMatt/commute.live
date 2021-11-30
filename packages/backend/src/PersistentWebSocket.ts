@@ -51,7 +51,7 @@ export interface PersistentWebSocketOpts {
     url: string;
 }
 
-export class PersistentWebSocket {
+export default class PersistentWebSocket {
     // user options
     private onClose: null | ((code: number, reason: Buffer) => undefined | number);
     private onError: null | ((err: Error) => undefined | number);
