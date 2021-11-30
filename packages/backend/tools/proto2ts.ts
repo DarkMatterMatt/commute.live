@@ -188,7 +188,7 @@ function createEnumOutput(opts: Opts, obj: ProtoEnum): string {
     o.push(`export enum ${fullName} {`);
 
     // sort by value, ascending
-    obj.fields.sort((a, b) => a.value - b.value);
+    obj.fields.sort((a, b) => a.value - b.value || a.name.localeCompare(b.name));
 
     let lastVal = opts.enumNumbering === "minimal" ? -1 : NaN;
     for (const { name, value } of obj.fields) {
@@ -210,6 +210,9 @@ function createMessageOutput(opts: Opts, types: Map<string, ProtoType>, obj: Pro
 
     const fullName = toFullName(opts, obj.typePath, obj.name);
     o.push(`export interface ${fullName} {`);
+
+    // sort by name
+    obj.fields.sort((a, b) => a.name.localeCompare(b.name));
 
     for (const { name, isRequired, isArray, typePath, typeName } of obj.fields) {
         const type = resolveType(opts, types, typePath, typeName) + (isArray ? "[]" : "");

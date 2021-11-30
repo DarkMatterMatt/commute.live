@@ -5,12 +5,12 @@
 
 export interface Alert {
     active_period: TimeRange[];
-    informed_entity: EntitySelector[];
     cause?: Alert$Cause;
-    effect?: Alert$Effect;
-    url?: TranslatedString;
-    header_text?: TranslatedString;
     description_text?: TranslatedString;
+    effect?: Alert$Effect;
+    header_text?: TranslatedString;
+    informed_entity: EntitySelector[];
+    url?: TranslatedString;
 }
 
 export enum Alert$Cause {
@@ -44,16 +44,16 @@ export interface EntitySelector {
     agency_id?: string;
     route_id?: string;
     route_type?: number;
-    trip?: TripDescriptor;
     stop_id?: string;
+    trip?: TripDescriptor;
 }
 
 export interface FeedEntity {
+    alert?: Alert;
     id: string;
     is_deleted?: boolean;
     trip_update?: TripUpdate;
     vehicle?: VehiclePosition;
-    alert?: Alert;
 }
 
 export interface FeedHeader {
@@ -68,21 +68,21 @@ export enum FeedHeader$Incrementality {
 }
 
 export interface FeedMessage {
-    header: FeedHeader;
     entity: FeedEntity[];
+    header: FeedHeader;
 }
 
 export interface Position {
+    bearing?: number;
     latitude: number;
     longitude: number;
-    bearing?: number;
     odometer?: number;
     speed?: number;
 }
 
 export interface TimeRange {
-    start?: number;
     end?: number;
+    start?: number;
 }
 
 export interface TranslatedString {
@@ -90,17 +90,17 @@ export interface TranslatedString {
 }
 
 export interface TranslatedString$Translation {
-    text: string;
     language?: string;
+    text: string;
 }
 
 export interface TripDescriptor {
-    trip_id?: string;
-    route_id?: string;
     direction_id?: number;
-    start_time?: string;
-    start_date?: string;
+    route_id?: string;
     schedule_relationship?: TripDescriptor$ScheduleRelationship;
+    start_date?: string;
+    start_time?: string;
+    trip_id?: string;
 }
 
 export enum TripDescriptor$ScheduleRelationship {
@@ -111,11 +111,11 @@ export enum TripDescriptor$ScheduleRelationship {
 }
 
 export interface TripUpdate {
-    trip: TripDescriptor;
-    vehicle?: VehicleDescriptor;
+    delay?: number;
     stop_time_update: TripUpdate$StopTimeUpdate[];
     timestamp?: number;
-    delay?: number;
+    trip: TripDescriptor;
+    vehicle?: VehicleDescriptor;
 }
 
 export interface TripUpdate$StopTimeEvent {
@@ -125,11 +125,11 @@ export interface TripUpdate$StopTimeEvent {
 }
 
 export interface TripUpdate$StopTimeUpdate {
-    stop_sequence?: number;
-    stop_id?: string;
     arrival?: TripUpdate$StopTimeEvent;
     departure?: TripUpdate$StopTimeEvent;
     schedule_relationship?: TripUpdate$StopTimeUpdate$ScheduleRelationship;
+    stop_id?: string;
+    stop_sequence?: number;
 }
 
 export enum TripUpdate$StopTimeUpdate$ScheduleRelationship {
@@ -145,15 +145,15 @@ export interface VehicleDescriptor {
 }
 
 export interface VehiclePosition {
+    congestion_level?: VehiclePosition$CongestionLevel;
+    current_status?: VehiclePosition$VehicleStopStatus;
+    current_stop_sequence?: number;
+    occupancy_status?: VehiclePosition$OccupancyStatus;
+    position?: Position;
+    stop_id?: string;
+    timestamp?: number;
     trip?: TripDescriptor;
     vehicle?: VehicleDescriptor;
-    position?: Position;
-    current_stop_sequence?: number;
-    stop_id?: string;
-    current_status?: VehiclePosition$VehicleStopStatus;
-    timestamp?: number;
-    congestion_level?: VehiclePosition$CongestionLevel;
-    occupancy_status?: VehiclePosition$OccupancyStatus;
 }
 
 export enum VehiclePosition$CongestionLevel {
