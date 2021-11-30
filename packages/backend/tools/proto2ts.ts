@@ -185,7 +185,7 @@ function createEnumOutput(opts: Opts, obj: ProtoEnum): string {
     const o: string[] = [];
 
     const fullName = toFullName(opts, obj.typePath, obj.name);
-    o.push(`export const enum ${fullName} {`);
+    o.push(`export enum ${fullName} {`);
 
     // sort by value, ascending
     obj.fields.sort((a, b) => a.value - b.value);
@@ -271,7 +271,7 @@ function processText(opts: Opts, text: string): string {
     return createOutput(opts, types);
 }
 
-function processFile(opts: Opts, protoPath: string): void {
+function processFile(opts: Opts, protoPath: string, outputPath: string): void {
     let text: string;
     try {
         text = fs.readFileSync(protoPath, { encoding: "utf8" });
@@ -282,8 +282,8 @@ function processFile(opts: Opts, protoPath: string): void {
     }
     console.log(`Processing: ${protoPath}`);
 
-    const output = processText(opts, text);
-    fs.writeFileSync(`${protoPath.replace(/\.proto$/, "")}.d.ts`, output);
+    const output = `${processText(opts, text)}\n`;
+    fs.writeFileSync(outputPath, output);
 }
 
 (() => {
@@ -301,7 +301,7 @@ function processFile(opts: Opts, protoPath: string): void {
 
     for (const file of files) {
         try {
-            processFile(opts, file);
+            processFile(opts, file, `${file.replace(/\.proto$/, "")}.ts`);
         }
         catch (e) {
             console.error(`Error processing ${file}`, e);
