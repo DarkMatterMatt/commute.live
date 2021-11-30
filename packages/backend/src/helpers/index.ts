@@ -1,3 +1,4 @@
+export * from "./enum.js";
 export * from "./number.js";
 export * from "./promise.js";
 export * from "./stream.js";
