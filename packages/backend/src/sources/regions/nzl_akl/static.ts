@@ -9,7 +9,7 @@ import path from "path";
 import { sleep } from "~/helpers/";
 import { defaultProjection } from "~/MercatorProjection.js";
 
-const GTFS_URL = "https://cdn01.at.govt.nz/data/gtfs.zip";
+let gtfsUrl: string;
 
 let cacheDir: string;
 
@@ -51,8 +51,9 @@ async function getLastUpdate(): Promise<null | Date> {
 /**
  * Open database (load from remote source if local cache does not exist).
  */
-export async function initializeStatic(cacheDir_: string): Promise<void> {
+export async function initializeStatic(cacheDir_: string, gtfsUrl_: string): Promise<void> {
     cacheDir = cacheDir_;
+    gtfsUrl = gtfsUrl_;
 
     const lastUpdate = await getLastUpdate();
     if (lastUpdate == null) {
@@ -70,7 +71,7 @@ export async function initializeStatic(cacheDir_: string): Promise<void> {
 export async function checkForStaticUpdate(): Promise<boolean> {
     const lastUpdate = await getLastUpdate() ?? new Date(0);
 
-    const res = await fetch(GTFS_URL, {
+    const res = await fetch(gtfsUrl, {
         headers: { "If-Modified-Since": lastUpdate.toUTCString() },
     });
     if (res.status === 304) {
@@ -82,7 +83,7 @@ export async function checkForStaticUpdate(): Promise<boolean> {
         return true;
     }
 
-    throw new Error(`Failed loading GTFS from ${GTFS_URL}`);
+    throw new Error(`Failed loading GTFS from ${gtfsUrl}`);
 }
 
 /**
