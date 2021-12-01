@@ -20,7 +20,7 @@ export interface PersistentWebSocketOpts {
      *
      * Return value is not used if `onError()` has specified a restart delay.
      */
-    onClose?: (code: number, reason: Buffer) => undefined | number;
+    onClose?: (code: number, reason: string) => undefined | number;
 
     /**
      * Callback function, can optionally return a non-negative number to restart after the specified
@@ -53,7 +53,7 @@ export interface PersistentWebSocketOpts {
 
 export default class PersistentWebSocket {
     // user options
-    private onClose: null | ((code: number, reason: Buffer) => undefined | number);
+    private onClose: null | ((code: number, reason: string) => undefined | number);
     private onError: null | ((err: Error) => undefined | number);
     private onMessage: null | ((ws: WebSocket, data: string) => void);
     private onOpen: null | ((ws: WebSocket) => void);
@@ -94,7 +94,11 @@ export default class PersistentWebSocket {
         this.healthCheckInterval = setInterval(() => this.healthCheck(), 100);
 
         // ping the server regularly
-        this.pingInterval = setInterval(() => this.ws?.ping(), this.stallThreshold / 2);
+        this.pingInterval = setInterval(() => {
+            if (this.ws?.readyState === WebSocket.OPEN) {
+                this.ws.ping();
+            }
+        }, this.stallThreshold / 2);
     }
 
     /**
@@ -147,7 +151,7 @@ export default class PersistentWebSocket {
             this.ws = null;
 
             // auto restart websocket (500ms by default)
-            const autoRestart = this.onClose?.(code, reason);
+            const autoRestart = this.onClose?.(code, reason.toString());
             this.restart(autoRestart ?? RESTART_DELAY_AFTER_CLOSE);
         });
 

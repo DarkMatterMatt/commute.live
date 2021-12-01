@@ -13,7 +13,8 @@ let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => void;
 /**
  * The WebSocket closed (we should probably restart it).
  */
-function onClose(code: number, reason: Buffer): undefined | number {
+function onClose(code: number, reason: string): undefined | number {
+    console.log("WebSocket closed with code:", code, reason);
     return;
 }
 
@@ -21,6 +22,7 @@ function onClose(code: number, reason: Buffer): undefined | number {
  * An error occurred and the WebSocket will be restarted.
  */
 function onError(err: Error): undefined | number {
+    console.log("WebSocket errored:", err);
     return;
 }
 
