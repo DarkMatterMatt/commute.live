@@ -1,7 +1,7 @@
 import type { DataSource, RegionCode } from "~/types";
 import path from "node:path";
-import { NZL_AKL } from "./nzl_akl/";
 import { existsSync, mkdirSync } from "node:fs";
+import { NZL_AKL } from "./nzl_akl/";
 
 const regions = new Map([
     NZL_AKL,
