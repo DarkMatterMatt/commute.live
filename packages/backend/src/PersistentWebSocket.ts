@@ -165,12 +165,7 @@ export default class PersistentWebSocket {
 
         ws.on("message", data => {
             this.lastReceive = Date.now();
-
-            if (typeof data !== "string") {
-                throw new Error("Handling of non-string data is not implemented");
-            }
-
-            this.onMessage?.(ws, data);
+            this.onMessage?.(ws, data.toString());
         });
 
         ws.on("open", () => {
