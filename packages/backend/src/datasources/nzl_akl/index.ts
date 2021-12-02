@@ -2,7 +2,7 @@ import type { RegionCode, DataSource } from "~/types";
 import env from "~/env.js";
 import { checkForRealtimeUpdate, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
 import { checkForStaticUpdate, initializeStatic } from "./static.js";
-import { getLongNameByShortName, getShapesByShortName, getShortNameByTripId, getTripIdByTripDetails } from "./static_queries.js";
+import { getLongNameByShortName, getRouteTypeByShortName, getShapesByShortName, getShortNameByTripId, getTripIdByTripDetails } from "./static_queries.js";
 
 const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
 
@@ -21,6 +21,8 @@ export const NZL_AKL: DataSource = {
     checkForStaticUpdate,
 
     getLongNameByShortName,
+
+    getRouteTypeByShortName,
 
     getShapesByShortName,
 

@@ -40,6 +40,13 @@ export interface DataSource {
     getLongNameByShortName(shortName: string): Promise<string>;
 
     /**
+     * Returns the type of route for the given short name.
+     *
+     * @see https://developers.google.com/transit/gtfs/reference#routestxt.
+     */
+    getRouteTypeByShortName(shortName: string): Promise<number>;
+
+    /**
      * Returns two polyline shapes, one for each direction.
      *
      * Selects the longest shape (by distance), breaks ties by version number.

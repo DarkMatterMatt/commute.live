@@ -28,6 +28,29 @@ export async function getLongNameByShortName(shortName: string): Promise<string>
         .replace(/\./g, "");
 }
 
+
+/**
+ * Returns the type of route for the given short name.
+ *
+ * @see https://developers.google.com/transit/gtfs/reference#routestxt.
+ */
+export async function getRouteTypeByShortName(shortName: string): Promise<number> {
+    const result = await getDatabase().get(`
+        SELECT route_type
+        FROM routes
+        WHERE route_short_name=$shortName
+        LIMIT 1
+    `, {
+        $shortName: shortName,
+    });
+
+    if (result == null) {
+        throw new Error(`Could not find route ${shortName}`);
+    }
+
+    return result.route_type;
+}
+
 /**
  * Returns a polyline shape for the specified short name and direction.
  *
