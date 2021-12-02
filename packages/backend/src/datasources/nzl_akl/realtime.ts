@@ -1,6 +1,7 @@
 import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
 import TimedMap from "~/TimedMap.js";
 import { initialize as initializeWebSocket } from "./realtime_websocket.js";
+import { getDatabase } from "./static.js";
 
 const MINUTE = 60 * 1000;
 
@@ -92,12 +93,76 @@ export function addVehicleUpdate(vehicleUpdate: VehiclePosition) {
     vehicleUpdateListeners.forEach(l => l(vehicleUpdate));
 }
 
-export async function getTripUpdates(): Promise<ReadonlyMap<string, TripUpdate>> {
-    return tripUpdates;
+export async function getTripUpdates(shortName?: string): Promise<ReadonlyMap<string, TripUpdate>> {
+    if (shortName == null) {
+        return tripUpdates;
+    }
+
+    const routeIds = await getDatabase().all(`
+        SELECT route_id
+        FROM routes
+        WHERE route_short_name=$shortName
+    `, {
+        $shortName: shortName,
+    });
+
+    // following SQL statement will break if there are more than 999 routeIds,
+    // error will be `SQLITE_ERROR: too many SQL variables`
+    const tripIds = routeIds.length === 0 ? [] : await getDatabase().all(`
+        SELECT trip_id
+        FROM trips
+        INNER JOIN routes ON trips.trip_id=routes.trip_id
+        WHERE route_id IN ${routeIds.map(_ => "?").join(",")}
+    `, routeIds);
+
+    return new Map([...tripUpdates.entries()]
+        .filter(e => {
+            const { route_id, trip_id } = e[1].trip;
+            if (route_id && routeIds.includes(route_id)) {
+                return true;
+            }
+            if (trip_id && tripIds.includes(trip_id)) {
+                return true;
+            }
+            return false;
+        }),
+    );
 }
 
-export async function getVehicleUpdates(): Promise<ReadonlyMap<string, VehiclePosition>> {
-    return vehicleUpdates;
+export async function getVehicleUpdates(shortName?: string): Promise<ReadonlyMap<string, VehiclePosition>> {
+    if (shortName == null) {
+        return vehicleUpdates;
+    }
+
+    const routeIds = await getDatabase().all(`
+        SELECT route_id
+        FROM routes
+        WHERE route_short_name=$shortName
+    `, {
+        $shortName: shortName,
+    });
+
+    // following SQL statement will break if there are more than 999 routeIds,
+    // error will be `SQLITE_ERROR: too many SQL variables`
+    const tripIds = routeIds.length === 0 ? [] : await getDatabase().all(`
+        SELECT trip_id
+        FROM trips
+        INNER JOIN routes ON trips.trip_id=routes.trip_id
+        WHERE route_id IN ${routeIds.map(_ => "?").join(",")}
+    `, routeIds);
+
+    return new Map([...vehicleUpdates.entries()]
+        .filter(e => {
+            const { route_id, trip_id } = e[1].trip ?? {};
+            if (route_id && routeIds.includes(route_id)) {
+                return true;
+            }
+            if (trip_id && tripIds.includes(trip_id)) {
+                return true;
+            }
+            return false;
+        }),
+    );
 }
 
 export function registerTripUpdateListener(listener: TripUpdateListener): void {

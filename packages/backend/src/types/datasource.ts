@@ -70,7 +70,7 @@ export interface DataSource {
      * The map will contain the most recent update for each trip, but is not required to
      * contain updates older than two minutes.
      */
-    getTripUpdates: () => Promise<ReadonlyMap<string, VehiclePosition>>;
+    getTripUpdates: (shortName?: string) => Promise<ReadonlyMap<string, TripUpdate>>;
 
     /**
      * Returns a map of realtime vehicle updates, keyed by `vehicle_id`.
@@ -78,7 +78,7 @@ export interface DataSource {
      * The list will contain the most recent update for each vehicle, but is not required to
      * contain updates older than two minutes.
      */
-    getVehicleUpdates: () => Promise<ReadonlyMap<string, VehiclePosition>>;
+    getVehicleUpdates: (shortName?: string) => Promise<ReadonlyMap<string, VehiclePosition>>;
 
     /**
      * Will be executed once on startup.
