@@ -208,6 +208,12 @@ async function postImport(db: SqlDatabase): Promise<void> {
         await db.run("DROP TABLE tmp_shapes");
     }
 
+    // add index for routes.route_short_name
+    await db.run(`
+        CREATE INDEX idx_routes_route_short_name
+        ON routes (route_short_name)
+    `);
+
     // rebuilds the database file, repacking it into a minimal amount of disk space
     await db.run("VACUUM");
 }
