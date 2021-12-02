@@ -111,6 +111,3 @@ export function registerVehicleUpdateListener(listener: VehicleUpdateListener): 
 export async function initializeRealtime(_cacheDir: string, wsUrl: string) {
     await initializeWebSocket(wsUrl, addTripUpdate, addVehicleUpdate);
 }
-
-registerTripUpdateListener(t => console.log("Trip update", t));
-registerVehicleUpdateListener(v => console.log("Vehicle update", v));
