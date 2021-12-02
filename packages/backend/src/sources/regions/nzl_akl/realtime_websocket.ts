@@ -1,5 +1,5 @@
 import type WebSocket from "ws";
-import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition } from "~/types";
+import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
 import PersistentWebSocket from "~/PersistentWebSocket.js";
 import { parseEnum } from "~/helpers/";
@@ -30,131 +30,20 @@ function onError(err: Error): undefined | number {
  * Received a message.
  */
 function onMessage(_ws: WebSocket, data_: string): void {
-    // NOTE: AT's WebSocket incorrectly uses camelCase keys and string timestamps
+    // NOTE: AT's WebSocket incorrectly uses camelCase keys, string timestamps, and string enums
     const data: FeedEntity & Record<string, any> = JSON.parse(data_);
 
-    // trip_update
-    data.trip_update ??= data.tripUpdate;
-    if (data.trip_update != null) {
-        const tu: TripUpdate & Record<string, any> = data.trip_update;
+    const { id: _id, vehicle, alert: _alert } = data;
+    const trip_update = data.trip_update ?? data.tripUpdate;
 
-        // delay doesn't need to be changed
-
-        // stop_time_update
-        tu.stop_time_update ??= tu.stopTimeUpdate;
-        tu.stop_time_update.forEach((stu: StopTimeUpdate & Record<string, any>) => {
-            // arrival, fix timestamp
-            if (typeof stu.arrival?.time === "string") {
-                stu.arrival.time = Number.parseInt(stu.arrival.time);
-            }
-            // departure, fix timestamp
-            if (typeof stu.departure?.time === "string") {
-                stu.departure.time = Number.parseInt(stu.departure.time);
-            }
-
-            // stop_time_update.schedule_relationship
-            stu.schedule_relationship ??= stu.scheduleRelationship;
-            if (stu.schedule_relationship != null) {
-                parseEnum(TripUpdate$StopTimeUpdate$ScheduleRelationship, stu.schedule_relationship);
-            }
-
-            stu.stop_id ??= stu.stopId;
-            stu.stop_sequence ??= stu.stopSequence;
-        });
-
-        // timestamp
-        if (typeof tu.timestamp === "string") {
-            tu.timestamp = Number.parseInt(tu.timestamp);
-        }
-
-        // trip
-        const t: TripDescriptor & Record<string, any> = data.trip;
-        t.direction_id ??= t.directionId;
-        t.route_id ??= t.routeId;
-        t.start_date ??= t.startDate;
-        t.start_time ??= t.startTime;
-        t.trip_id ??= t.tripId;
-
-        // trip.schedule_relationship
-        t.schedule_relationship ??= t.scheduleRelationship;
-        if (t.schedule_relationship != null) {
-            parseEnum(TripDescriptor$ScheduleRelationship, t.schedule_relationship);
-        }
-
-        // vehicle
-        if (tu.vehicle != null) {
-            const v: VehicleDescriptor & Record<string, any> = tu.vehicle;
-
-            // id & label don't need changes
-
-            // license_plate
-            v.license_plate ??= v.licensePlate;
-        }
-
-        addTripUpdate(tu);
+    if (trip_update != null) {
+        addTripUpdate(fixTripUpdate(trip_update));
+        return;
     }
-    else if (data.vehicle != null) {
-        // vehicle
-        const vp: VehiclePosition & Record<string, any> = data.vehicle;
 
-        // congestion_level
-        vp.congestion_level ??= vp.congestionLevel;
-        if (vp.congestion_level != null) {
-            vp.congestion_level = parseEnum(CongestionLevel, vp.congestion_level);
-        }
-
-        // current_status
-        vp.current_status ??= vp.currentStatus;
-        if (vp.current_status != null) {
-            vp.current_status = parseEnum(VehicleStopStatus, vp.current_status);
-        }
-
-        // current_stop_sequence
-        vp.current_stop_sequence ??= vp.currentStopSequence;
-
-        // occupancy_status
-        vp.occupancy_status ??= vp.occupancyStatus;
-        if (vp.occupancy_status != null) {
-            vp.occupancy_status = parseEnum(OccupancyStatus, vp.occupancy_status);
-        }
-
-        // position doesn't need to be changed
-
-        // stop_id
-        vp.stop_id ??= vp.stopId;
-
-        // timestamp
-        if (typeof vp.timestamp === "string") {
-            vp.timestamp = Number.parseInt(vp.timestamp);
-        }
-
-        // trip
-        if (vp.trip != null) {
-            const t: TripDescriptor & Record<string, any> = vp.trip;
-            t.direction_id ??= t.directionId;
-            t.route_id ??= t.routeId;
-            t.start_date ??= t.startDate;
-            t.start_time ??= t.startTime;
-            t.trip_id ??= t.tripId;
-
-            // trip.schedule_relationship
-            t.schedule_relationship ??= t.scheduleRelationship;
-            if (t.schedule_relationship != null) {
-                t.schedule_relationship = parseEnum(TripDescriptor$ScheduleRelationship, t.schedule_relationship);
-            }
-        }
-
-        // vehicle
-        if (vp.vehicle != null) {
-            const v: VehicleDescriptor & Record<string, any> = data.vehicle;
-
-            // id & label don't need changes
-
-            // license_plate
-            v.license_plate ??= v.licensePlate;
-        }
-
-        addVehicleUpdate(vp);
+    if (vehicle != null) {
+        addVehicleUpdate(fixVehiclePosition(vehicle));
+        return;
     }
 }
 
@@ -164,8 +53,8 @@ function onMessage(_ws: WebSocket, data_: string): void {
 function onOpen(ws: WebSocket): void {
     ws.send(JSON.stringify({
         // appears to be a stripped-down GraphQL API
-        filters: { $or: { vehicle: true, tripUpdate: true, trip_update: true } },
-        query: "{ id vehicle tripUpdate, trip_update }",
+        filters: { },
+        query: "{ id vehicle tripUpdate trip_update alert }",
     }));
 }
 
@@ -189,4 +78,118 @@ export async function initialize(
 
 export async function terminate(): Promise<void> {
     pws.terminate();
+}
+
+function fixPosition(p: Position & Record<string, any>): Position {
+    const { bearing, latitude, longitude, odometer, speed } = p;
+
+    const output: Position = {
+        latitude,
+        longitude,
+    };
+    if (bearing != null) output.bearing = bearing;
+    if (odometer != null) output.odometer = odometer;
+    if (speed != null) output.speed = speed;
+    return output;
+}
+
+function fixStopTimeEvent(ste: TripUpdate$StopTimeEvent & Record<string, any>): TripUpdate$StopTimeEvent {
+    const { delay, time, uncertainty } = ste;
+
+    const output: TripUpdate$StopTimeEvent = {};
+    if (delay != null) output.delay = delay;
+    if (time != null) output.time = fixTimestamp(time);
+    if (uncertainty != null) output.uncertainty = uncertainty;
+    return output;
+}
+
+function fixStopTimeUpdate(stu: StopTimeUpdate & Record<string, any>): StopTimeUpdate {
+    const { arrival, departure } = stu;
+    const schedule_relationship = stu.schedule_relationship ?? stu.scheduleRelationship;
+    const stop_id = stu.stop_id ?? stu.stopId;
+    const stop_sequence = stu.stop_sequence ?? stu.stopSequence;
+
+    const output: StopTimeUpdate = {};
+    if (arrival != null) output.arrival = fixStopTimeEvent(arrival);
+    if (departure != null) output.departure = fixStopTimeEvent(departure);
+    if (schedule_relationship != null) {
+        output.schedule_relationship = parseEnum(
+            TripUpdate$StopTimeUpdate$ScheduleRelationship, schedule_relationship);
+    }
+    if (stop_id != null) output.stop_id = stop_id;
+    if (stop_sequence != null) output.stop_sequence = stop_sequence;
+    return output;
+}
+
+function fixTimestamp(t: any) {
+    if (typeof t === "string") {
+        return Number.parseInt(t);
+    }
+    return t;
+}
+
+function fixTrip(t: TripDescriptor & Record<string, any>): TripDescriptor {
+    const direction_id = t.direction_id ?? t.directionId;
+    const route_id = t.route_id ?? t.routeId;
+    const schedule_relationship = t.schedule_relationship ?? t.scheduleRelationship;
+    const start_date = t.start_date ?? t.startDate;
+    const start_time = t.start_time ?? t.startTime;
+    const trip_id = t.trip_id ?? t.tripId;
+
+    const output: TripDescriptor = {};
+    if (direction_id != null) output.direction_id = direction_id;
+    if (route_id != null) output.route_id = route_id;
+    if (schedule_relationship != null) {
+        output.schedule_relationship = parseEnum(TripDescriptor$ScheduleRelationship, schedule_relationship);
+    }
+    if (start_date != null) output.start_date = start_date;
+    if (start_time != null) output.start_time = start_time;
+    if (trip_id != null) output.trip_id = trip_id;
+    return output;
+}
+
+function fixTripUpdate(tu: TripUpdate & Record<string, any>): TripUpdate {
+    const { delay, timestamp, trip, vehicle } = tu;
+    const stop_time_update = tu.stop_time_update ?? tu.stopTimeUpdate ?? [];
+
+    const output: TripUpdate = {
+        stop_time_update: stop_time_update.map(fixStopTimeUpdate),
+        trip: fixTrip(trip),
+    };
+    if (delay != null) output.delay = delay;
+    if (timestamp != null) output.timestamp = fixTimestamp(timestamp);
+    if (vehicle != null) output.vehicle = fixVehicleDescriptor(vehicle);
+    return output;
+}
+
+function fixVehicleDescriptor(vd: VehicleDescriptor & Record<string, any>): VehicleDescriptor {
+    const { id, label } = vd;
+    const license_plate = vd.license_plate ?? vd.licensePlate;
+
+    const output: VehicleDescriptor = {};
+    if (id != null) output.id = id;
+    if (label != null) output.label = label;
+    if (license_plate != null) output.license_plate = license_plate;
+    return output;
+}
+
+function fixVehiclePosition(vp: VehiclePosition & Record<string, any>): VehiclePosition {
+    const { position, timestamp, trip, vehicle } = vp;
+    const congestion_level = vp.congestion_level ?? vp.congestionLevel;
+    const current_status = vp.current_status ?? vp.currentStatus;
+    const current_stop_sequence = vp.current_stop_sequence ?? vp.currentStopSequence;
+    const occupancy_status = vp.occupancy_status ?? vp.occupancyStatus;
+    const stop_id = vp.stop_id ?? vp.stopId;
+
+    const output: VehiclePosition = {};
+    if (congestion_level != null) output.congestion_level = parseEnum(CongestionLevel, congestion_level);
+    if (current_status != null) output.current_status = parseEnum(VehicleStopStatus, current_status);
+    if (current_stop_sequence != null) output.current_stop_sequence = current_stop_sequence;
+    if (occupancy_status != null) output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
+    if (position != null) output.position = fixPosition(position);
+    if (stop_id != null) output.stop_id = stop_id;
+    if (timestamp != null) output.timestamp = fixTimestamp(timestamp);
+    if (trip != null) output.trip = fixTrip(trip);
+    if (vehicle != null) output.vehicle = fixVehicleDescriptor(vehicle);
+    return output;
 }
