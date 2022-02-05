@@ -1,4 +1,4 @@
-import type { LatLng, TripUpdate, VehiclePosition } from "./";
+import type { LatLng, StrOrNull, TripUpdate, VehiclePosition } from "./";
 
 /**
  * Globally unique region code.
@@ -10,6 +10,13 @@ export type RegionCode = `${string}_${string}`;
 export type TripUpdateListener = (update: TripUpdate) => void;
 
 export type VehicleUpdateListener = (update: VehiclePosition) => void;
+
+export interface RouteSummary {
+    longNames: [StrOrNull, StrOrNull];
+    shapeIds: [StrOrNull, StrOrNull];
+    shortName: string;
+    type: number;
+}
 
 /**
  * Represents a datasource for a single region.
@@ -35,9 +42,10 @@ export interface DataSource {
     /**
      * Returns an appropriate long name for the given short name.
      *
-     * Selects the longest name (prefer more detailed names), breaks ties by lexicographical order.
+     * Selects the longest name for each direction (prefer more detailed names),
+     * breaks ties by lexicographical order.
      */
-    getLongNameByShortName(shortName: string): Promise<string>;
+    getLongNamesByShortName(shortName: string): Promise<[StrOrNull, StrOrNull]>;
 
     /**
      * Returns the type of route for the given short name.
@@ -45,6 +53,11 @@ export interface DataSource {
      * @see https://developers.google.com/transit/gtfs/reference#routestxt.
      */
     getRouteTypeByShortName(shortName: string): Promise<number>;
+
+    /**
+     * Returns summarising data for all routes (by short name) in the datasource.
+     */
+    getRoutesSummary(): Promise<Map<string, RouteSummary>>;
 
     /**
      * Returns two polyline shapes, one for each direction.
@@ -58,6 +71,11 @@ export interface DataSource {
      * Return short name for specified trip id.
      */
     getShortNameByTripId: (tripId: string) => Promise<string>;
+
+    /**
+     * Return all the short names in the datasource.
+     */
+    getShortNames: () => Promise<string[]>;
 
     /**
      * Return trip id for specified route, direction, and start time.

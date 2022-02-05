@@ -121,7 +121,7 @@ function fixStopTimeUpdate(stu: StopTimeUpdate & Record<string, any>): StopTimeU
     return output;
 }
 
-function fixTimestamp(t: any) {
+function fixTimestamp(t: string | number): number {
     if (typeof t === "string") {
         return Number.parseInt(t);
     }

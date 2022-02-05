@@ -1,33 +1,33 @@
-import type { LatLng } from "~/types";
+import type { LatLng, RouteSummary, StrOrNull } from "~/types";
 import { getDatabase } from "./static.js";
+
+async function getLongNameByShortNameDirection(shortName: string, directionId: 0 | 1): Promise<StrOrNull> {
+    const result: {
+        longName: string
+    } | undefined = await getDatabase().get(`
+        SELECT route_long_name_${directionId} AS longName
+        FROM route_summaries
+        WHERE route_short_name=$shortName
+    `, {
+        $shortName: shortName,
+    });
+
+    return result?.longName ?? null;
+}
 
 /**
  * Returns an appropriate long name for the given short name.
  *
  * Selects the longest name (prefer more detailed names), breaks ties by lexicographical order.
  */
-export async function getLongNameByShortName(shortName: string): Promise<string> {
-    const result = await getDatabase().get(`
-        SELECT route_long_name
-        FROM routes
-        WHERE route_short_name=$shortName
-        ORDER BY LENGTH(route_long_name) DESC, route_long_name ASC
-        LIMIT 1
-    `, {
-        $shortName: shortName,
-    });
+export async function getLongNamesByShortName(shortName: string): Promise<[StrOrNull, StrOrNull]> {
+    const [ln1, ln2] = await Promise.all([
+        getLongNameByShortNameDirection(shortName, 0),
+        getLongNameByShortNameDirection(shortName, 1),
+    ]);
 
-    if (result == null) {
-        throw new Error(`Could not find route ${shortName}`);
-    }
-
-    // make To and Via lowercase, remove full stops
-    return result.route_long_name
-        .replace(/To/g, "to")
-        .replace(/Via/g, "via")
-        .replace(/\./g, "");
+    return [ln1, ln2];
 }
-
 
 /**
  * Returns the type of route for the given short name.
@@ -49,6 +49,40 @@ export async function getRouteTypeByShortName(shortName: string): Promise<number
     }
 
     return result.route_type;
+}
+
+/**
+ * Returns summarising data for all routes (by short name) in the datasource.
+ */
+export async function getRoutesSummary(): Promise<Map<string, RouteSummary>> {
+    const result: {
+        longName0: StrOrNull;
+        longName1: StrOrNull;
+        shortName: string;
+        routeType: number;
+        shapeId0: StrOrNull;
+        shapeId1: StrOrNull;
+    }[] = await getDatabase().all(`
+        SELECT
+            route_long_name_0 AS longName0,
+            route_long_name_1 AS longName1,
+            route_short_name AS shortName,
+            route_type AS routeType,
+            shape_id_0 AS shapeId0,
+            shape_id_1 AS shapeId1
+        FROM route_summaries
+    `);
+
+    return new Map(result.map(r => [
+        r.shortName,
+        {
+            longNames: [r.longName0, r.longName1],
+            shapeIds: [r.shapeId0, r.shapeId1],
+            shortName: r.shortName,
+            type: r.routeType,
+
+        },
+    ]));
 }
 
 /**
@@ -109,6 +143,19 @@ export async function getShortNameByTripId(tripId: string): Promise<string> {
         throw new Error(`Could not find trip ${tripId}`);
     }
     return result.route_short_name;
+}
+
+/**
+ * Return all the short names in the datasource.
+ */
+export async function getShortNames(): Promise<string[]> {
+    const result: {
+        shortName: string
+    }[] = await getDatabase().all(`
+        SELECT route_short_name AS shortName
+        FROM route_summaries
+    `);
+    return result.map(r => r.shortName);
 }
 
 /**

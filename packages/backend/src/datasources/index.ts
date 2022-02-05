@@ -19,7 +19,7 @@ async function mapRegionsSync<T>(callbackfn: (value: DataSource) => T | PromiseL
     return results;
 }
 
-export function getRegion(region: RegionCode) {
+export function getRegion(region: RegionCode | string) {
     return regions.get(region.toLowerCase()) ?? null;
 }
 
