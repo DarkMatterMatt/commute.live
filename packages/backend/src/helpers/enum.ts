@@ -41,3 +41,7 @@ export function parseStringEnum<T extends string, TEnumValue extends string>(
 
     throw new Error(`Could not resolve enum type for ${val}, should be one of ${[...Object.keys(enumType)]}`);
 }
+
+export function never(arg: never): never {
+    throw new Error(`Received unexpected value for switch statement: ${arg}`);
+}

@@ -1,4 +1,4 @@
-import { accessSync, constants } from "fs";
+import { accessSync, constants } from "node:fs";
 import dotenv from "dotenv";
 import { bool, cleanEnv, makeValidator, port, str } from "envalid";
 

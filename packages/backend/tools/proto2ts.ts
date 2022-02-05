@@ -1,4 +1,4 @@
-import fs from "fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 interface Opts {
     bytesType: string;
@@ -277,7 +277,7 @@ function processText(opts: Opts, text: string): string {
 function processFile(opts: Opts, protoPath: string, outputPath: string): void {
     let text: string;
     try {
-        text = fs.readFileSync(protoPath, { encoding: "utf8" });
+        text = readFileSync(protoPath, { encoding: "utf8" });
     }
     catch (e) {
         console.error(e);
@@ -286,7 +286,7 @@ function processFile(opts: Opts, protoPath: string, outputPath: string): void {
     console.log(`Processing: ${protoPath}`);
 
     const output = `${processText(opts, text)}\n`;
-    fs.writeFileSync(outputPath, output);
+    writeFileSync(outputPath, output);
 }
 
 (() => {
