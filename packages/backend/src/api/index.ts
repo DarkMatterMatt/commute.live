@@ -4,7 +4,7 @@ import uWS, { us_listen_socket, WebSocket } from "uWebSockets.js";
 import log from "~/log.js";
 import env from "~/env.js";
 import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
-import wsRoutes, { defaultRoute as defaultWsRoute } from "./websocket/";
+import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
 import { getRegion } from "~/datasources/";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
@@ -42,7 +42,7 @@ export async function start() {
             if (!message.byteLength) {
                 ws.send(JSON.stringify({
                     status:  "error",
-                    message: "No data recieved. Expected data in a JSON format.",
+                    message: "No data received. Expected data in a JSON format.",
                 }));
                 return;
             }
@@ -56,25 +56,37 @@ export async function start() {
             catch {
                 ws.send(JSON.stringify({
                     status:  "error",
-                    message: "Invalid JSON data recieved.",
+                    message: "Invalid JSON data received.",
                 }));
                 return;
             }
 
-            const routeName = json.route;
+            const { route: routeName, seq } = json;
+            delete json.route;
+            delete json.seq;
+
             if (typeof routeName !== "string" || routeName === "") {
                 ws.send(JSON.stringify({
                     status:  "error",
-                    message: "Missing 'route' field.",
+                    message: "Missing required field: route.",
+                }));
+                return;
+            }
+
+            if (typeof seq !== "number") {
+                ws.send(JSON.stringify({
+                    status:  "error",
+                    message: "Missing required field: seq.",
                 }));
                 return;
             }
 
             const route = wsRoutes.get(routeName) || defaultWsRoute;
-            route.createRoute({ ws })
+            route.createRoute({ ws, seq })
                 .execute({
-                    json,
+                    params: json,
                     activeWebSockets,
+                    getRegion,
                 });
         },
     });
@@ -103,7 +115,7 @@ export async function start() {
         res.writeHeader("Content-Type", "application/json");
         res.end(JSON.stringify({
             status:  "error",
-            message: "404 Not Found",
+            message: "404 Not Found.",
         }));
     });
 
