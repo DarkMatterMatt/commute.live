@@ -1,11 +1,4 @@
-import type { StrOrNull } from "~/types";
 import { GetRouteGenerator } from "./GetRoute.js";
-
-interface RouteData {
-    longNames: [StrOrNull, StrOrNull];
-    shortName: string;
-    type: number;
-}
 
 export const listRoute = new GetRouteGenerator({
     name: "list",
@@ -15,14 +8,13 @@ export const listRoute = new GetRouteGenerator({
         const ds = getRegion(region);
         if (ds == null) {
             return route.finish("error", {
-                message: `Invalid region: ${region}`,
+                message: `Unknown region: ${region}.`,
             });
         }
 
-        const data: Map<string, RouteData> = await ds.getRoutesSummary();
-
+        const data = await ds.getRoutesSummary();
         return route.finish("success", {
-            message: "See routes attached",
+            message: "See routes attached.",
             routes:  Object.fromEntries(data.entries()),
         });
     },

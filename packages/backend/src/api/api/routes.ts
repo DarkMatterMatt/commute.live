@@ -26,13 +26,13 @@ export const routesRoute = new GetRouteGenerator({
     optionalParams: [] as const,
     executor: async (route, { getRegion, params }) => {
         const { region } = params;
-        const shortNames = params.shortNames.split(",");
+        const rawShortNames = params.shortNames.split(",");
         const rawFields = params.fields.split(",");
 
         for (const field of rawFields) {
             if (!validFields.includes(field as ValidField)) {
                 return route.finish("error", {
-                    message: `Invalid field: ${field}`,
+                    message: `Unknown field: ${field}.`,
                     availableFields: validFields,
                 });
             }
@@ -47,9 +47,12 @@ export const routesRoute = new GetRouteGenerator({
         const ds = getRegion(region);
         if (ds == null) {
             return route.finish("error", {
-                message: `Invalid region: ${region}`,
+                message: `Unknown region: ${region}.`,
             });
         }
+
+        const availableShortNames = await ds.getShortNames();
+        const shortNames = new Set(rawShortNames.filter(sn => availableShortNames.includes(sn)));
 
         const data: Record<string, Partial<RouteData>> = {};
         for (const sn of shortNames) {

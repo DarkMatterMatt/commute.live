@@ -9,14 +9,17 @@ const DEFAULT_CACHE_MAX_AGE = 3600; // 1 hour
 export type ValidParams<R extends readonly string[], O extends readonly string[]> =
     { [K in R[number]]: string } & Partial<{ [K in O[number]]: string }>;
 
-interface GetRouteExecuteOpts<R extends readonly string[], O extends readonly string[]> extends RouteExecuteOpts {
+export interface GetRouteExecuteOpts<
+    R extends readonly string[],
+    O extends readonly string[],
+> extends RouteExecuteOpts {
     getRegion: (region: string) => DataSource | null;
     params: ValidParams<R, O>;
 }
 
 export interface GetRouteOpts<R extends readonly string[], O extends readonly string[]> {
     cacheMaxAge: number;
-    executor: ((route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>);
+    executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
     headers: Record<string, string>;
     name: string;
     optionalParams: O;
@@ -26,7 +29,7 @@ export interface GetRouteOpts<R extends readonly string[], O extends readonly st
 
 export class GetRoute<R extends readonly string[], O extends readonly string[]> extends Route {
     private aborted = false;
-    private readonly executor: ((route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>);
+    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
     private cacheMaxAge: number;
     private readonly headers: Record<string, string>;
     private readonly optionalParams: O;
@@ -69,7 +72,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
             }
         }
 
-        return [Object.fromEntries(params.entries()) as any, errors];
+        return [Object.fromEntries(params.entries()) as ValidParams<R, O>, errors];
     }
 
     public setCacheMaxAge(secs: number): this {
@@ -85,8 +88,8 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
 
         const json = JSON.stringify({
             ...data,
-            status,
             route: this.name,
+            status,
         });
 
         if (this.cacheMaxAge <= 0) {
@@ -117,13 +120,13 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
 }
 
 export interface CreateGetRouteData extends CreateRouteData {
-    headers: Record<string, string>,
-    res: HttpResponse,
+    headers: Record<string, string>;
+    res: HttpResponse;
 }
 
 export interface GetRouteGeneratorOpts<R extends readonly string[], O extends readonly string[]> {
     name: string;
-    executor: ((route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>);
+    executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
     cacheMaxAge?: number;
     optionalParams: O;
     requiredParams: R;
@@ -131,7 +134,7 @@ export interface GetRouteGeneratorOpts<R extends readonly string[], O extends re
 
 export class GetRouteGenerator<R extends readonly string[], O extends readonly string[]> extends RouteGen {
     private readonly cacheMaxAge: number;
-    private readonly executor: ((route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>);
+    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
 

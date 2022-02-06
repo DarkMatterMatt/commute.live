@@ -5,10 +5,11 @@ import { statusRoute } from "./status.js";
 
 export const defaultRoute = new GetRouteGenerator({
     name: "default",
-    requiredParams: ["region"] as const,
+    requiredParams: [] as const,
     optionalParams: [] as const,
     executor: route => route.finish("error", {
-        message: `Invalid route. Must be one of ${[...routes.keys()].join(", ")}.`,
+        message: `Unknown route: ${route.name}.`,
+        availableRoutes: [...routes.keys()],
     }),
 });
 
