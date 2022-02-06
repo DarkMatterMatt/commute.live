@@ -1,5 +1,6 @@
 import type { SqlDatabase } from "gtfs";
 import type { Response } from "node-fetch";
+import Graceful from "node-graceful";
 import { closeDb, openDb, importGtfs } from "gtfs";
 import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
@@ -7,6 +8,7 @@ import { pipeline } from "node:stream/promises";
 import fetch from "node-fetch";
 import path from "path";
 import { sleep, SqlBatcher } from "~/helpers/";
+import log from "~/log.js";
 import { defaultProjection } from "~/MercatorProjection.js";
 import type { StrOrNull } from "~/types";
 
@@ -16,8 +18,10 @@ let cacheDir: string;
 
 let db: null | SqlDatabase = null;
 
+Graceful.on("exit", () => db?.close());
+
 /**
- * Returns the currently opened database instance, or null if no database is open.
+ * Returns the currently opened database instance.
  */
 export function getDatabase(): SqlDatabase {
     if (db == null) {
@@ -91,6 +95,7 @@ export async function checkForStaticUpdate(): Promise<boolean> {
  * Download zip, import to database, remove zip & old database.
  */
 async function performUpdate(res: Response): Promise<void> {
+    log.info("NZL_AKL: Updating static data");
     if (res.body == null) {
         // should never occur
         throw new Error(`Response returned empty body, ${res.url}`);
@@ -128,6 +133,8 @@ async function performUpdate(res: Response): Promise<void> {
  * Generate any missing data.
  */
 async function postImport(db: SqlDatabase): Promise<void> {
+    log.info("NZL_AKL: Running post-import functions");
+
     // add index for routes.route_short_name
     await db.run(`
         CREATE INDEX idx_routes_route_short_name
@@ -148,6 +155,8 @@ async function postImport(db: SqlDatabase): Promise<void> {
  * Generate missing shape_dist_traveled in shapes table.
  */
 async function addShapeDistances(db: SqlDatabase): Promise<void> {
+    log.debug("NZL_AKL: Adding missing shape distances");
+
     // calculate our own shape_dist_traveled
     const shapeIds = (await db.all(`
         SELECT DISTINCT shape_id
@@ -218,14 +227,16 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
  * long names & shapes for each direction).
  */
 async function addRouteSummaries(db: SqlDatabase): Promise<void> {
+    log.debug("NZL_AKL: Adding route summaries");
+
     // converts '19990531' -> JULIANDAY('1999-05-31') -> 2451329.5
     const julianDay = (field: string) =>
         `JULIANDAY(SUBSTR(${field}, 1, 4) || '-' || SUBSTR(${field}, 5, 2) || '-' || SUBSTR(${field}, 7, 2))`;
 
     // make To and Via lowercase, remove full stops
     const normaliseLongName = (field: string) => `REPLACE(REPLACE(REPLACE(REPLACE(${field},
-        'To', 'to'),
-        'Via', 'via'),
+        ' To ', ' to '),
+        ' Via ', ' via '),
         'Stn', 'Station'),
         '.', '')`;
 
@@ -344,6 +355,8 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
  * Delete temp zip file, delete previous database.
  */
 async function cleanUp(zipPath: string, oldDatabase: null | SqlDatabase): Promise<void> {
+    log.debug("NZL_AKL: Cleaning up old data");
+
     // TODO: surely this can be done better than using sleep()
     // assume that in 30 secs nobody will be using the old data
     await sleep(30 * 1000);
