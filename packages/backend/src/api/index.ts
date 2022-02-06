@@ -5,7 +5,8 @@ import log from "~/log.js";
 import env from "~/env.js";
 import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
 import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
-import type { DataSource, RegionCode } from "~/types";
+import type { DataSource, RegionCode, TripUpdate, VehiclePosition } from "~/types";
+import { getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
 
@@ -14,7 +15,12 @@ export interface StartOpts {
     getRegion: (region: string) => DataSource | null;
 }
 
-export async function start({ availableRegions, getRegion }: StartOpts): Promise<void> {
+const app = env.USE_SSL ? uWS.SSLApp({
+    key_file_name: env.SSL_KEY_FILE,
+    cert_file_name: env.SSL_CERT_FILE,
+}) : uWS.App();
+
+export async function startServer({ availableRegions, getRegion }: StartOpts): Promise<void> {
     const activeWebSockets = new Set<WebSocket>();
     let listenSocket: us_listen_socket;
 
@@ -28,11 +34,6 @@ export async function start({ availableRegions, getRegion }: StartOpts): Promise
         }
         uWS.us_listen_socket_close(listenSocket);
     });
-
-    const app = env.USE_SSL ? uWS.SSLApp({
-        key_file_name: env.SSL_KEY_FILE,
-        cert_file_name: env.SSL_CERT_FILE,
-    }) : uWS.App();
 
     app.ws("/v3/websocket", {
         open: ws => {
@@ -132,4 +133,16 @@ export async function start({ availableRegions, getRegion }: StartOpts): Promise
             log.info(`Listening to port ${env.PORT}`);
         }
     });
+}
+
+export function publishVehiclePosition(region: string, shortName: string, position: VehiclePosition): void {
+    const mqtt = getMQTTForVehicleUpdates(region, shortName);
+    const data = JSON.stringify(position);
+    app.publish(mqtt, data);
+}
+
+export function publishTripUpdate(region: string, shortName: string, position: TripUpdate): void {
+    const mqtt = getMQTTForTripUpdates(region, shortName);
+    const data = JSON.stringify(position);
+    app.publish(mqtt, data);
 }

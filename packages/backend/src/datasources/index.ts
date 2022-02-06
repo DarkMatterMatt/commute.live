@@ -7,6 +7,8 @@ const regions = new Map([
     NZL_AKL,
 ].map(r => [r.code.toLowerCase(), r]));
 
+export const availableRegions = [...regions.keys()] as RegionCode[];
+
 export async function mapRegions<T>(callbackfn: (value: DataSource) => T) {
     return Promise.allSettled([...regions.values()].map(r => callbackfn(r)));
 }
