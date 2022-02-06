@@ -349,6 +349,12 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         await batcher.queue(longNames[0], longNames[1], shortName, routeType, shapeIds[0], shapeIds[1]);
     }
     await batcher.flush();
+
+    // add index for route_summaries.route_short_name
+    await db.run(`
+        CREATE INDEX idx_route_summaries_route_short_name
+        ON route_summaries (route_short_name)
+    `);
 }
 
 /**

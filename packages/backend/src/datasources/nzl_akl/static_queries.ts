@@ -180,3 +180,18 @@ export async function getTripIdByTripDetails(routeId: string, directionId: numbe
     }
     return result.trip_id;
 }
+
+/**
+ * Check if route exists in the datasource.
+ */
+export async function hasShortName(shortName: string): Promise<boolean> {
+    const result = await getDatabase().get(`
+        SELECT 1
+        FROM route_summaries
+        WHERE route_short_name=$shortName
+    `, {
+        $shortName: shortName,
+    });
+
+    return result != null;
+}

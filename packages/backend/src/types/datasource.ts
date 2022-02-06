@@ -99,6 +99,11 @@ export interface DataSource {
     getVehicleUpdates: (shortName?: string) => Promise<ReadonlyMap<string, VehiclePosition>>;
 
     /**
+     * Check if route exists in the datasource.
+     */
+    hasShortName: (shortName: string) => Promise<boolean>;
+
+    /**
      * Will be executed once on startup.
      */
     initialize: (tempDir: string) => Promise<void>;
