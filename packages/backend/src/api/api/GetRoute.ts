@@ -1,7 +1,7 @@
 import { URLSearchParams } from "node:url";
-import { HttpResponse } from "uWebSockets.js";
+import { HttpResponse, WebSocket } from "uWebSockets.js";
 import { md5 } from "~/helpers/";
-import type { DataSource, PromiseOr } from "~/types";
+import type { DataSource, PromiseOr, RegionCode } from "~/types";
 import { Route, RouteGen, RouteExecuteOpts, CreateRouteData } from "../Route.js";
 
 const DEFAULT_CACHE_MAX_AGE = 3600; // 1 hour
@@ -9,31 +9,40 @@ const DEFAULT_CACHE_MAX_AGE = 3600; // 1 hour
 export type ValidParams<R extends readonly string[], O extends readonly string[]> =
     { [K in R[number]]: string } & Partial<{ [K in O[number]]: string }>;
 
-export interface GetRouteExecuteOpts<
+export interface GetRouteExecutorOpts<
     R extends readonly string[],
     O extends readonly string[],
 > extends RouteExecuteOpts {
-    getRegion: (region: string) => DataSource | null;
     params: ValidParams<R, O>;
+    region: DataSource | null;
+}
+
+export interface GetRouteExecuteOpts {
+    activeWebSockets: Set<WebSocket>;
+    availableRegions: RegionCode[];
+    getRegion: (region: string) => DataSource | null;
+    params: URLSearchParams;
 }
 
 export interface GetRouteOpts<R extends readonly string[], O extends readonly string[]> {
     cacheMaxAge: number;
-    executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     headers: Record<string, string>;
     name: string;
     optionalParams: O;
     requiredParams: R;
+    requiresRegion: boolean;
     res: HttpResponse;
 }
 
 export class GetRoute<R extends readonly string[], O extends readonly string[]> extends Route {
     private aborted = false;
-    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     private cacheMaxAge: number;
     private readonly headers: Record<string, string>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
+    private readonly requiresRegion: boolean;
     private readonly res: HttpResponse;
 
     constructor (opts: GetRouteOpts<R, O>) {
@@ -43,22 +52,36 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
         this.headers = opts.headers;
         this.optionalParams = opts.optionalParams;
         this.requiredParams = opts.requiredParams;
+        this.requiresRegion = opts.requiresRegion;
         this.res = opts.res;
+
+        if (this.requiresRegion && !this.requiredParams.includes("region")) {
+            throw new Error("Region is required, but is missing from required parameters.");
+        }
 
         this.res.onAborted(() => {
             this.aborted = true;
         });
     }
 
-    public async execute(data: Omit<GetRouteExecuteOpts<R, O>, "params"> & { params: URLSearchParams }): Promise<void> {
-        const [params, errors] = this.validateParams(data.params);
-        if (errors.length > 0) {
+    public async execute(opts: GetRouteExecuteOpts): Promise<void> {
+        const { activeWebSockets } = opts;
+
+        const [params, errors] = this.validateParams(opts.params, opts.availableRegions);
+        if (errors != null) {
             return this.finish("error", { errors });
         }
-        await this.executor(this, { ...data, params });
+
+        const regionName = opts.params.get("region");
+        const region = regionName == null ? null : opts.getRegion(regionName);
+        await this.executor(this, { activeWebSockets, params, region });
     }
 
-    private validateParams(params: URLSearchParams): [ValidParams<R, O>, readonly string[]] {
+    private validateParams(params: URLSearchParams, availableRegions: string[]): [ValidParams<R, O>, null];
+    private validateParams(params: URLSearchParams, availableRegions: string[]): [null, string[]];
+    private validateParams(
+        params: URLSearchParams, availableRegions: string[],
+    ): [ValidParams<R, O> | null, null | string[]] {
         const errors = [];
 
         for (const key of this.requiredParams) {
@@ -72,7 +95,17 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
             }
         }
 
-        return [Object.fromEntries(params.entries()) as ValidParams<R, O>, errors];
+        if (this.requiresRegion) {
+            const region = params.get("region");
+            if (region == null || !availableRegions.includes(region)) {
+                errors.push(`Unknown region: ${region}.`);
+            }
+        }
+
+        if (errors.length > 0) {
+            return [null, errors];
+        }
+        return [Object.fromEntries(params.entries()) as ValidParams<R, O>, null];
     }
 
     public setCacheMaxAge(secs: number): this {
@@ -126,17 +159,19 @@ export interface CreateGetRouteData extends CreateRouteData {
 
 export interface GetRouteGeneratorOpts<R extends readonly string[], O extends readonly string[]> {
     name: string;
-    executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     cacheMaxAge?: number;
     optionalParams: O;
     requiredParams: R;
+    requiresRegion?: boolean;
 }
 
 export class GetRouteGenerator<R extends readonly string[], O extends readonly string[]> extends RouteGen {
     private readonly cacheMaxAge: number;
-    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
+    private readonly requiresRegion: boolean;
 
     constructor (opts: GetRouteGeneratorOpts<R, O>) {
         super(opts.name);
@@ -144,6 +179,7 @@ export class GetRouteGenerator<R extends readonly string[], O extends readonly s
         this.executor = opts.executor;
         this.optionalParams = opts.optionalParams;
         this.requiredParams = opts.requiredParams;
+        this.requiresRegion = opts.requiresRegion ?? false;
     }
 
     public createRoute({ headers, res }: CreateGetRouteData): GetRoute<R, O> {
@@ -154,6 +190,7 @@ export class GetRouteGenerator<R extends readonly string[], O extends readonly s
             name: this.name,
             optionalParams: this.optionalParams,
             requiredParams: this.requiredParams,
+            requiresRegion: this.requiresRegion,
             res,
         });
     }

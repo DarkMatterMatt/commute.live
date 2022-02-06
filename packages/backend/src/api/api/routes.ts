@@ -24,8 +24,12 @@ export const routesRoute = new GetRouteGenerator({
     name: "routes",
     requiredParams: ["fields", "region", "shortNames"] as const,
     optionalParams: [] as const,
-    executor: async (route, { getRegion, params }) => {
-        const { region } = params;
+    requiresRegion: true,
+    executor: async (route, { region, params }) => {
+        if (region == null) {
+            throw new Error("Region is expected.");
+        }
+
         const rawShortNames = params.shortNames.split(",");
         const rawFields = params.fields.split(",");
 
@@ -44,14 +48,7 @@ export const routesRoute = new GetRouteGenerator({
             route.setCacheMaxAge(0);
         }
 
-        const ds = getRegion(region);
-        if (ds == null) {
-            return route.finish("error", {
-                message: `Unknown region: ${region}.`,
-            });
-        }
-
-        const availableShortNames = await ds.getShortNames();
+        const availableShortNames = await region.getShortNames();
         const shortNames = new Set(rawShortNames.filter(sn => availableShortNames.includes(sn)));
 
         const data: Record<string, Partial<RouteData>> = {};
@@ -66,22 +63,22 @@ export const routesRoute = new GetRouteGenerator({
                     }
 
                     case "longNames": {
-                        data[sn]["longNames"] = await ds.getLongNamesByShortName(sn);
+                        data[sn]["longNames"] = await region.getLongNamesByShortName(sn);
                         break;
                     }
 
                     case "polylines":{
-                        data[sn]["polylines"] = await ds.getShapesByShortName(sn);
+                        data[sn]["polylines"] = await region.getShapesByShortName(sn);
                         break;
                     }
 
                     case "type": {
-                        data[sn]["type"] = await ds.getRouteTypeByShortName(sn);
+                        data[sn]["type"] = await region.getRouteTypeByShortName(sn);
                         break;
                     }
 
                     case "vehicles": {
-                        const res = await ds.getVehicleUpdates(sn);
+                        const res = await region.getVehicleUpdates(sn);
                         data[sn]["vehicles"] = Object.fromEntries(res.entries());
                         break;
                     }

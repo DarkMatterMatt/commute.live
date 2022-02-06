@@ -5,11 +5,16 @@ import log from "~/log.js";
 import env from "~/env.js";
 import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
 import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
-import { getRegion } from "~/datasources/";
+import type { DataSource, RegionCode } from "~/types";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
 
-export async function start() {
+export interface StartOpts {
+    availableRegions: RegionCode[];
+    getRegion: (region: string) => DataSource | null;
+}
+
+export async function start({ availableRegions, getRegion }: StartOpts): Promise<void> {
     const activeWebSockets = new Set<WebSocket>();
     let listenSocket: us_listen_socket;
 
@@ -86,6 +91,7 @@ export async function start() {
                 .execute({
                     params: json,
                     activeWebSockets,
+                    availableRegions,
                     getRegion,
                 });
         },
@@ -102,6 +108,7 @@ export async function start() {
             .execute({
                 params,
                 activeWebSockets,
+                availableRegions,
                 getRegion,
             });
     });

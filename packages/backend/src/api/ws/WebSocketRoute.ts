@@ -1,55 +1,72 @@
 import { WebSocket } from "uWebSockets.js";
-import type { DataSource, PromiseOr } from "~/types";
+import type { DataSource, PromiseOr, RegionCode } from "~/types";
 import { Route, RouteGen, RouteExecuteOpts, CreateRouteData } from "../Route.js";
 
 export type ValidParams<R extends readonly string[], O extends readonly string[]> =
     { [K in R[number]]: string } & Partial<{ [K in O[number]]: string }>;
 
-export interface WebSocketRouteExecuteOpts<
+export interface WebSocketRouteExecutorOpts<
     R extends readonly string[],
     O extends readonly string[],
 > extends RouteExecuteOpts {
-    getRegion: (region: string) => DataSource | null;
     params: ValidParams<R, O>;
+    region: DataSource | null;
     ws: WebSocket;
 }
 
+export interface WebSocketRouteExecuteOpts {
+    activeWebSockets: Set<WebSocket>;
+    availableRegions: RegionCode[];
+    getRegion: (region: string) => DataSource | null;
+    params: Record<string, unknown>;
+}
+
 export interface WebSocketRouteOpts<R extends readonly string[], O extends readonly string[]> {
-    executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
     name: string;
     optionalParams: O;
     requiredParams: R;
+    requiresRegion: boolean;
     seq: number; // sequence number for WebSocket
     ws: WebSocket;
 }
 
 export class WebSocketRoute<R extends readonly string[], O extends readonly string[]> extends Route {
-    private readonly executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    private readonly executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
-    private readonly ws: WebSocket;
+    private readonly requiresRegion: boolean;
     private readonly seq: number;
+    private readonly ws: WebSocket;
 
     constructor (opts: WebSocketRouteOpts<R, O>) {
         super(opts.name);
         this.executor = opts.executor;
         this.optionalParams = opts.optionalParams;
         this.requiredParams = opts.requiredParams;
+        this.requiresRegion = opts.requiresRegion;
         this.seq = opts.seq;
         this.ws = opts.ws;
     }
 
-    public async execute(
-        data: Omit<WebSocketRouteExecuteOpts<R, O>, "params" | "ws"> & { params: Record<string, unknown> },
-    ): Promise<void> {
-        const [params, errors] = this.validateParams(data.params);
-        if (errors.length > 0) {
+    public async execute(opts: WebSocketRouteExecuteOpts): Promise<void> {
+        const { activeWebSockets } = opts;
+
+        const [params, errors] = this.validateParams(opts.params, opts.availableRegions);
+        if (errors != null) {
             return this.finish("error", { errors });
         }
-        await this.executor(this, { ...data, params, ws: this.ws });
+
+        const regionName = opts.params.region as string | undefined;
+        const region = regionName == null ? null : opts.getRegion(regionName);
+        await this.executor(this, { activeWebSockets, params, ws: this.ws, region });
     }
 
-    private validateParams(params: Record<string, unknown>): [ValidParams<R, O>, readonly string[]] {
+    private validateParams(params: Record<string, unknown>, availableRegions: string[]): [ValidParams<R, O>, null];
+    private validateParams(params: Record<string, unknown>, availableRegions: string[]): [null, string[]];
+    private validateParams(
+        params: Record<string, unknown>, availableRegions: string[],
+    ): [null | ValidParams<R, O>, null | string[]] {
         const errors = [];
 
         const keys = Object.keys(params);
@@ -67,7 +84,17 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
             }
         }
 
-        return [params as ValidParams<R, O>, errors];
+        if (this.requiresRegion) {
+            const { region } = params;
+            if (typeof region !== "string" || !availableRegions.includes(region)) {
+                errors.push(`Unknown region: ${region}.`);
+            }
+        }
+
+        if (errors.length > 0) {
+            return [null, errors];
+        }
+        return [params as ValidParams<R, O>, null];
     }
 
     public finish(status: "success" | "error", data: Record<string, any>): void {
@@ -88,21 +115,24 @@ export interface CreateWebSocketRouteData extends CreateRouteData {
 
 export interface WebSocketRouteGeneratorOpts<R extends readonly string[], O extends readonly string[]> {
     name: string;
-    executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
     optionalParams: O;
     requiredParams: R;
+    requiresRegion?: boolean;
 }
 
 export class WebSocketRouteGenerator<R extends readonly string[], O extends readonly string[]> extends RouteGen {
-    private readonly executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecuteOpts<R, O>) => PromiseOr<void>;
+    private readonly executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
+    private readonly requiresRegion: boolean;
 
     constructor (opts: WebSocketRouteGeneratorOpts<R, O>) {
         super(opts.name);
         this.executor = opts.executor;
         this.optionalParams = opts.optionalParams;
         this.requiredParams = opts.requiredParams;
+        this.requiresRegion = opts.requiresRegion ?? false;
     }
 
     public createRoute({ seq, ws }: CreateWebSocketRouteData): WebSocketRoute<R, O> {
@@ -111,6 +141,7 @@ export class WebSocketRouteGenerator<R extends readonly string[], O extends read
             name: this.name,
             optionalParams: this.optionalParams,
             requiredParams: this.requiredParams,
+            requiresRegion: this.requiresRegion,
             seq,
             ws,
         });

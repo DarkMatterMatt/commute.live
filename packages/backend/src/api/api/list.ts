@@ -4,15 +4,13 @@ export const listRoute = new GetRouteGenerator({
     name: "list",
     requiredParams: ["region"] as const,
     optionalParams: [] as const,
-    executor: async (route, { getRegion, params: { region } }) => {
-        const ds = getRegion(region);
-        if (ds == null) {
-            return route.finish("error", {
-                message: `Unknown region: ${region}.`,
-            });
+    requiresRegion: true,
+    executor: async (route, { region }) => {
+        if (region == null) {
+            throw new Error("Region is expected.");
         }
 
-        const data = await ds.getRoutesSummary();
+        const data = await region.getRoutesSummary();
         return route.finish("success", {
             message: "See routes attached.",
             routes:  Object.fromEntries(data.entries()),
