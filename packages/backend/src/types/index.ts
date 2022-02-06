@@ -4,3 +4,4 @@ export * from "./gtfs/";
 export * from "./timer.js";
 
 export type StrOrNull = string | null;
+export type PromiseOr<T> = Promise<T> | T;
