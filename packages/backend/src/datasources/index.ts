@@ -9,14 +9,29 @@ const regions = new Map([
 
 export const availableRegions = [...regions.keys()] as RegionCode[];
 
-export async function mapRegions<T>(callbackfn: (value: DataSource) => T) {
+export async function mapRegions<T>(
+    callbackfn: (value: DataSource) => T,
+): Promise<PromiseSettledResult<Awaited<T>>[]> {
     return Promise.allSettled([...regions.values()].map(r => callbackfn(r)));
 }
 
-export async function mapRegionsSync<T>(callbackfn: (value: DataSource) => T | PromiseLike<T>) {
-    const results: T[] = [];
+export async function mapRegionsSync<T>(
+    callbackfn: (value: DataSource) => T | PromiseLike<T>,
+): Promise<PromiseSettledResult<Awaited<T>>[]> {
+    const results: PromiseSettledResult<Awaited<T>>[] = [];
     for (const r of regions.values()) {
-        results.push(await callbackfn(r));
+        try {
+            results.push({
+                status: "fulfilled",
+                value: await callbackfn(r),
+            });
+        }
+        catch (err) {
+            results.push({
+                status: "rejected",
+                reason: err,
+            });
+        }
     }
     return results;
 }

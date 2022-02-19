@@ -1,4 +1,6 @@
-import { availableRegions, checkForStaticUpdates, getRegion, initialize, mapRegionsSync } from "~/datasources/";
+import { clearInterval, setInterval } from "node:timers";
+import Graceful from "node-graceful";
+import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize, mapRegionsSync } from "~/datasources/";
 import type { DataSource, TripDescriptor } from "~/types/";
 import { publishTripUpdate, publishVehiclePosition, startServer } from "./api/";
 import log from "./log.js";
@@ -36,6 +38,13 @@ async function getShortNameForTrip(ds: DataSource, trip?: TripDescriptor): Promi
 
     log.info("Looking for updates.");
     await checkForStaticUpdates();
+    const staticUpdateInterval = setInterval(() => checkForStaticUpdates(), 30 * 60 * 1000);
+    Graceful.on("exit", () => clearInterval(staticUpdateInterval));
+
+    log.info("Looking for realtime updates.");
+    await checkForRealtimeUpdates();
+    const realtimeUpdateInterval = setInterval(() => checkForRealtimeUpdates(), 10 * 1000);
+    Graceful.on("exit", () => clearInterval(realtimeUpdateInterval));
 
     log.info("Starting web server.");
     await startServer({
