@@ -72,16 +72,19 @@ const log = createLogger({
             format: format.combine(
                 format.timestamp({ format: "MMM DD, HH:mm:ss" }),
                 format.printf(info => {
-                    const coloredLevel = colorize(colors[info.level as Colour], info.level.padEnd(7));
+                    const label: string = info.label ?? "";
+                    const coloredLabelLevel = colorize(colors[info.level as Colour], `${label}:${info.level}`);
                     const msg = formatWithInspect(info.message);
                     // SPLAT is always a valid index for TransformableInfo
                     const splatArgs = info[(SPLAT as unknown) as string] || [];
                     const rest = splatArgs.map(formatWithInspect).join(" ");
-                    return `${info.timestamp}  ${coloredLevel}  ${msg} ${rest}`;
+                    return `${info.timestamp}  ${coloredLabelLevel}  ${msg} ${rest}`;
                 }),
             ),
         }),
     ],
 });
 
-export default log;
+export function getLogger(label: string) {
+    return log.child({ label });
+}

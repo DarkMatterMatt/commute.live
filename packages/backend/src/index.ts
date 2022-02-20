@@ -3,13 +3,15 @@ import Graceful from "node-graceful";
 import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize, mapRegionsSync } from "~/datasources/";
 import type { DataSource, TripDescriptor } from "~/types/";
 import { publishTripUpdate, publishVehiclePosition, startServer } from "./api/";
-import log from "./log.js";
+import { getLogger } from "~/log.js";
 
 const LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE = true;
 
 // Disabled due to excessive output (mostly ferries & trains).
 // Some are missing labels, and some coordinates are nonsensical.
 const LOG_TRIP_NOT_FOUND_FOR_VEHICLE_UPDATE = false;
+
+const log = getLogger("root");
 
 process.on("unhandledRejection", err => {
     log.error("unhandledRejection", err);
@@ -36,7 +38,7 @@ async function getShortNameForTrip(ds: DataSource, trip?: TripDescriptor): Promi
     log.info("Initializing regions.");
     await initialize("cache");
 
-    log.info("Looking for updates.");
+    log.info("Looking for static updates.");
     await checkForStaticUpdates();
     const staticUpdateInterval = setInterval(() => checkForStaticUpdates(), 30 * 60 * 1000);
     Graceful.on("exit", () => clearInterval(staticUpdateInterval));
@@ -58,7 +60,7 @@ async function getShortNameForTrip(ds: DataSource, trip?: TripDescriptor): Promi
             const tripId = await getShortNameForTrip(ds, update.trip);
             if (tripId == null) {
                 if (LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE) {
-                    log.warn("Could not find trip for trip update", update);
+                    log.warn("Could not find trip for trip update.", update);
                 }
                 return;
             }
@@ -71,7 +73,7 @@ async function getShortNameForTrip(ds: DataSource, trip?: TripDescriptor): Promi
             const tripId = await getShortNameForTrip(ds, update.trip);
             if (tripId == null) {
                 if (LOG_TRIP_NOT_FOUND_FOR_VEHICLE_UPDATE) {
-                    log.warn("Could not find trip for vehicle update", update);
+                    log.warn("Could not find trip for vehicle update.", update);
                 }
                 return;
             }

@@ -8,9 +8,11 @@ import { pipeline } from "node:stream/promises";
 import fetch from "node-fetch";
 import path from "path";
 import { sleep, SqlBatcher } from "~/helpers/";
-import log from "~/log.js";
+import { getLogger } from "~/log.js";
 import { defaultProjection } from "~/MercatorProjection.js";
 import type { StrOrNull } from "~/types";
+
+const log = getLogger("NZLAKL/static");
 
 let gtfsUrl: string;
 
@@ -88,14 +90,14 @@ export async function checkForStaticUpdate(): Promise<boolean> {
         return true;
     }
 
-    throw new Error(`Failed loading GTFS from ${gtfsUrl}`);
+    throw new Error(`Failed loading GTFS from ${gtfsUrl}.`);
 }
 
 /**
  * Download zip, import to database, remove zip & old database.
  */
 async function performUpdate(res: Response): Promise<void> {
-    log.info("NZL_AKL: Updating static data");
+    log.info("Updating static data.");
     if (res.body == null) {
         // should never occur
         throw new Error(`Response returned empty body, ${res.url}`);
@@ -119,6 +121,7 @@ async function performUpdate(res: Response): Promise<void> {
     await importGtfs({
         agencies: [{ path: zipPath }],
         sqlitePath: dbPath,
+        verbose: false,
     });
 
     const newDb = await openDb({ sqlitePath: dbPath });
@@ -133,7 +136,7 @@ async function performUpdate(res: Response): Promise<void> {
  * Generate any missing data.
  */
 async function postImport(db: SqlDatabase): Promise<void> {
-    log.info("NZL_AKL: Running post-import functions");
+    log.info("Running post-import functions.");
 
     // add index for routes.route_short_name
     await db.run(`
@@ -155,7 +158,7 @@ async function postImport(db: SqlDatabase): Promise<void> {
  * Generate missing shape_dist_traveled in shapes table.
  */
 async function addShapeDistances(db: SqlDatabase): Promise<void> {
-    log.debug("NZL_AKL: Adding missing shape distances");
+    log.debug("Adding missing shape distances.");
 
     // calculate our own shape_dist_traveled
     const shapeIds = (await db.all(`
@@ -227,7 +230,7 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
  * long names & shapes for each direction).
  */
 async function addRouteSummaries(db: SqlDatabase): Promise<void> {
-    log.debug("NZL_AKL: Adding route summaries");
+    log.debug("Adding route summaries.");
 
     // converts '19990531' -> JULIANDAY('1999-05-31') -> 2451329.5
     const julianDay = (field: string) =>
@@ -361,7 +364,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
  * Delete temp zip file, delete previous database.
  */
 async function cleanUp(zipPath: string, oldDatabase: null | SqlDatabase): Promise<void> {
-    log.debug("NZL_AKL: Cleaning up old data");
+    log.debug("Cleaning up old data.");
 
     // TODO: surely this can be done better than using sleep()
     // assume that in 30 secs nobody will be using the old data

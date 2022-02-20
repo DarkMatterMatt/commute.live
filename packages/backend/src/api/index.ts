@@ -1,7 +1,7 @@
 import { URLSearchParams } from "node:url";
 import Graceful from "node-graceful";
 import uWS, { us_listen_socket, WebSocket } from "uWebSockets.js";
-import log from "~/log.js";
+import { getLogger } from "~/log.js";
 import env from "~/env.js";
 import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
 import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
@@ -9,6 +9,8 @@ import type { DataSource, RegionCode, TripUpdate, VehiclePosition } from "~/type
 import { getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
+
+const log = getLogger("server");
 
 export interface StartOpts {
     availableRegions: RegionCode[];
@@ -25,7 +27,7 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
     let listenSocket: us_listen_socket;
 
     Graceful.on("exit", () => {
-        log.debug("Current webserver status", {
+        log.debug("Current webserver status.", {
             version: process.env.npm_package_version,
         });
 
@@ -130,7 +132,7 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
     app.listen(env.PORT, token => {
         if (token) {
             listenSocket = token;
-            log.info(`Listening to port ${env.PORT}`);
+            log.info(`Listening to port ${env.PORT}.`);
         }
     });
 }

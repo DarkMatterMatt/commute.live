@@ -3,6 +3,9 @@ import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDes
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
 import PersistentWebSocket from "~/PersistentWebSocket.js";
 import { parseEnum } from "~/helpers/";
+import { getLogger } from "~/log.js";
+
+const log = getLogger("NZLAKL/realtime");
 
 let pws: PersistentWebSocket;
 
@@ -14,7 +17,7 @@ let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => void;
  * The WebSocket closed (we should probably restart it).
  */
 function onClose(code: number, reason: string): undefined | number {
-    console.log("WebSocket closed with code:", code, reason);
+    log.debug("WebSocket closed with code.", code, reason);
     return;
 }
 
@@ -22,7 +25,7 @@ function onClose(code: number, reason: string): undefined | number {
  * An error occurred and the WebSocket will be restarted.
  */
 function onError(err: Error): undefined | number {
-    console.log("WebSocket errored:", err);
+    log.warn("WebSocket errored.", err);
     return;
 }
 
