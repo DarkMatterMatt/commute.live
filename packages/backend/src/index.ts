@@ -2,7 +2,7 @@ import { clearInterval, setInterval } from "node:timers";
 import Graceful from "node-graceful";
 import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize, mapRegionsSync } from "~/datasources/";
 import type { DataSource, TripDescriptor } from "~/types/";
-import { publishTripUpdate, publishVehiclePosition, startServer } from "./api/";
+import { publishTripUpdate, publishVehiclePosition, startServer } from "./server/";
 import { getLogger } from "~/log.js";
 
 const LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE = true;
