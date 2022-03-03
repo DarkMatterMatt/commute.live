@@ -5,8 +5,14 @@
     "main": "dist/index.js",
     "scripts": {
         "b": "npm run build",
+        "s": "npm run start",
         "bs": "npm run build && npm start",
         "build": "tsc",
+        "d:b": "npm run docker:build",
+        "d:s": "npm run docker:start",
+        "d:bs": "npm run docker:build && npm run docker:start",
+        "docker:build": "docker build -t commutelive .",
+        "docker:start": "docker run --env-file .env --name commutelive -dp 9001:9001 commutelive",
         "lint": "eslint --fix src && tsc --noEmit",
         "start": "node --experimental-loader ./dist/loader.js dist/index.js",
         "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
@@ -41,6 +47,7 @@
         "typescript": "^4.5.5"
     },
     "dependencies": {
+        "chalk": "^4.1.2",
         "dotenv": "^16.0.0",
         "envalid": "^7.2.2",
         "fast-safe-stringify": "^2.1.1",
