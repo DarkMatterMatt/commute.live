@@ -18,7 +18,7 @@ RUN apk add python3 make g++ gcompat && \
 # Install production/runtime dependencies.
 COPY package.json package.json
 COPY package-lock.json package-lock.json
-RUN npm install --only=production && \
+RUN npm install --omit=dev && \
     cp -r node_modules node_modules_prod
 
 # Install the rest of the dependencies.
