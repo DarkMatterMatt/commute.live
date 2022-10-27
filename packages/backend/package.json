@@ -50,7 +50,7 @@
         "envalid": "^7.2.2",
         "fast-safe-stringify": "^2.1.1",
         "gtfs": "^3.2.4",
-        "node-fetch": "^3.2.0",
+        "node-fetch": "3.2.8",
         "node-graceful": "^3.1.0",
         "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.6.0",
         "winston": "^3.5.1",
