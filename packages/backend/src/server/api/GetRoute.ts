@@ -95,6 +95,11 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
             }
         }
 
+        // don't do parameter validation if there are missing/unknown parameters
+        if (errors.length > 0) {
+            return [null, errors];
+        }
+
         if (this.requiresRegion) {
             const region = params.get("region");
             if (region == null || !availableRegions.includes(region)) {
