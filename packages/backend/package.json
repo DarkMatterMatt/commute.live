@@ -36,6 +36,9 @@
     },
     "homepage": "https://github.com/DarkMatterMatt/AT-Live-Server#readme",
     "type": "module",
+    "engines": {
+        "node": ">=18"
+    },
     "devDependencies": {
         "@types/node": "^18.11.7",
         "@types/ws": "^8.5.3",
