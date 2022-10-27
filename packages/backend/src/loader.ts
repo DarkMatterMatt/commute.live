@@ -28,8 +28,22 @@ export function resolve(
 
     // add index.js to directories
     if (specifier.endsWith("/")) {
-        specifier += "index.js";
+        return defaultResolve(`${specifier}index.js`, parentModuleUrl);
     }
 
-    return defaultResolve(specifier, parentModuleUrl);
+    if (specifier.endsWith(".js")) {
+        return defaultResolve(specifier, parentModuleUrl);
+    }
+
+    try {
+        try {
+            return defaultResolve(specifier, parentModuleUrl);
+        }
+        catch (err) {
+            return defaultResolve(`${specifier}.js`, parentModuleUrl);
+        }
+    }
+    catch (err) {
+        return defaultResolve(`${specifier}/index.js`, parentModuleUrl);
+    }
 }
