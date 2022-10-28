@@ -79,4 +79,20 @@ export class Queue<T> {
         }
         return this.remove();
     }
+
+    public elementLast() {
+        if (this.tail === null) {
+            throw new Error("Queue is empty.");
+        }
+        return this.tail.value;
+    }
+
+    public peekLast() : null | T;
+    public peekLast<V>(defaultValue: V) : V | T;
+    public peekLast(defaultValue = null) {
+        if (this.tail === null) {
+            return defaultValue;
+        }
+        return this.elementLast();
+    }
 }
