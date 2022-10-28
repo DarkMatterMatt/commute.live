@@ -1,7 +1,7 @@
 import type { RegionCode, DataSource } from "~/types";
 import env from "~/env.js";
 import { checkForRealtimeUpdate, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
-import { checkForStaticUpdate, initializeStatic } from "./static.js";
+import { checkForStaticUpdate, getDatabase, initializeStatic } from "./static.js";
 import { getLongNamesByShortName, getRouteTypeByShortName, getRoutesSummary, getShapesByShortName, getShortNameByTripId, getShortNames, getTripIdByTripDetails, hasShortName } from "./static_queries.js";
 
 const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
@@ -20,27 +20,37 @@ export const NZL_AKL: DataSource = {
 
     checkForStaticUpdate,
 
-    getLongNamesByShortName,
+    getLongNamesByShortName: shortName =>
+        getLongNamesByShortName(getDatabase(), shortName),
 
-    getRouteTypeByShortName,
+    getRouteTypeByShortName: shortName =>
+        getRouteTypeByShortName(getDatabase(), shortName),
 
-    getRoutesSummary,
+    getRoutesSummary: () =>
+        getRoutesSummary(getDatabase()),
 
-    getShapesByShortName,
+    getShapesByShortName: shortName =>
+        getShapesByShortName(getDatabase(), shortName),
 
-    getShortNameByTripId,
+    getShortNameByTripId: tripId =>
+        getShortNameByTripId(getDatabase(), tripId),
 
-    getShortNames,
+    getShortNames: () =>
+        getShortNames(getDatabase()),
 
-    getTripIdByTripDetails,
+    getTripIdByTripDetails: (routeId, directionId, startTime) =>
+        getTripIdByTripDetails(getDatabase(), routeId, directionId, startTime),
 
-    getTripUpdates,
+    getTripUpdates: shortName =>
+        getTripUpdates(getDatabase(), shortName),
 
-    getVehicleUpdates,
+    getVehicleUpdates: shortName =>
+        getVehicleUpdates(getDatabase(), shortName),
 
-    hasShortName,
+    hasShortName: shortName =>
+        hasShortName(getDatabase(), shortName),
 
-    initialize: async (cacheDir) => {
+    initialize: async cacheDir => {
         await Promise.allSettled([
             initializeRealtime(cacheDir, WS_URL),
             initializeStatic(cacheDir, GTFS_URL),

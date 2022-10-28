@@ -1,7 +1,7 @@
+import { SqlDatabase } from "gtfs";
 import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
 import { TimedMap } from "~/helpers/";
 import { initialize as initializeWebSocket } from "./realtime_websocket.js";
-import { getDatabase } from "./static.js";
 
 const MINUTE = 60 * 1000;
 
@@ -93,12 +93,15 @@ export function addVehicleUpdate(vehicleUpdate: VehiclePosition) {
     vehicleUpdateListeners.forEach(l => l(vehicleUpdate));
 }
 
-export async function getTripUpdates(shortName?: string): Promise<ReadonlyMap<string, TripUpdate>> {
+export async function getTripUpdates(
+    db: SqlDatabase,
+    shortName?: string,
+): Promise<ReadonlyMap<string, TripUpdate>> {
     if (shortName == null) {
         return tripUpdates;
     }
 
-    const routeIds = await getDatabase().all(`
+    const routeIds = await db.all(`
         SELECT route_id
         FROM routes
         WHERE route_short_name=$shortName
@@ -108,7 +111,7 @@ export async function getTripUpdates(shortName?: string): Promise<ReadonlyMap<st
 
     // following SQL statement will break if there are more than 999 routeIds,
     // error will be `SQLITE_ERROR: too many SQL variables`
-    const tripIds = routeIds.length === 0 ? [] : await getDatabase().all(`
+    const tripIds = routeIds.length === 0 ? [] : await db.all(`
         SELECT trip_id
         FROM trips
         INNER JOIN routes ON trips.trip_id=routes.trip_id
@@ -129,12 +132,15 @@ export async function getTripUpdates(shortName?: string): Promise<ReadonlyMap<st
     );
 }
 
-export async function getVehicleUpdates(shortName?: string): Promise<ReadonlyMap<string, VehiclePosition>> {
+export async function getVehicleUpdates(
+    db: SqlDatabase,
+    shortName?: string,
+): Promise<ReadonlyMap<string, VehiclePosition>> {
     if (shortName == null) {
         return vehicleUpdates;
     }
 
-    const routeIds = await getDatabase().all(`
+    const routeIds = await db.all(`
         SELECT route_id
         FROM routes
         WHERE route_short_name=$shortName
@@ -144,7 +150,7 @@ export async function getVehicleUpdates(shortName?: string): Promise<ReadonlyMap
 
     // following SQL statement will break if there are more than 999 routeIds,
     // error will be `SQLITE_ERROR: too many SQL variables`
-    const tripIds = routeIds.length === 0 ? [] : await getDatabase().all(`
+    const tripIds = routeIds.length === 0 ? [] : await db.all(`
         SELECT trip_id
         FROM trips
         INNER JOIN routes ON trips.trip_id=routes.trip_id
