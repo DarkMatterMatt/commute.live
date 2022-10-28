@@ -1,6 +1,7 @@
 import type { TimerId } from "~/types";
 import { clearInterval, clearTimeout, setInterval, setTimeout } from "node:timers";
 import WebSocket from "ws";
+import { getLogger, Logger } from "~/log";
 
 export const CLOSE_CODE_RESTART = 4002;
 export const CLOSE_CODE_STOPPING = 4003;
@@ -69,6 +70,7 @@ export class PersistentWebSocket {
     private terminated = false;
     private lastReceive = 0;
     private ws: null | WebSocket = null;
+    private log: Logger;
 
     constructor(opts: PersistentWebSocketOpts) {
         const defaultOpts = {
@@ -79,6 +81,8 @@ export class PersistentWebSocket {
             onOpen: null,
         };
         const o = { ...defaultOpts, ...opts };
+
+        this.log = getLogger(`PersistentWebSocket [${o.url}]`);
 
         // user options
         this.onClose = o.onClose;
@@ -127,6 +131,7 @@ export class PersistentWebSocket {
             // close websocket if it is open
             this.ws.close(CLOSE_CODE_RESTART, "Restarting websocket");
         }
+        this.ws = null;
 
         this.restartTimeout = setTimeout(() => {
             this.restartTimeout = null;
@@ -142,22 +147,23 @@ export class PersistentWebSocket {
             // we're shutting down
             return;
         }
+        if (this.ws != null) {
+            // we've already got a WebSocket
+            this.log.warn("WebSocket object already exists, status:", this.ws.readyState);
+            return;
+        }
 
         const ws = new WebSocket(this.url);
         this.ws = ws;
         this.lastReceive = Date.now();
 
         ws.on("close", (code, reason) => {
-            this.ws = null;
-
             // auto restart websocket (500ms by default)
             const autoRestart = this.onClose?.(code, reason.toString());
             this.restart(autoRestart ?? RESTART_DELAY_AFTER_CLOSE);
         });
 
         ws.on("error", err => {
-            this.ws = null;
-
             // auto restart websocket (500ms by default)
             const autoRestart = this.onError?.(err);
             this.restart(autoRestart ?? RESTART_DELAY_AFTER_CLOSE);
