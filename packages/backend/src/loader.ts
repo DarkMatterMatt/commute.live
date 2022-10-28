@@ -13,10 +13,10 @@ const aliasesArr = Object.entries(ALIASES).map(
     ([mapFrom, mapTo]) => [mapFrom, convertPathToUrl(mapTo)] as [string, string],
 );
 
-export function resolve(
+export async function resolve(
     specifier: string,
     parentModuleUrl: string,
-    defaultResolve: (specifier: string, parentModuleUrl: string) => string,
+    defaultResolve: (specifier: string, parentModuleUrl: string) => Promise<string>,
 ) {
     // resolve aliases
     for (const [mapFrom, mapTo] of aliasesArr) {
@@ -26,24 +26,30 @@ export function resolve(
         }
     }
 
-    // add index.js to directories
-    if (specifier.endsWith("/")) {
-        return defaultResolve(`${specifier}index.js`, parentModuleUrl);
+    // fix .ts extension should be .js
+    if (specifier.endsWith(".ts")) {
+        specifier = `${specifier.slice(0, -3)}.js`;
     }
 
-    if (specifier.endsWith(".js")) {
-        return defaultResolve(specifier, parentModuleUrl);
-    }
-
+    let err: any;
     try {
-        try {
-            return defaultResolve(specifier, parentModuleUrl);
-        }
-        catch (err) {
-            return defaultResolve(`${specifier}.js`, parentModuleUrl);
-        }
+        return await defaultResolve(specifier, parentModuleUrl);
     }
-    catch (err) {
-        return defaultResolve(`${specifier}/index.js`, parentModuleUrl);
+    catch (err_) {
+        err = err_;
     }
+
+    // maybe it's a directory
+    try {
+        return await defaultResolve(`${specifier.replace(/\/$/, "")}/index.js`, parentModuleUrl);
+    }
+    catch { /* do nothing */ }
+
+    // maybe it's missing its file extension
+    try {
+        return await defaultResolve(`${specifier}.js`, parentModuleUrl);
+    }
+    catch { /* do nothing */ }
+
+    throw err;
 }
