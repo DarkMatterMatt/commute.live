@@ -1,5 +1,6 @@
 export * from "./crypto.js";
 export * from "./enum.js";
+export * from "./line.js";
 export * from "./number.js";
 export * from "./promise.js";
 export * from "./SqlBatcher.js";
