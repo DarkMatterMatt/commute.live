@@ -1,8 +1,7 @@
 import type WebSocket from "ws";
 import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
-import PersistentWebSocket from "~/PersistentWebSocket.js";
-import { parseEnum } from "~/helpers/";
+import { parseEnum, PersistentWebSocket } from "~/helpers/";
 import { getLogger } from "~/log.js";
 
 const log = getLogger("NZLAKL/realtime");

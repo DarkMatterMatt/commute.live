@@ -9,7 +9,7 @@ import fetch from "node-fetch";
 import path from "path";
 import { sleep, SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
-import { defaultProjection } from "~/MercatorProjection.js";
+import { defaultProjection } from "~/helpers/MercatorProjection.js";
 import type { StrOrNull } from "~/types";
 
 const log = getLogger("NZLAKL/static");
@@ -215,7 +215,7 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
         SET shape_dist_traveled=(
             SELECT shape_dist_traveled
             FROM tmp_shapes
-            WHERE id=shapes.id) 
+            WHERE id=shapes.id)
         WHERE EXISTS (
             SELECT shape_dist_traveled
             FROM tmp_shapes

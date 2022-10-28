@@ -1,9 +1,9 @@
 import { LatLng, Point } from "~/types";
 import { clamp, degreesToRadians, radiansToDegrees } from "~/helpers/";
 
-const ALMOST_ONE = 1 - 1E-15;
+const ALMOST_ONE = 1 - 1e-15;
 
-export default class MercatorProjection {
+export class MercatorProjection {
     private tileSize: number;
     private pixelOrigin: Point;
     private pixelsPerLonDegree: number;

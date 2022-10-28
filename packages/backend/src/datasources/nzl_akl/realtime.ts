@@ -1,5 +1,5 @@
 import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
-import TimedMap from "~/TimedMap.js";
+import { TimedMap } from "~/helpers/";
 import { initialize as initializeWebSocket } from "./realtime_websocket.js";
 import { getDatabase } from "./static.js";
 
