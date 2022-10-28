@@ -24,8 +24,8 @@ RUN npm install --omit=dev && \
 # Install the rest of the dependencies.
 RUN npm install
 
-# Remove unused uWebSockets.js versions. Cuts image size by 50MB.
-RUN ls node_modules/uWebSockets.js/*.node \
+# Remove unused uWebSockets.js versions. Cuts image size by ~75MB.
+RUN ls node_modules_prod/uWebSockets.js/*.node \
     | grep -v "$(node -p "process.platform+'_'+process.arch+'_'+process.versions.modules")" \
     | xargs rm
 
