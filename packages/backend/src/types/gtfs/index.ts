@@ -1,4 +1,5 @@
 export * from "./gtfs-realtime.js";
+export * from "./gtfs-static.js";
 
 export {
     type TranslatedString$Translation as Translation,
