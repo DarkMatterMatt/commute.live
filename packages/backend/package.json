@@ -40,11 +40,11 @@
         "node": ">=18"
     },
     "devDependencies": {
-        "@types/node": "^18.11.7",
+        "@types/node": "^18.11.9",
         "@types/ws": "^8.5.3",
-        "@typescript-eslint/eslint-plugin": "^5.41.0",
-        "@typescript-eslint/parser": "^5.41.0",
-        "eslint": "^8.26.0",
+        "@typescript-eslint/eslint-plugin": "^5.42.0",
+        "@typescript-eslint/parser": "^5.42.0",
+        "eslint": "^8.27.0",
         "typescript": "^4.8.4"
     },
     "dependencies": {
@@ -58,6 +58,6 @@
         "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.14.0",
         "winston": "^3.8.2",
         "winston-daily-rotate-file": "^4.7.1",
-        "ws": "^8.10.0"
+        "ws": "^8.11.0"
     }
 }
