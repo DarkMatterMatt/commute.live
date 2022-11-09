@@ -91,9 +91,14 @@ export class TimedMap<K, V> implements Map<K, V> {
         return {
             next: () => {
                 const { value, done }: IteratorResult<[K, [Timeout, V]]> = iter.next();
-                return { value: [value[0], value[1][1]], done };
+                if (done) {
+                    return { value: null, done };
+                }
+                return { value: [value[0], value[1][1]] };
             },
-            [Symbol.iterator]: this.entries,
+            [Symbol.iterator]() {
+                return this;
+            },
         };
     }
 
@@ -107,9 +112,14 @@ export class TimedMap<K, V> implements Map<K, V> {
         return {
             next: () => {
                 const { value, done }: IteratorResult<[Timeout, V]> = iter.next();
-                return { value: value[1], done };
+                if (done) {
+                    return { value: null, done };
+                }
+                return { value: value[1] };
             },
-            [Symbol.iterator]: this.values,
+            [Symbol.iterator]() {
+                return this;
+            },
         };
     }
 
