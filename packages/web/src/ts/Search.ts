@@ -35,27 +35,35 @@ class Search {
     }
 
     async load(): Promise<void> {
-        const response = await api.queryRoutes(null, ["shortName", "longName", "type"]);
-        const routes: SearchRoute[] = Object.values(response) as SearchRoute[];
+        const REGEX_WORD = /[a-z]+/g;
+        const REGEX_TWO_DIGITS = /^\d\d\D?$/;
 
-        const regexWord = /[a-z]+/g;
-        routes.forEach(route => {
-            /* eslint-disable no-param-reassign */
-            route.shortNameLower = route.shortName.toLowerCase();
-            route.longNameLower = route.longName.toLowerCase();
-            route.longNameWords = [];
+        const routes = await api.queryRoutes();
+
+        this.routes = [...routes.values()].map(r => {
+            const shortNameLower = r.shortName.toLowerCase();
+            const longNameLower = r.longName.toLowerCase();
+            const longNameWords = [];
 
             let m;
             do {
-                m = regexWord.exec(route.longNameLower);
+                m = REGEX_WORD.exec(longNameLower);
                 if (m && !["to", "via"].includes(m[0])) {
-                    route.longNameWords.push(m[0]);
+                    longNameWords.push(m[0]);
                 }
             } while (m);
+
+            return {
+                type: r.type,
+                shortName: r.shortName,
+                shortNameLower,
+                longName: r.longName,
+                longNameLower,
+                longNameWords,
+            };
         });
 
-        const regexTwoDigits = /^\d\d\D?$/;
-        routes.sort((a, b) => {
+        this.routes.sort((a, b) => {
             /*
              * Sort by route number ascending (two digit number first)
              * Then sort alphabetically, numbers first
@@ -63,8 +71,8 @@ class Search {
             const aInt = Number.parseInt(a.shortName, 10);
             const bInt = Number.parseInt(b.shortName, 10);
             if (aInt && bInt) {
-                const aTwoDigits = regexTwoDigits.test(a.shortName);
-                const bTwoDigits = regexTwoDigits.test(b.shortName);
+                const aTwoDigits = REGEX_TWO_DIGITS.test(a.shortName);
+                const bTwoDigits = REGEX_TWO_DIGITS.test(b.shortName);
                 if (aTwoDigits !== bTwoDigits) {
                     return Number(bTwoDigits) - Number(aTwoDigits);
                 }
@@ -72,8 +80,6 @@ class Search {
             }
             return a.shortName < b.shortName ? -1 : 1;
         });
-
-        this.routes = routes;
     }
 
     render(routes: SearchRoute[]): void {

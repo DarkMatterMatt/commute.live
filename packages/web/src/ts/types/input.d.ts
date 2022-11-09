@@ -3,6 +3,7 @@ interface LiveVehicle {
     /** Websocket JSON route, not the vehicle's transit route */
     route: "live/vehicle",
 
+    region: string;
     shortName: string;
     routeId: string;
     directionId: 0 | 1;

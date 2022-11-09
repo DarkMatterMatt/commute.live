@@ -45,9 +45,7 @@ module.exports = {
         "no-console": "off",
         "no-continue": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "no-plusplus": ["error", {
-            "allowForLoopAfterthoughts": true
-        }],
+        "no-plusplus": "off",
         "no-underscore-dangle": "off",
         "react/no-unknown-property": ["error", {
             "ignore": ["class"],

@@ -1,16 +1,12 @@
 // eslint-disable-next-line max-len
-type QueryRouteInfo = "shortName" | "longName" | "longNames" | "routeIds" | "shapeIds" | "vehicles" | "type" | "agencyId" | "polylines";
+type QueryRouteInfo = "shortName" | "longNames" | "vehicles" | "type" | "polylines";
 
 interface RoutesResult {
     shortName?: string;
-    longName?: string;
-    longNames?: string[];
-    routeIds?: string[];
-    shapeIds?: string[];
+    longNames?: [string | null, string | null];
     vehicles?: Record<string, LiveVehicle>;
     type?: TransitType;
-    agencyId?: string;
-    polylines?: google.maps.LatLngLiteral[][];
+    polylines?: [LatLng[], LatLng[]];
 }
 
 let instance: Api = null;
@@ -21,6 +17,10 @@ class Api {
     apiUrl = process.env.API_URL;
 
     wsUrl = process.env.WS_URL;
+
+    wsSeq = 0;
+
+    wsResponseHandlers: [number, (...args: any[]) => void][] = [];
 
     webSocketConnectedPreviously = false;
 
@@ -47,28 +47,87 @@ class Api {
         return instance;
     }
 
-    async query(path: string, params: Record<string, string>): Promise<Record<string, any>> {
-        const queryStr = `?${new URLSearchParams(params)}`;
-        const response: Record<string, any> = await fetch(this.apiUrl + path + queryStr).then(r => r.json());
+    private static convertToTransitType(type: number): TransitType {
+        // convert numerical enum to TransitType
+        // see `route_type` in https://developers.google.com/transit/gtfs/reference#routestxt
+        switch (type) {
+            case 2: return "rail";
+            case 3: return "bus";
+            case 4: return "ferry";
+            default: throw new Error(`Unknown transit type: ${type}`);
+        }
+    }
+
+    private async query<T>(path: string, params: Record<string, string>): Promise<T> {
+        const queryStr = `?${new URLSearchParams({ region: "NZL_AKL", ...params })}`;
+        const response = await fetch(this.apiUrl + path + queryStr).then(r => r.json());
         if (response.status !== "success") {
             throw new Error(`Failed querying API: ${path}${queryStr}`);
         }
         return response;
     }
 
-    async queryRoutes(shortNames?: string[], fetch?: QueryRouteInfo[]): Promise<Record<string, RoutesResult>> {
-        const query: Record<string, string> = {};
-        if (shortNames) query.shortNames = shortNames.join(",");
-        if (fetch) query.fetch = fetch.join(",");
-        const response = await this.query("routes", query);
-        return response.routes;
+    async queryRoutes(): Promise<Map<string, {
+        longNames: [string | null, string | null];
+        shapeIds: [string | null, string | null];
+        shortName: string;
+        longName: string;
+        type: TransitType;
+    }>> {
+        type QueryRoutesResponse = Record<string, {
+            longNames: [string | null, string | null];
+            shapeIds: [string | null, string | null];
+            shortName: string;
+            type: number;
+        }>;
+
+        const response = await this.query<{ routes: QueryRoutesResponse }>("list", {});
+        return new Map(Object.values(response.routes).map(r => {
+            // convert numerical enum to TransitType
+            // see `route_type` in https://developers.google.com/transit/gtfs/reference#routestxt
+            const type = Api.convertToTransitType(r.type);
+
+            // find best long name, take the first alphabetically if both are specified
+            let longName = "";
+            if (r.longNames[0] && r.longNames[1]) {
+                longName = r.longNames[0].localeCompare(r.longNames[1]) < 0 ? r.longNames[0] : r.longNames[1];
+            }
+            else if (!!r.longNames[0] !== !!r.longNames[1]) {
+                longName = r.longNames[0] || r.longNames[1];
+            }
+
+            return [r.shortName, { ...r, type, longName }];
+        }));
     }
 
-    async queryRoute(shortName: string, fetch?: QueryRouteInfo[]): Promise<RoutesResult> {
+    async queryRoute(shortName: string, fields?: QueryRouteInfo[]): Promise<RoutesResult> {
+        type QueryRouteResponse = Record<string, {
+            longNames?: [string | null, string | null];
+            polylines?: [LatLng[], LatLng[]];
+            shortName?: string;
+            type?: number;
+            vehicles?: Record<string, LiveVehicle>;
+        }>;
+
         const query: Record<string, string> = { shortNames: shortName };
-        if (fetch) query.fetch = fetch.join(",");
-        const response = await this.query("routes", query);
-        return response.routes[shortName] as RoutesResult;
+        if (fields) query.fields = fields.join(",");
+        const response = await this.query<{ routes: QueryRouteResponse }>("routes", query);
+
+        const { type, ...data } = response.routes[shortName];
+        const result: RoutesResult = data;
+        if (type) result.type = Api.convertToTransitType(type);
+        return result;
+    }
+
+    wsSend<T = void>(data: Record<string, any>): Promise<undefined | T> {
+        if (this.ws == null || this.ws.readyState !== this.ws.OPEN) {
+            throw new Error("WebSocket is not connected");
+        }
+        const seq = this.wsSeq++;
+        this.ws.send(JSON.stringify({ ...data, seq }));
+        return new Promise<T>(resolve => {
+            this.wsResponseHandlers.push([seq, resolve]);
+        });
     }
 
     wsConnect(): Promise<void> {
@@ -79,10 +138,11 @@ class Api {
             this.resolveWhenWsConnect();
 
             this.subscriptions.forEach(shortName => {
-                this.ws.send(JSON.stringify({
+                this.wsSend({
                     route: "subscribe",
+                    region: "NZL_AKL",
                     shortName,
-                }));
+                });
             });
 
             if (this.webSocketConnectedPreviously && this._onWebSocketReconnect !== null) {
@@ -92,7 +152,7 @@ class Api {
 
             // send a heartbeat every 5 seconds
             wsHeartbeatInterval = setInterval(() => {
-                this.ws.send(JSON.stringify({ route: "ping" }));
+                this.wsSend({ route: "ping" });
             }, 5000);
         });
 
@@ -106,6 +166,10 @@ class Api {
 
         this.ws.addEventListener("message", ev => {
             const data = JSON.parse(ev.data);
+            if (data.seq) {
+                this.wsResponseHandlers.find(([seq]) => seq === data.seq)?.[1](data);
+                return;
+            }
             if (this._onMessage === null) return;
             if (!data.status || !data.route) return;
             this._onMessage(data as Record<string, any>);
@@ -121,10 +185,11 @@ class Api {
 
         this.subscriptions.push(shortName);
         if (this.ws != null && this.ws.readyState === this.ws.OPEN) {
-            this.ws.send(JSON.stringify({
+            this.wsSend({
                 route: "subscribe",
+                region: "NZL_AKL",
                 shortName,
-            }));
+            });
         }
     }
 
@@ -135,10 +200,11 @@ class Api {
 
         this.subscriptions = this.subscriptions.filter(n => n !== shortName);
         if (this.ws != null && this.ws.readyState === this.ws.OPEN) {
-            this.ws.send(JSON.stringify({
+            this.wsSend({
                 route: "unsubscribe",
+                region: "NZL_AKL",
                 shortName,
-            }));
+            });
         }
     }
 
