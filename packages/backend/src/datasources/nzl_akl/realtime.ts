@@ -2,6 +2,8 @@ import { SqlDatabase } from "gtfs";
 import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
 import { TimedMap } from "~/helpers/";
 import { initialize as initializeWebSocket } from "./realtime_websocket.js";
+import { getRouteIdsByShortName, getTripIdsByShortName } from "./static_queries.js";
+import { getLogger } from "~/log.js";
 
 const MINUTE = 60 * 1000;
 
@@ -14,6 +16,8 @@ const KEEP_TRIP_UPDATES_FOR = 2 * MINUTE;
  * Vehicle updates older than two minutes will be ignored.
  */
 const KEEP_VEHICLE_UPDATES_FOR = 2 * MINUTE;
+
+const log = getLogger("NZLAKL/realtime");
 
 /**
  * Map of realtime trip updates, keyed by `trip_id`.
@@ -101,22 +105,15 @@ export async function getTripUpdates(
         return tripUpdates;
     }
 
-    const routeIds = await db.all(`
-        SELECT route_id
-        FROM routes
-        WHERE route_short_name=$shortName
-    `, {
-        $shortName: shortName,
-    });
+    const routeIds = await getRouteIdsByShortName(db, shortName);
+    if (routeIds.length === 0) {
+        log.warn(`No route identifiers found for short name ${shortName}`);
+    }
 
-    // following SQL statement will break if there are more than 999 routeIds,
-    // error will be `SQLITE_ERROR: too many SQL variables`
-    const tripIds = routeIds.length === 0 ? [] : await db.all(`
-        SELECT trip_id
-        FROM trips
-        INNER JOIN routes ON trips.trip_id=routes.trip_id
-        WHERE route_id IN ${routeIds.map(_ => "?").join(",")}
-    `, routeIds);
+    const tripIds = await getTripIdsByShortName(db, shortName);
+    if (tripIds.length === 0) {
+        log.warn(`No trip identifiers found for short name ${shortName}`);
+    }
 
     return new Map([...tripUpdates.entries()]
         .filter(e => {
@@ -140,22 +137,16 @@ export async function getVehicleUpdates(
         return vehicleUpdates;
     }
 
-    const routeIds = await db.all(`
-        SELECT route_id
-        FROM routes
-        WHERE route_short_name=$shortName
-    `, {
-        $shortName: shortName,
-    });
+    const routeIds = await getRouteIdsByShortName(db, shortName);
+    if (routeIds.length === 0) {
+        log.warn(`No route identifiers found for short name ${shortName}`);
+        return new Map();
+    }
 
-    // following SQL statement will break if there are more than 999 routeIds,
-    // error will be `SQLITE_ERROR: too many SQL variables`
-    const tripIds = routeIds.length === 0 ? [] : await db.all(`
-        SELECT trip_id
-        FROM trips
-        INNER JOIN routes ON trips.trip_id=routes.trip_id
-        WHERE route_id IN ${routeIds.map(_ => "?").join(",")}
-    `, routeIds);
+    const tripIds = await getTripIdsByShortName(db, shortName);
+    if (tripIds.length === 0) {
+        log.warn(`No trip identifiers found for short name ${shortName}`);
+    }
 
     return new Map([...vehicleUpdates.entries()]
         .filter(e => {

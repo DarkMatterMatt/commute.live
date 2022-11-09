@@ -262,6 +262,26 @@ export async function hasShortName(
 }
 
 /**
+ * Get a list of route identifiers for the specified route short name.
+ */
+export async function getRouteIdsByShortName(
+    db: SqlDatabase,
+    shortName: string,
+): Promise<string[]> {
+    const result: {
+        routeId: string;
+    }[] = await db.all(`
+        SELECT route_id AS routeId
+        FROM routes
+        WHERE route_short_name=$shortName
+    `, {
+        $shortName: shortName,
+    });
+
+    return result.map(r => r.routeId);
+}
+
+/**
  * Get a list of trip identifiers for the specified route short name.
  */
 export async function getTripIdsByShortName(
