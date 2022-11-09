@@ -1,5 +1,6 @@
 import { never } from "~/helpers/";
-import type { LatLng, StrOrNull, VehiclePosition } from "~/types";
+import type { LatLng, StrOrNull } from "~/types";
+import { convertVehiclePosition, LiveVehicle } from "../transmission/vehicleUpdate.js";
 import { GetRouteGenerator } from "./GetRoute.js";
 
 const validFields = [
@@ -17,7 +18,7 @@ interface RouteData {
     polylines: [LatLng[], LatLng[]];
     shortName: string;
     type: number;
-    vehicles: Record<string, VehiclePosition>;
+    vehicles: Record<string, LiveVehicle>;
 }
 
 export const routesRoute = new GetRouteGenerator({
@@ -79,7 +80,8 @@ export const routesRoute = new GetRouteGenerator({
 
                     case "vehicles": {
                         const res = await region.getVehicleUpdates(sn);
-                        data[sn]["vehicles"] = Object.fromEntries(res.entries());
+                        data[sn]["vehicles"] = Object.fromEntries([...res.entries()].map(
+                            ([k, v]) => [k, convertVehiclePosition(region.code, sn, v)]));
                         break;
                     }
 

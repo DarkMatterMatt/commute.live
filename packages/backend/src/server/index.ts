@@ -7,6 +7,7 @@ import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
 import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
 import type { DataSource, RegionCode, TripUpdate, VehiclePosition } from "~/types";
 import { getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
+import { convertTripUpdate, convertVehiclePosition } from "./transmission";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
 
@@ -137,14 +138,14 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
     });
 }
 
-export function publishVehiclePosition(region: string, shortName: string, position: VehiclePosition): void {
+export function publishVehiclePosition(region: string, shortName: string, vp: VehiclePosition): void {
     const mqtt = getMQTTForVehicleUpdates(region, shortName);
-    const data = JSON.stringify(position);
+    const data = JSON.stringify(convertVehiclePosition(region, shortName, vp));
     app.publish(mqtt, data);
 }
 
-export function publishTripUpdate(region: string, shortName: string, position: TripUpdate): void {
+export function publishTripUpdate(region: string, shortName: string, tu: TripUpdate): void {
     const mqtt = getMQTTForTripUpdates(region, shortName);
-    const data = JSON.stringify(position);
+    const data = JSON.stringify(convertTripUpdate(region, shortName, tu));
     app.publish(mqtt, data);
 }
