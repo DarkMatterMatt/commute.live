@@ -66,7 +66,6 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
 
     public async execute(opts: GetRouteExecuteOpts): Promise<void> {
         const { activeWebSockets } = opts;
-
         const [params, errors] = this.validateParams(opts.params, opts.availableRegions);
         if (errors != null) {
             return this.finish("error", { errors });
@@ -101,7 +100,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
         }
 
         if (this.requiresRegion) {
-            const region = params.get("region");
+            const region = params.get("region")?.toLowerCase();
             if (region == null || !availableRegions.includes(region)) {
                 errors.push(`Unknown region: ${region}.`);
             }

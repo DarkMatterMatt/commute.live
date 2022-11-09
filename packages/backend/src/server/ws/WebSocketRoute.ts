@@ -86,7 +86,7 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
 
         if (this.requiresRegion) {
             const { region } = params;
-            if (typeof region !== "string" || !availableRegions.includes(region)) {
+            if (typeof region !== "string" || !availableRegions.includes(region.toLowerCase())) {
                 errors.push(`Unknown region: ${region}.`);
             }
         }
