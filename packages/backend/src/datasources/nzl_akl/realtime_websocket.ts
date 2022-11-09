@@ -4,9 +4,15 @@ import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, 
 import { parseEnum, PersistentWebSocket } from "~/helpers/";
 import { getLogger } from "~/log.js";
 
+/**
+ * Restart delay for first WebSocket error is 200ms, for the third error it is 8s, etc.
+ */
+const RESTART_DELAY = [0.2, 3, 8, 20, 40, 60, 90, 120];
+
 const log = getLogger("NZLAKL/realtime");
 
 let pws: PersistentWebSocket;
+let consecutiveErrors = 0;
 
 let addTripUpdate: (tripUpdate: TripUpdate) => void;
 
@@ -24,8 +30,9 @@ function onClose(code: number, reason: string): undefined | number {
  * An error occurred and the WebSocket will be restarted.
  */
 function onError(err: Error): undefined | number {
-    log.warn("WebSocket errored.", err);
-    return;
+    const delay = RESTART_DELAY[Math.min(consecutiveErrors++, RESTART_DELAY.length - 1)];
+    log.warn("WebSocket errored.", `#${consecutiveErrors}: ${delay}s.`, err);
+    return 1000 * delay;
 }
 
 /**
@@ -53,6 +60,12 @@ function onMessage(_ws: WebSocket, data_: string): void {
  * A new WebSocket connection was opened.
  */
 function onOpen(ws: WebSocket): void {
+    // reset number of errors
+    if (consecutiveErrors > 1) {
+        log.verbose(`WebSocket opened successfully after ${consecutiveErrors} consecutive errors.`);
+    }
+    consecutiveErrors = 0;
+
     ws.send(JSON.stringify({
         // appears to be a stripped-down GraphQL API
         filters: { },
