@@ -1,0 +1,10 @@
+{
+  "name": "@commutelive/root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "lerna": "^6.0.3"
+  }
+}
