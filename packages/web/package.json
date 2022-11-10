@@ -1,7 +1,7 @@
 {
-    "name": "at-live-client",
+    "name": "@commutelive/web",
     "version": "1.8.3",
-    "description": "The front-end of AT Live Server, provides bus, train and ferry tracking on a map.",
+    "description": "The front-end of [commute.live](https://commute.live), which provides bus, train and ferry tracking on a map.",
     "main": "src/ts/index.ts",
     "engines": {
         "node": ">=18"

@@ -47,7 +47,7 @@ module.exports = (async () => {
                     test: /\.html$/,
                     use: [
                         {
-                            loader: "./node_modules/html-webpack-plugin/lib/loader.js",
+                            loader: `${path.dirname(require.resolve("html-webpack-plugin"))}/lib/loader.js`,
                             options: {
                                 force: true,
                             }
@@ -102,6 +102,7 @@ module.exports = (async () => {
             ],
         },
         plugins: [
+            new Dotenv({ path: "../../.env" }),
             new Dotenv(),
             new MiniCssExtractPlugin({
                 filename: "styles.css",

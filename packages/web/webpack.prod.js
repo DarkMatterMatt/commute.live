@@ -1,7 +1,6 @@
 const path = require("path");
 const Dotenv = require("dotenv-webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const WebpackMd5Hash = require("webpack-md5-hash");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CnameWebpackPlugin = require("cname-webpack-plugin");
@@ -27,7 +26,7 @@ module.exports = {
                 test: /\.html$/,
                 use:  [
                     {
-                        loader: "./node_modules/html-webpack-plugin/lib/loader.js",
+                        loader: `${path.dirname(require.resolve("html-webpack-plugin"))}/lib/loader.js`,
                         options: {
                             force: true,
                         }
@@ -75,6 +74,7 @@ module.exports = {
         ],
     },
     plugins: [
+        new Dotenv({ path: "../../.env" }),
         new Dotenv(),
         new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({
