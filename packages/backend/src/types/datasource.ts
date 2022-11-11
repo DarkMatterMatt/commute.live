@@ -1,4 +1,4 @@
-import type { LatLng, StrOrNull, TripUpdate, VehiclePosition } from "./";
+import type { JSONSerializable, LatLng, StrOrNull, TripUpdate, VehiclePosition } from "./";
 
 /**
  * Globally unique region code.
@@ -76,6 +76,11 @@ export interface DataSource {
      * Return all the short names in the datasource.
      */
     getShortNames: () => Promise<string[]>;
+
+    /**
+     * Return datasource status in a JSON-serializable format.
+     */
+    getStatus: () => Promise<JSONSerializable>;
 
     /**
      * Return trip id for specified route, direction, and start time.

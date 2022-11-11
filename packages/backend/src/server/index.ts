@@ -6,7 +6,7 @@ import env from "~/env.js";
 import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
 import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
 import type { DataSource, RegionCode, TripUpdate, VehiclePosition } from "~/types";
-import { getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
+import { getStatus as getDataSourcesStatus, getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
 import { convertTripUpdate, convertVehiclePosition } from "./transmission";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
@@ -27,9 +27,11 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
     const activeWebSockets = new Set<WebSocket>();
     let listenSocket: us_listen_socket;
 
-    Graceful.on("exit", () => {
-        log.debug("Current webserver status.", {
+    Graceful.on("exit", async () => {
+        log.debug("Current status.", {
+            activeWebSockets: activeWebSockets.size,
             version: process.env.npm_package_version,
+            regions: await getDataSourcesStatus(),
         });
 
         for (const ws of activeWebSockets.values()) {

@@ -4,13 +4,14 @@ import Graceful from "node-graceful";
 import { closeDb, openDb, importGtfs } from "gtfs";
 import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
+import { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
 import fetch from "node-fetch";
 import path from "path";
 import { sleep, SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import { defaultProjection } from "~/helpers/MercatorProjection.js";
-import type { StrOrNull } from "~/types";
+import type { JSONSerializable, StrOrNull } from "~/types";
 
 const log = getLogger("NZLAKL/static");
 
@@ -21,6 +22,12 @@ let cacheDir: string;
 let db: null | SqlDatabase = null;
 
 Graceful.on("exit", () => db?.close());
+
+export async function getStatus(): Promise<JSONSerializable> {
+    return {
+        dbFilename: basename(getDatabase().config.filename),
+    };
+}
 
 /**
  * Returns the currently opened database instance.

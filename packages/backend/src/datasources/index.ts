@@ -1,4 +1,4 @@
-import type { DataSource, PromiseOr, RegionCode } from "~/types";
+import type { DataSource, JSONSerializable, PromiseOr, RegionCode } from "~/types";
 import path from "node:path";
 import { existsSync, mkdirSync } from "node:fs";
 import { NZL_AKL } from "./nzl_akl/";
@@ -77,3 +77,22 @@ export async function checkForStaticUpdates() {
         return [r, wasUpdated] as [DataSource, boolean];
     });
 }
+
+export async function getStatus() {
+    const results: Record<RegionCode, JSONSerializable> = {};
+    for (const r of regions.values()) {
+        try {
+            results[r.code] = await r.getStatus();
+        }
+        catch (err) {
+            if (err instanceof Error) {
+                results[r.code] = { name: err.name, message: err.message };
+            }
+            else {
+                results[r.code] = JSON.stringify(err);
+            }
+        }
+    }
+    return results;
+}
+

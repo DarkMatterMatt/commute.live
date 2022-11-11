@@ -1,7 +1,7 @@
 import { SqlDatabase } from "gtfs";
-import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
+import type { JSONSerializable, TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
 import { TimedMap } from "~/helpers/";
-import { initialize as initializeWebSocket } from "./realtime_websocket.js";
+import { initialize as initializeWebSocket, getStatus as getWebSocketStatus } from "./realtime_websocket.js";
 import { getRouteIdsByShortName, getTripIdsByShortName } from "./static_queries.js";
 import { getLogger } from "~/log.js";
 
@@ -38,6 +38,14 @@ const tripUpdateListeners = new Set<TripUpdateListener>();
  * Set of functions to be executed when a vehicle update is received.
  */
 const vehicleUpdateListeners = new Set<VehicleUpdateListener>();
+
+export async function getStatus(): Promise<JSONSerializable> {
+    return {
+        numberOfRecentTripUpdates: tripUpdates.size,
+        numberOfRecentVehicleUpdates: vehicleUpdates.size,
+        webSocket: await getWebSocketStatus(),
+    };
+}
 
 export async function checkForRealtimeUpdate(): Promise<boolean> {
     throw new Error("Function not implemented.");

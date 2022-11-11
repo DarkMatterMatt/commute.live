@@ -1,5 +1,5 @@
 import type WebSocket from "ws";
-import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position } from "~/types";
+import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position, JSONSerializable } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
 import { parseEnum, PersistentWebSocket } from "~/helpers/";
 import { getLogger } from "~/log.js";
@@ -17,6 +17,14 @@ let consecutiveErrors = 0;
 let addTripUpdate: (tripUpdate: TripUpdate) => void;
 
 let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => void;
+
+export async function getStatus(): Promise<JSONSerializable> {
+    return {
+        readyState: pws.readyState,
+        lastReceiveTime: pws.lastReceiveTime,
+        consecutiveErrors,
+    };
+}
 
 /**
  * The WebSocket closed (we should probably restart it).

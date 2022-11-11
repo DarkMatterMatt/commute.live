@@ -1,7 +1,7 @@
 import type { RegionCode, DataSource } from "~/types";
 import env from "~/env.js";
-import { checkForRealtimeUpdate, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
-import { checkForStaticUpdate, getDatabase, initializeStatic } from "./static.js";
+import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
+import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
 import { getLongNamesByShortName, getRouteTypeByShortName, getRoutesSummary, getShapesByShortName, getShortNameByTripId, getShortNames, getTripIdByTripDetails, hasShortName } from "./static_queries.js";
 
 const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
@@ -37,6 +37,11 @@ export const NZL_AKL: DataSource = {
 
     getShortNames: () =>
         getShortNames(getDatabase()),
+
+    getStatus: async () => ({
+        realtime: await getRealtimeStatus(),
+        static: await getStaticStatus(),
+    }),
 
     getTripIdByTripDetails: (routeId, directionId, startTime) =>
         getTripIdByTripDetails(getDatabase(), routeId, directionId, startTime),
