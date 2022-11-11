@@ -1,8 +1,8 @@
 /**
  * Create an unresolved promise with resolve and reject functions.
  */
-export function createPromise<T>(): [Promise<T>, (value: T | PromiseLike<T>) => void, (reason?: any) => void] {
-    let resolve: (value: T | PromiseLike<T>) => void;
+export function createPromise<T>(): [Promise<T>, (value: T | Promise<T>) => void, (reason?: any) => void] {
+    let resolve: (value: T | Promise<T>) => void;
     let reject: (reason?: any) => void;
 
     const promise = new Promise<T>((resolve_, reject_) => {

@@ -30,7 +30,7 @@ class Api {
 
     promiseWsConnect: Promise<void>;
 
-    resolveWhenWsConnect: (value?: void | PromiseLike<void>) => void;
+    resolveWhenWsConnect: (value?: void | Promise<void>) => void;
 
     subscriptions: string[] = [];
 

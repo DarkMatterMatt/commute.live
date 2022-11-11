@@ -1,4 +1,4 @@
-import type { DataSource, RegionCode } from "~/types";
+import type { DataSource, PromiseOr, RegionCode } from "~/types";
 import path from "node:path";
 import { existsSync, mkdirSync } from "node:fs";
 import { NZL_AKL } from "./nzl_akl/";
@@ -10,13 +10,13 @@ const regions = new Map([
 export const availableRegions = [...regions.keys()] as RegionCode[];
 
 export async function mapRegions<T>(
-    callbackfn: (value: DataSource) => T,
+    callbackfn: (value: DataSource) => PromiseOr<T>,
 ): Promise<PromiseSettledResult<Awaited<T>>[]> {
     return Promise.allSettled([...regions.values()].map(r => callbackfn(r)));
 }
 
 export async function mapRegionsSync<T>(
-    callbackfn: (value: DataSource) => T | PromiseLike<T>,
+    callbackfn: (value: DataSource) => PromiseOr<T>,
 ): Promise<PromiseSettledResult<Awaited<T>>[]> {
     const results: PromiseSettledResult<Awaited<T>>[] = [];
     for (const r of regions.values()) {
