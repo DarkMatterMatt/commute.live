@@ -53,6 +53,11 @@ export interface PersistentWebSocketOpts {
 }
 
 export class PersistentWebSocket {
+    /** The connection has been terminated (permanently closed). */
+    static readonly TERMINATED = 5;
+    /** The connection is restarted. */
+    static readonly RESTARTING = 4;
+
     // user options
     private onClose: null | ((code: number, reason: string) => undefined | number);
     private onError: null | ((err: Error) => undefined | number);
@@ -228,5 +233,19 @@ export class PersistentWebSocket {
             // close websocket if it is open
             this.ws.close(closeCode, closeData);
         }
+    }
+
+    public get lastReceiveTime(): number {
+        return this.lastReceive;
+    }
+
+    public get readyState(): number {
+        if (this.terminated) {
+            return PersistentWebSocket.TERMINATED;
+        }
+        if (this.restartTimeout != null) {
+            return PersistentWebSocket.RESTARTING;
+        }
+        return this.ws?.readyState ?? -1;
     }
 }
