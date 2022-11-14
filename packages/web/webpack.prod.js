@@ -7,6 +7,15 @@ const CnameWebpackPlugin = require("cname-webpack-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
+// Load .env and ../../.env
+require('dotenv').config();
+require('dotenv').config({ path: '../../.env' });
+
+if (!process.env.PWA_BASE_URL) {
+    throw new Error("PWA_BASE_URL is not defined");
+}
+const { PWA_BASE_URL } = process.env;
+
 module.exports = {
     entry: {
         main: "./src/ts/index.ts",
@@ -88,8 +97,8 @@ module.exports = {
         }),
         new WebpackPwaManifest(require("./web_manifest")),
         new WorkboxPlugin.GenerateSW(),
-        new CnameWebpackPlugin({ domain: new URL(process.env.PWA_BASE_URL).hostname }),
+        new CnameWebpackPlugin({ domain: new URL(PWA_BASE_URL).hostname }),
     ],
 };
 
-console.log(`Running production build for ${process.env.PWA_BASE_URL}`);
+console.log(`Running production build for ${PWA_BASE_URL}`);
