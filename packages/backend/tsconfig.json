@@ -1,27 +1,7 @@
 {
+    "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "target": "ES2021",
-        "module": "ES2020",
-        "lib": ["ES2021"],
-        "moduleResolution": "node",
-        "allowSyntheticDefaultImports": true,
-        "isolatedModules": true,
-        "esModuleInterop": true,
-        "strict": true,
-
-        "outDir": "dist",
-        "baseUrl": ".",
-        "paths": {
-            "~/*": [
-                "src/*"
-            ],
-            "*": [
-                "node_modules/*"
-            ]
-        },
-        "typeRoots": [
-            "node_modules/@types"
-        ]
+        "baseUrl": "."
     },
     "include": [
         "src"
