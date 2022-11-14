@@ -27,8 +27,8 @@ const $navShow = document.getElementById("nav-show");
 const $navHide = document.getElementById("nav-hide");
 const $navAbout = document.getElementById("nav-about");
 const $error = document.getElementById("error");
-const $errorMessage = $error.getElementsByClassName("message")[0];
-const $errorBtn = $error.getElementsByClassName("btn")[0];
+const [$errorMessage] = $error.getElementsByClassName("message");
+const [$errorBtn] = $error.getElementsByClassName("btn");
 
 /*
  * Nav Map
@@ -40,7 +40,7 @@ const navMap: [HTMLElement, HTMLElement][] = [
     [document.getElementById("nav-settings"), document.getElementById("settings")],
     [document.getElementById("nav-about"), document.getElementById("about")],
 ];
-let navActive = navMap[0];
+let [navActive] = navMap;
 
 /*
  * Functions
@@ -205,7 +205,7 @@ function onGeolocationError(err: GeolocationPositionError) {
             navigator.geolocation.getCurrentPosition(
                 pos => map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
                 onGeolocationError,
-                { maximumAge: 60 * 1000 }
+                { maximumAge: 60 * 1000 },
             );
         }
     });
@@ -216,7 +216,7 @@ function onGeolocationError(err: GeolocationPositionError) {
             geoWatch = navigator.geolocation.watchPosition(
                 pos => render.showLocation(map, pos.coords),
                 onGeolocationError,
-                { enableHighAccuracy: true }
+                { enableHighAccuracy: true },
             );
         }
         else {

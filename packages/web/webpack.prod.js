@@ -24,7 +24,7 @@ module.exports = {
         extensions: [".ts", ".tsx", ".js"],
     },
     output: {
-        path:     path.resolve(__dirname, "dist"),
+        path: path.resolve(__dirname, "dist"),
         filename: "[name].[chunkhash].js",
         publicPath: "",
     },
@@ -33,7 +33,7 @@ module.exports = {
         rules: [
             {
                 test: /\.html$/,
-                use:  [
+                use: [
                     {
                         loader: `${path.dirname(require.resolve("html-webpack-plugin"))}/lib/loader.js`,
                         options: {
@@ -43,19 +43,19 @@ module.exports = {
                     {
                         loader: "string-replace-loader",
                         options: {
-                            search:  "=\"(..\/assets\/[^\"]*)\"",
+                            search: "=\"(..\/assets\/[^\"]*)\"",
                             replace: "=\"<%= require('$1').default %>\"",
-                            flags:   "g",
+                            flags: "g",
                         }
                     },
                 ]
             }, {
-                test:    /\.tsx?$/,
-                use:     "babel-loader",
+                test: /\.tsx?$/,
+                use: "babel-loader",
                 exclude: /node_modules/,
             }, {
                 test: /\.(sass|scss|css)$/,
-                use:  [
+                use: [
                     {
                         loader: MiniCssExtractPlugin.loader,
                     },
@@ -71,7 +71,7 @@ module.exports = {
                 ],
             }, {
                 test: /\.(png|svg|jpg|gif|ico|xml)$/,
-                use:  [
+                use: [
                     {
                         loader: "file-loader",
                         options: {
@@ -91,9 +91,9 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             scriptLoading: "defer",
-            inject:        false,
-            hash:          false,
-            template:      "./src/html/index.html",
+            inject: false,
+            hash: false,
+            template: "./src/html/index.html",
         }),
         new WebpackPwaManifest(require("./web_manifest")),
         new WorkboxPlugin.GenerateSW(),

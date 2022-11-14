@@ -45,7 +45,7 @@ class Settings {
         return Object.fromEntries(
             [...this.settings.values()]
                 .filter(s => s.value !== s.defaultValue)
-                .map(s => [s.name, s.value])
+                .map(s => [s.name, s.value]),
         );
     }
 

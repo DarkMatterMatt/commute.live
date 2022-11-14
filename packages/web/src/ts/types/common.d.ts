@@ -19,7 +19,8 @@ declare module "*.svg" {
     export default content;
 }
 
-// fix error TS7026: "JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists."
+// fix error TS7026: "JSX element implicitly has type 'any'
+// because no interface 'JSX.IntrinsicElements' exists."
 declare namespace JSX {
     interface IntrinsicElements {
         div: any;

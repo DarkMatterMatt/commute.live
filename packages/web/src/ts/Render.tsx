@@ -94,7 +94,7 @@ class Render {
      */
     static shouldUseLightText(backgroundHexStr: string): boolean {
         const [red, green, blue] = (convert.hex as hex).rgb(backgroundHexStr);
-        return red * 0.299 + green * 0.587 + blue * 0.114 <= 186;
+        return (red * 0.299) + (green * 0.587) + (blue * 0.114) <= 186;
     }
 
     static getNewColor(existingRoutes: { color: string }[]): string {
@@ -204,7 +204,7 @@ class Render {
                 return (
                   <div style={{ position: "absolute", left: `${-size / 2}px`, top: `${-size / 2}px` }}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.13 87.13" style={{ width: `${size}px`, height: `${size}px` }}>
-                      <path style={{ fill: opts.color, stroke: secondaryColor, "stroke-miterlimit": 10 }} transform={rotate} d={pointyCircle} />
+                      <path style={{ "fill": opts.color, "stroke": secondaryColor, "stroke-miterlimit": 10 }} transform={rotate} d={pointyCircle} />
                       <path style={{ fill: secondaryColor }} d={icon} />
                       <path style={{ fill: "transparent" }} d="M0,43.57a43.57,43.57 0 1,0 87.14,0a43.57,43.57 0 1,0 -87.14,0" />
                     </svg>

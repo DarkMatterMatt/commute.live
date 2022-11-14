@@ -81,7 +81,7 @@ export function fromLatLngBoundsLiteral(b: google.maps.LatLngBounds | google.map
     }
     return new google.maps.LatLngBounds(
         new google.maps.LatLng(b.south, b.west),
-        new google.maps.LatLng(b.north, b.east)
+        new google.maps.LatLng(b.north, b.east),
     );
 }
 
