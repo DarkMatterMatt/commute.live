@@ -4,18 +4,57 @@
     "description": "An intermediary server to provide normalised live data to [commute.live](https://commute.live).",
     "main": "dist/index.js",
     "scripts": {
-        "b": "npm run build",
-        "s": "npm run start",
-        "bs": "npm run build && npm start",
         "build": "tsc",
-        "d:b": "npm run docker:build",
-        "d:s": "npm run docker:start",
-        "d:bs": "npm run docker:build && npm run docker:start",
-        "docker:build": "docker build -t commutelive .",
-        "docker:start": "docker run --env-file .env --name commutelive -dp 9001:9001 commutelive",
+        "build:docker": "docker build -f Dockerfile -t commutelive ../../",
+        "clean": "rimraf dist",
+        "clean:docker": "docker rm commutelive || echo\\",
         "lint": "eslint --fix src && tsc --noEmit",
         "start": "node --experimental-loader ./dist/loader.js dist/index.js",
-        "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
+        "start:docker": "docker run --env-file ../../.env --name commutelive -dp 9001:9001 commutelive",
+        "stop:docker": "docker kill --signal=SIGINT commutelive || echo\\",
+        "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\"",
+        "typecheck": "tsc --noEmit"
+    },
+    "nx": {
+        "targets": {
+            "build:docker": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            },
+            "clean:docker": {
+                "dependsOn": [
+                    "stop:docker"
+                ],
+                "outputs": []
+            },
+            "lint": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            },
+            "start": {
+                "dependsOn": [
+                    "build"
+                ],
+                "outputs": []
+            },
+            "start:docker": {
+                "dependsOn": [
+                    "clean:docker",
+                    "build:docker"
+                ],
+                "outputs": []
+            },
+            "typecheck": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            }
+        }
     },
     "repository": {
         "type": "git",
@@ -46,10 +85,11 @@
         "@typescript-eslint/parser": "^5.42.0",
         "eslint": "^8.27.0",
         "eslint-import-resolver-typescript": "^3.5.2",
+        "rimraf": "^3.0.2",
         "typescript": "^4.8.4"
     },
     "dependencies": {
-        "@commutelive/api-types": "^1.0.0",
+        "@commutelive/api-types": "*",
         "chalk": "^4.1.2",
         "dotenv": "^16.0.3",
         "envalid": "^7.3.1",

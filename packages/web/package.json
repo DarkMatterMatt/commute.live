@@ -8,7 +8,7 @@
     },
     "dependencies": {
         "@babel/runtime": "^7.20.1",
-        "@commutelive/api-types": "^1.0.0",
+        "@commutelive/api-types": "*",
         "@simonwep/pickr": "^1.8.2",
         "@types/color-convert": "^2.0.0",
         "babel-plugin-transform-react-jsx": "^6.24.1",
@@ -50,6 +50,7 @@
         "mini-css-extract-plugin": "^1.6.2",
         "normalize.css": "^8.0.1",
         "postcss-loader": "^4.3.0",
+        "rimraf": "^3.0.2",
         "sass": "^1.56.1",
         "sass-loader": "^10.3.1",
         "string-replace-loader": "^3.1.0",
@@ -64,21 +65,42 @@
         "workbox-webpack-plugin": "^6.5.4"
     },
     "scripts": {
-        "bs": "npm run typecheck && npm start",
-        "start": "npm run build:dev",
-        "build:dev": "webpack serve --env dev --mode development",
-        "build:prod": "webpack --env prod --mode production",
+        "build": "webpack --env prod --mode production",
+        "clean": "rimraf dist",
         "lint": "eslint src/ts/** --fix",
+        "start": "webpack serve --env dev --mode development",
         "typecheck": "tsc"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/DarkMatterMatt/AT-Live-Client.git"
+        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
     },
     "author": "Matt Moran",
     "license": "GPL-3.0",
     "bugs": {
-        "url": "https://github.com/DarkMatterMatt/AT-Live-Client/issues"
+        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
     },
-    "homepage": "https://github.com/DarkMatterMatt/AT-Live-Client#readme"
+    "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
+    "nx": {
+        "targets": {
+            "lint": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            },
+            "start": {
+                "dependsOn": [
+                    "typecheck"
+                ],
+                "outputs": []
+            },
+            "typecheck": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            }
+        }
+    }
 }

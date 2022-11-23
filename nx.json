@@ -1,0 +1,36 @@
+{
+    "tasksRunnerOptions": {
+        "default": {
+            "runner": "nx/tasks-runners/default",
+            "options": {
+                "cacheableOperations": [
+                    "build",
+                    "lint",
+                    "test",
+                    "docker:build",
+                    "typecheck"
+                ]
+            }
+        }
+    },
+    "targetDefaults": {
+        "build": {
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": [
+                "{projectRoot}/dist"
+            ]
+        },
+        "clean": {
+            "dependsOn": [],
+            "outputs": []
+        },
+        "test": {
+            "dependsOn": [
+                "build"
+            ],
+            "outputs": []
+        }
+    }
+}
