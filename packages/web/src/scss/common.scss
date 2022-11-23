@@ -182,7 +182,7 @@ body.theme-dark .github {
 
         label {
             position: absolute;
-            top: $itemHeight/2;
+            top: $itemHeight*0.5;
             left: 16px;
             right: initial;
             transform: translateY(-50%);
