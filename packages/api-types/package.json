@@ -1,0 +1,31 @@
+{
+    "name": "@commutelive/api-types",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "scripts": {
+        "clean": "rimraf dist",
+        "build": "tsc",
+        "lint": "eslint --fix src && tsc --noEmit",
+        "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+    },
+    "author": "Matt Moran",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+    },
+    "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
+    "type": "module",
+    "engines": {
+        "node": ">=18"
+    },
+    "devDependencies": {
+        "eslint-import-resolver-typescript": "^3.5.2",
+        "rimraf": "^3.0.2",
+        "typescript": "^4.8.4"
+    }
+}
