@@ -6,9 +6,9 @@ import { getLongNamesByShortName, getRouteTypeByShortName, getRoutesSummary, get
 
 const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
 
-const GTFS_URL = "https://cdn01.at.govt.nz/data/gtfs.zip";
+const GTFS_URL = "https://gtfs.at.govt.nz/gtfs.zip";
 
-const WS_URL = "wss://mobile.at.govt.nz/streaming/realtime/locations"
+const WS_URL = "wss://mobile.at.govt.nz/mobile/streaming/v1"
     + `?subscription_key=${AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY}`;
 
 const regionCode: RegionCode = "NZL_AKL";
