@@ -1,9 +1,9 @@
-name: Deploy
+name: 🌎 Deploy Web
 
 on:
-  # Deploy each push to the master branch
+  # Deploy each push to the main branch
   push:
-    branches: [ master ]
+    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -14,26 +14,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
       - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+        uses: actions/cache@v3
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-node-
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Typecheck TypeScript
-        run: npm run typecheck
+        run: lerna run --scope=*/web typecheck
 
       - name: Create .env
         uses: SpicyPizza/create-envfile@v1
@@ -47,11 +48,11 @@ jobs:
           envkey_PWA_BASE_URL: ${{ secrets.PWA_BASE_URL }}
           envkey_WS_URL: ${{ secrets.WS_URL }}
 
-      - name: Build
-        run: npm run build:prod
-        
-      - name: Deploy to GitHub Pages
+      - name: 🛠️ Build
+        run: lerna run --scope=*/web build
+
+      - name: 🚀 Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./packages/web/dist
