@@ -1,0 +1,73 @@
+{
+  "icons": [
+    {
+      "src": "icon_120x120.31a6457a0d2ab87ef725290f51fd4daf.png",
+      "sizes": "120x120",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_180x180.1003d5158c0c3d152051e5493169f900.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_72x72.af47351bc3166bd135e6373f447870b8.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_96x96.7e5949d84244b1af4ef3b287af238fe6.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_128x128.7287cf14077162e07293d25d569bd486.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_144x144.5c89cecef46613c80b789b3be2c5518b.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_152x152.ac8339d9ae911e7172fb330f57b316ce.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_192x192.8963121930ed33c1dd088b52cabbf110.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_384x384.27bc6886cd75c12ddda25fda2f53678d.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_512x512.75801343a50b4a9db14fa742cbcbb10b.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "name": "Commute Live",
+  "short_name": "Commute Live",
+  "orientation": "portrait",
+  "display": "standalone",
+  "start_url": "https://commute.live/",
+  "description": "Commute Live provides real-time tracking for buses, trains and ferries on the Auckland Transport network.",
+  "theme_color": "#2e7699",
+  "background_color": "#2e7699",
+  "scope": "https://commute.live/"
+}
