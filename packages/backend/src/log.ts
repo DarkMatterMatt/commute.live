@@ -68,7 +68,7 @@ const log = createLogger({
         new transports.Console({
             level: "debug",
             format: format.combine(
-                format.timestamp({ format: "MMM DD, HH:mm:ss" }),
+                format.timestamp({ format: "MMM DD, HH:mm:ss.SSS" }),
                 format.printf(info => {
                     const { label, level, timestamp, message, moreObjects } = extractData(info);
                     const coloredLabelLevel = colors[level](`${label}:${level}`);
