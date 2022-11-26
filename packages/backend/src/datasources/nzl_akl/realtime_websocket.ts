@@ -21,7 +21,7 @@ let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => void;
 export async function getStatus(): Promise<JSONSerializable> {
     return {
         readyState: pws.readyState,
-        lastReceiveTime: pws.lastReceiveTime,
+        lastReceiveTime: pws.getLastReceive(),
         consecutiveErrors,
     };
 }

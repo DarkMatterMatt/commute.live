@@ -73,9 +73,16 @@ export class PersistentWebSocket {
 
     // state
     private terminated = false;
-    private lastReceive = 0;
     private ws: null | WebSocket = null;
     private log: Logger;
+
+    // recent event tracking
+    private lastCreated = 0; // this is immediately set when the class is instantiated
+    private lastClose: null | [number, number, Buffer] = null;
+    private lastError: null | [number, Error] = null;
+    private lastMessage: null | [number, WebSocket.RawData] = null;
+    private lastOpen: null | number = null;
+    private lastPong: null | number = null;
 
     constructor(opts: PersistentWebSocketOpts) {
         const defaultOpts = {
@@ -160,32 +167,46 @@ export class PersistentWebSocket {
 
         const ws = new WebSocket(this.url);
         this.ws = ws;
-        this.lastReceive = Date.now();
+        this.lastCreated = Date.now();
 
         ws.on("close", (code, reason) => {
-            // auto restart websocket (500ms by default)
-            const autoRestart = this.onClose?.(code, reason.toString());
-            this.restart(autoRestart ?? RESTART_DELAY_AFTER_CLOSE);
+            if (this.ws === ws) {
+                this.lastClose = [Date.now(), code, reason];
+
+                // auto restart websocket (500ms by default)
+                const autoRestart = this.onClose?.(code, reason.toString());
+                this.restart(autoRestart ?? RESTART_DELAY_AFTER_CLOSE);
+            }
         });
 
         ws.on("error", err => {
-            // auto restart websocket (500ms by default)
-            const autoRestart = this.onError?.(err);
-            this.restart(autoRestart ?? RESTART_DELAY_AFTER_CLOSE);
+            if (this.ws === ws) {
+                this.lastError = [Date.now(), err];
+
+                // auto restart websocket (500ms by default)
+                const autoRestart = this.onError?.(err);
+                this.restart(autoRestart ?? RESTART_DELAY_AFTER_CLOSE);
+            }
         });
 
         ws.on("message", data => {
-            this.lastReceive = Date.now();
-            this.onMessage?.(ws, data.toString());
+            if (this.ws === ws) {
+                this.lastMessage = [Date.now(), data];
+                this.onMessage?.(ws, data.toString());
+            }
         });
 
         ws.on("open", () => {
-            this.lastReceive = Date.now();
-            this.onOpen?.(ws);
+            if (this.ws === ws) {
+                this.lastOpen = Date.now();
+                this.onOpen?.(ws);
+            }
         });
 
         ws.on("pong", _ => {
-            this.lastReceive = Date.now();
+            if (this.ws === ws) {
+                this.lastPong = Date.now();
+            }
         });
     }
 
@@ -197,7 +218,7 @@ export class PersistentWebSocket {
             // no point in checking health if a restart is already in progress
             return;
         }
-        if (this.lastReceive > Date.now() - this.stallThreshold) {
+        if (this.getLastReceive() > Date.now() - this.stallThreshold) {
             // we received data recently
             return;
         }
@@ -235,8 +256,37 @@ export class PersistentWebSocket {
         }
     }
 
-    public get lastReceiveTime(): number {
-        return this.lastReceive;
+    public getLastReceive() {
+        return Math.max(
+            this.lastCreated,
+            this.lastOpen ?? 0,
+            this.lastMessage?.[0] ?? 0,
+            this.lastPong ?? 0,
+        );
+    }
+
+    public getLastCreated() {
+        return this.lastCreated;
+    }
+
+    public getLastOpen() {
+        return this.lastOpen;
+    }
+
+    public getLastMessage() {
+        return this.lastMessage;
+    }
+
+    public getLastPong() {
+        return this.lastPong;
+    }
+
+    public getLastClose() {
+        return this.lastClose;
+    }
+
+    public getLastError() {
+        return this.lastError;
     }
 
     public get readyState(): number {
