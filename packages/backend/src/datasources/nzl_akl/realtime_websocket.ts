@@ -1,4 +1,3 @@
-import type WebSocket from "ws";
 import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position, JSONSerializable } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
 import { parseEnum, PersistentWebSocket } from "~/helpers/";
@@ -46,7 +45,7 @@ function onError(err: Error): undefined | number {
 /**
  * Received a message.
  */
-function onMessage(_ws: WebSocket, data_: string): void {
+function onMessage(data_: string): void {
     // NOTE: AT's WebSocket incorrectly uses camelCase keys, string timestamps, and string enums
     const data: FeedEntity & Record<string, any> = JSON.parse(data_);
 
@@ -67,14 +66,14 @@ function onMessage(_ws: WebSocket, data_: string): void {
 /**
  * A new WebSocket connection was opened.
  */
-function onOpen(ws: WebSocket): void {
+function onOpen(): void {
     // reset number of errors
     if (consecutiveErrors > 1) {
         log.verbose(`WebSocket opened successfully after ${consecutiveErrors} consecutive errors.`);
     }
     consecutiveErrors = 0;
 
-    ws.send(JSON.stringify({
+    pws.send(JSON.stringify({
         // appears to be a stripped-down GraphQL API
         filters: { },
         query: "{ id vehicle tripUpdate trip_update alert }",

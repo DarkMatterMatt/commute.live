@@ -9,10 +9,8 @@ export const CLOSE_CODE_STOPPING = 4003;
 export const RESTART_DELAY_AFTER_CLOSE = 500;
 export const RESTART_DELAY_AFTER_STALL = 100;
 
-/**
- * WebSocket is assumed to have faulted if no message or pong is received for `n` milliseconds.
- */
-export const STALL_THRESHOLD_DEFAULT = 2000;
+export type SendOpts = Parameters<WebSocket["send"]>[1];
+export type SendCb = Parameters<WebSocket["send"]>[2];
 
 export interface PersistentWebSocketOpts {
     /**
@@ -34,22 +32,22 @@ export interface PersistentWebSocketOpts {
     /**
      * Callback function executed when the WebSocket receives a message.
      */
-    onMessage?: (ws: WebSocket, data: string) => void;
+    onMessage?: (data: string) => void;
 
     /**
      * Callback function executed when a new WebSocket connection is opened.
      */
-    onOpen?: (ws: WebSocket) => void;
+    onOpen?: () => void;
 
     /**
-     * WebSocket is assumed to have faulted if not message or pong is received for `n` milliseconds.
+     * WebSocket is assumed to have faulted if no message or pong is received for `n` milliseconds.
      */
-    stallThreshold?: number;
+    stallThreshold: number;
 
     /**
      * Server address to connect to.
      */
-    url: string;
+    url: string | URL;
 }
 
 export class PersistentWebSocket {
@@ -61,8 +59,8 @@ export class PersistentWebSocket {
     // user options
     private onClose: null | ((code: number, reason: string) => undefined | number);
     private onError: null | ((err: Error) => undefined | number);
-    private onMessage: null | ((ws: WebSocket, data: string) => void);
-    private onOpen: null | ((ws: WebSocket) => void);
+    private onMessage: null | ((data: string) => void);
+    private onOpen: null | (() => void);
     private stallThreshold: number;
     private url: string;
 
@@ -74,6 +72,7 @@ export class PersistentWebSocket {
     // state
     private terminated = false;
     private ws: null | WebSocket = null;
+    private pendingMessages: [data: any, cbOrOptions?: SendCb | SendOpts, cb?: SendCb][] = [];
     private log: Logger;
 
     // recent event tracking
@@ -85,24 +84,15 @@ export class PersistentWebSocket {
     private lastPong: null | number = null;
 
     constructor(opts: PersistentWebSocketOpts) {
-        const defaultOpts = {
-            stallThreshold: STALL_THRESHOLD_DEFAULT,
-            onClose: null,
-            onError: null,
-            onMessage: null,
-            onOpen: null,
-        };
-        const o = { ...defaultOpts, ...opts };
-
-        this.log = getLogger(`PersistentWebSocket [${o.url}]`);
+        this.log = getLogger(`PersistentWebSocket [${opts.url}]`);
 
         // user options
-        this.onClose = o.onClose;
-        this.onError = o.onError;
-        this.onMessage = o.onMessage;
-        this.onOpen = o.onOpen;
-        this.stallThreshold = o.stallThreshold;
-        this.url = o.url;
+        this.onClose = opts.onClose ?? null;
+        this.onError = opts.onError ?? null;
+        this.onMessage = opts.onMessage ?? null;
+        this.onOpen = opts.onOpen ?? null;
+        this.stallThreshold = opts.stallThreshold;
+        this.url = opts.url.toString().replace(/#.*/, ""); // remove hash ("fragment identifier")
 
         this.start();
 
@@ -114,13 +104,37 @@ export class PersistentWebSocket {
             if (this.ws?.readyState === WebSocket.OPEN) {
                 this.ws.ping();
             }
-        }, this.stallThreshold / 2);
+        }, this.stallThreshold / 3);
+    }
+
+    /**
+     * Send a message to the server. Queues messages until the WebSocket is opened.
+     */
+    public send(data: any, cb?: SendCb): void;
+    public send(data: any, options: SendOpts, cb?: SendCb): void;
+    public send(data: any, cbOrOptions?: SendCb | SendOpts, cb?: SendCb): void {
+        if (this.readyState === PersistentWebSocket.TERMINATED) {
+            throw new Error("WebSocket is terminated");
+        }
+
+        if (this.ws == null || this.readyState === PersistentWebSocket.RESTARTING) {
+            // queue message until WebSocket is ready
+            this.pendingMessages.push([data, cbOrOptions, cb]);
+            return;
+        }
+
+        if (cb) {
+            this.ws.send(data, cbOrOptions as SendOpts, cb);
+        }
+        else {
+            this.ws.send(data, cbOrOptions as SendCb);
+        }
     }
 
     /**
      * Restart the WebSocket connection after the specified number of milliseconds.
      */
-    private restart(ms: number) {
+    public restart(ms = 0) {
         if (ms < 0) {
             throw new Error(`Invalid restart delay: ${ms}ms`);
         }
@@ -145,10 +159,15 @@ export class PersistentWebSocket {
         }
         this.ws = null;
 
-        this.restartTimeout = setTimeout(() => {
-            this.restartTimeout = null;
+        if (ms === 0) {
             this.start();
-        }, ms);
+        }
+        else {
+            this.restartTimeout = setTimeout(() => {
+                this.restartTimeout = null;
+                this.start();
+            }, ms);
+        }
     }
 
     /**
@@ -192,14 +211,25 @@ export class PersistentWebSocket {
         ws.on("message", data => {
             if (this.ws === ws) {
                 this.lastMessage = [Date.now(), data];
-                this.onMessage?.(ws, data.toString());
+                this.onMessage?.(data.toString());
             }
         });
 
         ws.on("open", () => {
             if (this.ws === ws) {
                 this.lastOpen = Date.now();
-                this.onOpen?.(ws);
+                this.onOpen?.();
+
+                // send pending messages
+                for (const [data, cbOrOptions, cb] of this.pendingMessages) {
+                    if (cb) {
+                        this.ws.send(data, cbOrOptions as SendOpts, cb);
+                    }
+                    else {
+                        this.ws.send(data, cbOrOptions as SendCb);
+                    }
+                }
+                this.pendingMessages = [];
             }
         });
 
