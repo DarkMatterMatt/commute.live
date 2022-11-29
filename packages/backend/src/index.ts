@@ -4,6 +4,7 @@ import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRe
 import type { DataSource, TripDescriptor, TripUpdate, VehiclePosition } from "~/types/";
 import { publishTripUpdate, publishVehiclePosition, startServer } from "./server/";
 import { getLogger } from "~/log.js";
+import { env } from "node:process";
 
 const LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE = true;
 
@@ -99,4 +100,9 @@ async function getShortNameForTrip(
             }
         });
     });
+
+    if (env.FETCH_URL_WHEN_LOADED != null) {
+        log.info("Signalling that we are ready for action!");
+        await fetch(env.FETCH_URL_WHEN_LOADED);
+    }
 })();

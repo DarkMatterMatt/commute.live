@@ -11,8 +11,7 @@ const file = makeValidator(x => (accessSync(x, constants.R_OK), x));
 dotenv.config();
 
 const env = cleanEnv(process.env, {
-    LOG_LEVEL: str({ default: "info", choices: ["error", "warn", "info", "verbose"] }),
-    LOG_FILE_TEMPLATE: str({ default: "combined_%DATE%.log" }),
+    FETCH_URL_WHEN_LOADED: str({ default: undefined }),
     NODE_ENV: nodeEnv({ default: "development" }),
     PORT: port({ default: 9001 }),
     SSL_CERT_FILE: file({ default: undefined }),
