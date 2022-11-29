@@ -3,19 +3,18 @@
 ############################################################
 # Build commute.live backend.
 ############################################################
-FROM node:lts-alpine AS builder
+FROM node:lts-slim AS builder
 WORKDIR /app
 
 # Install dependencies' dependencies.
-# > gtfs
-# - > sqlite3
-# - - > python
-# > uWebSockets.js
-# - > gcompat
 # > lerna
-# - - > git
-RUN apk add --update --no-cache git python3 make g++ gcompat && \
-    ln -sf python3 /usr/bin/python
+# --> git
+# ----> ssh
+# ------> ca-certificates
+
+RUN apt-get update \
+    && apt-get install git ssh ca-certificates \
+        -yq --reinstall --no-install-suggests --no-install-recommends --allow-downgrades --allow-remove-essential --allow-change-held-packages
 
 # Install Lerna.
 COPY package*.json .
@@ -56,7 +55,7 @@ RUN node scripts/printDependencies.js package-lock.json dev \
 ############################################################
 # Extract distribution image.
 ############################################################
-FROM node:lts-alpine
+FROM node:lts-slim
 WORKDIR /app/packages/backend
 
 # Copy runtime files.
@@ -66,10 +65,8 @@ COPY --from=builder /app/packages/backend/package.json /app/packages/backend/pac
 COPY --from=builder /app/packages/backend/node_modules/ /app/packages/backend/node_modules/
 COPY --from=builder /app/packages/backend/dist/ dist/
 
-# uWebSockets.js is fussy; copy extra dependency and test that it loads
-COPY --from=builder /lib/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
-RUN node -p "require('uWebSockets.js')"
+# uWebSockets.js is fussy; test that it loads
+RUN node -e "require('uWebSockets.js')"
 
-# Declare TCP port & start command.
-EXPOSE 9001
+# Set start command.
 CMD ["npm", "start"]
