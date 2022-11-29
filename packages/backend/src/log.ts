@@ -9,7 +9,7 @@ const logLevels = ["debug", "verbose", "info", "warn", "error"] as const;
 
 type LogLevel = typeof logLevels[number];
 
-export type Logger = { [K in LogLevel]: ReturnType<typeof getLoggerLevel> };
+export type Logger = { label: string} & { [K in LogLevel]: ReturnType<typeof getLoggerLevel> };
 
 const colors: { [K in LogLevel]: Chalk } = {
     error: chalk.bold.redBright,
@@ -85,6 +85,10 @@ const getLoggerLevel = (label: string, level: LogLevel) => (message: string, ...
     log.log(level, message, { [EXTRA_DATA]: extractData });
 };
 
-export const getLogger = (label: string) => Object.freeze(Object.fromEntries(
-    logLevels.map(lvl => [lvl, getLoggerLevel(label, lvl)]),
-) as Logger);
+export const getLogger = (label: string) => {
+    const logger = { label } as Logger;
+    for (const level of logLevels) {
+        logger[level] = getLoggerLevel(label, level);
+    }
+    return Object.freeze(logger);
+};
