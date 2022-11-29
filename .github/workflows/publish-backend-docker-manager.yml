@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: commute.live-manager
+  IMAGE_NAME: ${{ github.repository }}-manager
 
 jobs:
   build-and-push-image:
