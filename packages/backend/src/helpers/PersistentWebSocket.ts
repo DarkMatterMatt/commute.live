@@ -14,6 +14,11 @@ export type SendCb = Parameters<WebSocket["send"]>[2];
 
 export interface PersistentWebSocketOpts {
     /**
+     * Override the default logger.
+     */
+    logger?: Logger;
+
+    /**
      * Callback function, can optionally return a non-negative number to restart after the specified
      * delay (in milliseconds).
      *
@@ -84,9 +89,8 @@ export class PersistentWebSocket {
     private lastPong: null | number = null;
 
     constructor(opts: PersistentWebSocketOpts) {
-        this.log = getLogger(`PersistentWebSocket [${opts.url}]`);
-
         // user options
+        this.log = opts.logger ?? getLogger(`PersistentWebSocket [${opts.url}]`);
         this.onClose = opts.onClose ?? null;
         this.onError = opts.onError ?? null;
         this.onMessage = opts.onMessage ?? null;
