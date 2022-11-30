@@ -1,10 +1,11 @@
 import { clearInterval, setInterval } from "node:timers";
 import Graceful from "node-graceful";
 import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize, mapRegionsSync } from "~/datasources/";
-import type { DataSource, TripDescriptor, TripUpdate, VehiclePosition } from "~/types/";
-import { publishTripUpdate, publishVehiclePosition, startServer } from "./server/";
+import env from "~/env.js";
+import { TimedMap } from "~/helpers/";
 import { getLogger } from "~/log.js";
-import { env } from "node:process";
+import type { DataSource, TripDescriptor, TripUpdate, VehiclePosition } from "~/types/";
+import { publishTripUpdate, publishVehiclePosition, startServer } from "~/server/";
 
 const LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE = true;
 
@@ -12,7 +13,7 @@ const LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE = true;
 // Some are missing labels, and some coordinates are nonsensical.
 const LOG_TRIP_NOT_FOUND_FOR_VEHICLE_UPDATE = false;
 
-const knownMissingTripIds = new Set<string>();
+const knownMissingTripIds = new TimedMap<string, void>({ defaultTtl: 24 * 60 * 60 * 1000 });
 
 const log = getLogger("root");
 
@@ -56,7 +57,7 @@ async function getShortNameForTrip(
     catch (err) {
         const key = `${ds.code}\0${tripId}`;
         if (!knownMissingTripIds.has(key)) {
-            knownMissingTripIds.add(key);
+            knownMissingTripIds.set(key);
             log.warn("Could not find short name for trip update/vehicle position with trip id.", ds.code, tripId);
         }
         return null;
