@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/backend",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "description": "An intermediary server to provide normalised live data to [commute.live](https://commute.live).",
     "main": "dist/index.js",
     "scripts": {
