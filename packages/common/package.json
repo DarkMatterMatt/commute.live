@@ -1,5 +1,5 @@
 {
-    "name": "@commutelive/api-types",
+    "name": "@commutelive/common",
     "version": "2.1.0",
     "description": "",
     "main": "dist/index.js",

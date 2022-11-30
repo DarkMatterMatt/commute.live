@@ -8,7 +8,7 @@
     },
     "dependencies": {
         "@babel/runtime": "^7.20.1",
-        "@commutelive/api-types": "^2.1.0",
+        "@commutelive/common": "^2.1.0",
         "@simonwep/pickr": "^1.8.2",
         "@types/color-convert": "^2.0.0",
         "babel-plugin-transform-react-jsx": "^6.24.1",

@@ -22,12 +22,12 @@ RUN npm ci --ignore-scripts
 ENV PATH /app/node_modules/.bin:$PATH
 COPY *.json .
 
-# Build api-types.
-COPY packages/api-types/package*.json packages/api-types/
-RUN lerna --scope=*/api-types bootstrap --include-dependencies
-COPY packages/api-types/*.json packages/api-types/
-COPY packages/api-types/src/ packages/api-types/src/
-RUN lerna --scope=*/api-types run build
+# Build common.
+COPY packages/common/package*.json packages/common/
+RUN lerna --scope=*/common bootstrap --include-dependencies
+COPY packages/common/*.json packages/common/
+COPY packages/common/src/ packages/common/src/
+RUN lerna --scope=*/common run build
 
 # Build backend.
 COPY packages/backend/package*.json packages/backend/
@@ -36,10 +36,10 @@ COPY packages/backend/*.json packages/backend/
 COPY packages/backend/src/ packages/backend/src/
 RUN lerna --scope=*/backend run build
 
-# Move api-types to node_modules.
-RUN rm node_modules/@commutelive/api-types && \
-    mkdir node_modules/@commutelive/api-types && \
-    mv packages/api-types/package.json packages/api-types/dist/ node_modules/@commutelive/api-types/
+# Move common to node_modules.
+RUN rm node_modules/@commutelive/common && \
+    mkdir node_modules/@commutelive/common && \
+    mv packages/common/package.json packages/common/dist/ node_modules/@commutelive/common/
 
 # Remove unused uWebSockets.js versions. Cuts image size by ~75MB.
 RUN ls node_modules/uWebSockets.js/*.node packages/backend/node_modules/uWebSockets.js/*.node \
