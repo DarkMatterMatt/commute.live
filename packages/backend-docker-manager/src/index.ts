@@ -1,11 +1,7 @@
-import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
-import fs from "node:fs";
 import http from "node:http";
-import https from "node:https";
-import { removeWorker, renameStartingContainer, startWorker, stopWorker } from "./docker.js";
+import { pullImage, removeWorker, renameStartingContainer, startWorker } from "./docker.js";
 import { getEnv, getWorkerEnv } from "./env.js";
-
-type Middleware = ReturnType<typeof createNodeMiddleware>;
+import { createHttpServer, createHttpsServer, createWebhookMiddleware } from "./webhook.js";
 
 let restartQueued = false;
 let onWorkerLoad: null | (() => void) = null;
@@ -28,26 +24,40 @@ async function gracefullyReloadWorker(
     workerImage: string,
     workerName: string,
     workerCallbackPort: number,
+    maxMemoryInBytes: null | number,
 ) {
     // this will be resolved when the worker is loaded
     const loaded = new Promise<void>(res => onWorkerLoad = res);
 
+    if (workerImage.includes("/")) {
+        console.log("Downloading updates");
+        await pullImage(workerImage);
+    }
+    else {
+        console.log(`Using local image: ${workerImage}`);
+    }
+
+    // start new worker
     console.log("Starting new worker");
+    await removeWorker(`${workerName}-starting`);
     await startWorker(
         workerImage,
-        workerName,
+        `${workerName}-starting`,
         await getWorkerEnv(),
         `http://localhost:${workerCallbackPort}/`,
+        maxMemoryInBytes,
     );
 
+    // wait for worker to load
     console.log("Waiting for new worker to load");
     await loaded;
     onWorkerLoad = null;
 
+    // stop and remove old worker
     console.log("Stopping old worker");
-    await stopWorker(workerName);
     await removeWorker(workerName);
 
+    // rename new "starting" worker to the actual worker name
     await renameStartingContainer(workerName);
     console.log("Finished graceful reload");
 }
@@ -70,55 +80,6 @@ function startInternalListener(workerCallbackPort: number, reload: () => void) {
     }).listen(workerCallbackPort);
 }
 
-function createWebhookMiddleware(secret: string, workerImage: string, reload: () => void) {
-    const webhooks = new Webhooks({ secret });
-
-    webhooks.on("ping", () => {
-        // listen for pings :)
-    });
-
-    webhooks.on("package", ({ payload }) => {
-        if (!["docker", "container"].includes(payload.package.package_type.toLowerCase())) {
-            return;
-        }
-        if (!payload.package.package_version.installation_command.includes(workerImage)) {
-            return;
-        }
-        reload();
-    });
-
-    return createNodeMiddleware(webhooks, { path: "/" });
-}
-
-function createHttpsServer(
-    port: number,
-    certFile: string,
-    keyFile: string,
-    sslRefreshFreq: number,
-    webhookMiddleware: Middleware,
-) {
-    let key = fs.readFileSync(keyFile);
-    let cert = fs.readFileSync(certFile);
-    const server = https.createServer({ key, cert }, webhookMiddleware).listen(port);
-
-    if (sslRefreshFreq > 0) {
-        setInterval(async () => {
-            const newKey = fs.readFileSync(keyFile);
-            const newCert = fs.readFileSync(certFile);
-            if (!newKey.equals(key) || !newCert.equals(cert)) {
-                console.log("SSL certificate changed, updating server");
-                key = newKey;
-                cert = newCert;
-                server.setSecureContext({ key, cert });
-            }
-        }, sslRefreshFreq);
-    }
-}
-
-function createHttpServer(port: number, webhookMiddleware: Middleware) {
-    http.createServer(webhookMiddleware).listen(port);
-}
-
 (async () => {
     const env = await getEnv();
 
@@ -126,6 +87,7 @@ function createHttpServer(port: number, webhookMiddleware: Middleware) {
         env.MANAGER_WORKER_IMAGE,
         env.MANAGER_WORKER_NAME,
         env.MANAGER_INTERNAL_PORT,
+        env.MANAGER_WORKER_MAX_MEMORY,
     );
 
     // listen for workers being loaded
@@ -138,6 +100,7 @@ function createHttpServer(port: number, webhookMiddleware: Middleware) {
         reload,
     );
 
+    // create server for handling GitHub webhooks
     if (env.MANAGER_USE_SSL) {
         createHttpsServer(
             env.MANAGER_PORT,

@@ -13,17 +13,23 @@ export async function renameStartingContainer(workerName: string): Promise<void>
     await docker("rename", `${workerName}-starting`, workerName);
 }
 
+export async function pullImage(workerImage: string): Promise<void> {
+    await docker("pull", workerImage);
+}
+
 export async function startWorker(
     workerImage: string,
     workerName: string,
     workerEnv: Record<string, string>,
     fetchUrlWhenLoaded: string,
+    maxMemoryInBytes: null | number,
 ): Promise<string> {
     const id = await docker(
         "run", "-d",
-        "--name", `${workerName}-starting`,
+        "--name", workerName,
         "--network", `container:${MANAGER_ID}`,
         ...Object.entries(workerEnv).flatMap(([k, v]) => ["--env", `${k}=${v}`]),
+        ...maxMemoryInBytes == null ? [] : ["--memory", `${maxMemoryInBytes}b`],
         "--env", `FETCH_URL_WHEN_LOADED=${fetchUrlWhenLoaded}`,
         "-v", await getEnvBind(),
         workerImage,
@@ -46,6 +52,7 @@ export async function stopWorker(workerName: string): Promise<boolean> {
 }
 
 export async function removeWorker(workerName: string): Promise<boolean> {
+    await stopWorker(workerName);
     try {
         await docker("rm", workerName);
         return true;
