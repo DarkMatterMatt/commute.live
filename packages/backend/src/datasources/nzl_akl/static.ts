@@ -158,7 +158,8 @@ async function postImport(db: SqlDatabase): Promise<void> {
     await addRouteSummaries(db);
 
     // rebuilds the database file, repacking it into a minimal amount of disk space
-    await db.run("VACUUM");
+    // disabled for now because we run out of memory on servers with 1GB RAM
+    //await db.run("VACUUM");
 }
 
 /**
@@ -209,7 +210,8 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
         await batcher.queue(points[0].id, dist);
 
         for (let i = 1; i < points.length; i++) {
-            dist += defaultProjection.getDistBetweenLatLngs(points[i - 1], points[i]);
+            // distance is returned in meters, Auckland Transport uses kilometers
+            dist += defaultProjection.getDistBetweenLatLngs(points[i - 1], points[i]) / 1000;
             await batcher.queue(points[i].id, dist);
         }
     }
@@ -250,7 +252,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         'Stn', 'Station'),
         '.', '')`;
 
-    const routes: {
+    let routes: {
         directionId: 0 | 1;
         longName: string;
         routeCount: number;
@@ -258,6 +260,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         routeType: number;
         shapeId: string;
         shortName: string;
+        tripHeadsign: string;
     }[] = await db.all(`
         SELECT
             direction_id AS directionId,
@@ -267,13 +270,12 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             route_type AS routeType,
             T.shape_id AS shapeId,
             route_short_name AS shortName,
-            MAX(shape_version)
+            ${normaliseLongName("trip_headsign")} AS tripHeadsign
         FROM trips T
         INNER JOIN (
             SELECT
                 shape_id,
-                CAST(MAX(shape_dist_traveled) AS INT) as shape_length,
-                CAST(SUBSTR(shape_id, INSTR(shape_id, '_v') + 2) AS REAL) AS shape_version
+                MAX(shape_dist_traveled) as shape_length
             FROM shapes
             GROUP BY shape_id
         ) S ON S.shape_id=T.shape_id
@@ -288,9 +290,17 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             SELECT route_id, route_short_name, ${normaliseLongName("route_long_name")} AS route_long_name, route_type
             FROM routes
         ) R ON R.route_id=T.route_id
-        GROUP BY direction_id, route_long_name
+        GROUP BY direction_id, route_long_name, trip_headsign
         ORDER BY route_short_name, direction_id
     `);
+
+    // Auckland Transport no longer provides route_long_name, so we use the trip headsign instead.
+    routes = routes.map(({ longName, shortName, tripHeadsign, ...rest }) => ({
+        longName: (longName && longName !== shortName) ? longName : tripHeadsign,
+        shortName,
+        tripHeadsign,
+        ...rest,
+    }));
 
     await db.run(`
         CREATE TABLE route_summaries (
