@@ -1,17 +1,17 @@
 import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position, JSONSerializable } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
-import { parseEnum, PersistentWebSocket } from "~/helpers/";
+import { parseEnum, MultiPersistentWebSocket } from "~/helpers/";
 import { getLogger } from "~/log.js";
 
 /**
  * Restart delay for first WebSocket error is 200ms, for the third error it is 8s, etc.
  */
-const RESTART_DELAY = [0.2, 3, 8, 20, 40, 60, 90, 120];
+const RESTART_DELAY = [200, 3000, 8000, 20_000, 40_000, 60_000, 90_000, 120_000];
 
-const log = getLogger("NZLAKL/realtime");
+const log = getLogger("NZLAKL/realtime/ws");
 
-let pws: PersistentWebSocket;
-let consecutiveErrors = 0;
+let mpws: MultiPersistentWebSocket;
+const consecutiveErrors: number[] = [];
 
 let addTripUpdate: (tripUpdate: TripUpdate) => void;
 
@@ -19,8 +19,8 @@ let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => void;
 
 export async function getStatus(): Promise<JSONSerializable> {
     return {
-        readyState: pws.readyState,
-        lastReceiveTime: pws.getLastReceive(),
+        readyState: mpws.readyState,
+        lastReceiveTime: mpws.getLastReceive(),
         consecutiveErrors,
     };
 }
@@ -28,24 +28,28 @@ export async function getStatus(): Promise<JSONSerializable> {
 /**
  * The WebSocket closed (we should probably restart it).
  */
-function onClose(code: number, reason: string): undefined | number {
-    log.debug("WebSocket closed with code.", code, reason);
-    return;
+function onClose(wsIdx: number, code: number, reason: string): undefined | number {
+    log.debug(`WebSocket[${wsIdx}] closed.`, `Code ${code}, restarting in 500ms`, reason);
+    return 500;
 }
 
 /**
  * An error occurred and the WebSocket will be restarted.
  */
-function onError(err: Error): undefined | number {
-    const delay = RESTART_DELAY[Math.min(consecutiveErrors++, RESTART_DELAY.length - 1)];
-    log.warn("WebSocket errored.", `#${consecutiveErrors}: ${delay}s.`, err);
-    return 1000 * delay;
+function onError(wsIdx: number, err: Error): undefined | number {
+    consecutiveErrors[wsIdx]++;
+    const delay = RESTART_DELAY[Math.min(consecutiveErrors[wsIdx], RESTART_DELAY.length - 1)];
+
+    const errToLog = err.message.includes("Unexpected server response") ? err.message : err;
+    log.warn(`WebSocket[${wsIdx}] errored.`,
+        `${consecutiveErrors[wsIdx]} consecutive errors, restarting in ${delay}ms.`, errToLog);
+    return delay;
 }
 
 /**
  * Received a message.
  */
-function onMessage(data_: string): void {
+function onMessage(wsIdx: number, data_: string): void {
     // NOTE: AT's WebSocket incorrectly uses camelCase keys, string timestamps, and string enums
     const data: FeedEntity & Record<string, any> = JSON.parse(data_);
 
@@ -66,14 +70,12 @@ function onMessage(data_: string): void {
 /**
  * A new WebSocket connection was opened.
  */
-function onOpen(): void {
+function onOpen(wsIdx: number): void {
     // reset number of errors
-    if (consecutiveErrors > 1) {
-        log.verbose(`WebSocket opened successfully after ${consecutiveErrors} consecutive errors.`);
-    }
-    consecutiveErrors = 0;
+    log.verbose(`WebSocket[${wsIdx}] opened successfully after ${consecutiveErrors[wsIdx]} consecutive errors.`);
+    consecutiveErrors[wsIdx] = 0;
 
-    pws.send(JSON.stringify({
+    mpws.send(wsIdx, JSON.stringify({
         // appears to be a stripped-down GraphQL API
         filters: { },
         query: "{ id vehicle tripUpdate trip_update alert }",
@@ -88,18 +90,27 @@ export async function initialize(
     addTripUpdate = addTripUpdate_;
     addVehicleUpdate = addVehicleUpdate_;
 
-    pws = new PersistentWebSocket({
+    const concurrentConnections = 2;
+    consecutiveErrors.length = concurrentConnections;
+    consecutiveErrors.fill(0);
+
+    mpws = new MultiPersistentWebSocket({
+        allConnectionsSilentThreshold: 30 * 60 * 1000,
+        concurrentConnections,
+        lagThreshold: 6000,
+        logger: getLogger(`${log.label}:MultiPersistentWebSocket`),
         onClose,
         onError,
         onMessage,
         onOpen,
-        url,
-        stallThreshold: 3000, // restart if server doesn't send us anything for 3 seconds
+        stallThreshold: 5000, // restart if server doesn't send us anything for 5 seconds
+        startDelayBetweenConnections: 5000,
+        url: wsIdx => `${url}#${wsIdx}`,
     });
 }
 
 export async function terminate(): Promise<void> {
-    pws.terminate();
+    mpws.terminate();
 }
 
 function fixPosition(p: Position & Record<string, any>): Position {

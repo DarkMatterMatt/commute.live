@@ -2,6 +2,7 @@ export * from "./crypto.js";
 export * from "./enum.js";
 export * from "./line.js";
 export * from "./MercatorProjection.js";
+export * from "./MultiPersistentWebSocket.js";
 export * from "./number.js";
 export * from "./PersistentWebSocket.js";
 export * from "./promise.js";

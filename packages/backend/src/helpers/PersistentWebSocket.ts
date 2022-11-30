@@ -256,6 +256,8 @@ export class PersistentWebSocket {
             // we received data recently
             return;
         }
+
+        this.log.verbose(`No data received for ${this.stallThreshold}ms, restarting WebSocket`);
         this.restart(RESTART_DELAY_AFTER_STALL);
     }
 
