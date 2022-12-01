@@ -1,9 +1,9 @@
-import { SqlDatabase } from "gtfs";
-import { JSONSerializable } from "@commutelive/common";
-import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
+import type { JSONSerializable } from "@commutelive/common";
+import type { SqlDatabase } from "gtfs";
 import { TimedMap } from "~/helpers/";
 import { getLogger } from "~/log.js";
-import { initialize as initializeWebSocket, getStatus as getWebSocketStatus } from "./realtime_websocket.js";
+import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
+import { getStatus as getWebSocketStatus, initialize as initializeWebSocket } from "./realtime_websocket.js";
 import { getRouteIdsByShortName, getTripIdsByShortName } from "./static_queries.js";
 
 const MINUTE = 60 * 1000;

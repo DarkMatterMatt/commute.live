@@ -1,5 +1,5 @@
+import type HtmlMarker from "./HtmlMarker";
 import ShiftedMapCanvasProjection from "./ShiftedMapCanvasProjection";
-import HtmlMarker from "./HtmlMarker";
 
 class HtmlMarkerView extends google.maps.OverlayView {
     private root = document.createElement("div");

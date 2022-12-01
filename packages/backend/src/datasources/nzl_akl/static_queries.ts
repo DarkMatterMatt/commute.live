@@ -1,4 +1,4 @@
-import type { StrOrNull, LatLng } from "@commutelive/common";
+import type { LatLng, StrOrNull } from "@commutelive/common";
 import type { SqlDatabase } from "gtfs";
 import { defaultProjection } from "~/helpers/";
 import type { RouteSummary, ShapeLatLng } from "~/types";

@@ -4,7 +4,6 @@ module.exports = {
     ],
     env: {
         commonjs: true,
-        node: true,
     },
     parserOptions: {
         ecmaVersion: 2021,

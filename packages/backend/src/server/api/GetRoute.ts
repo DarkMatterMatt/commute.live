@@ -1,9 +1,9 @@
-import { PromiseOr } from "@commutelive/common";
-import { URLSearchParams } from "node:url";
-import { HttpResponse, WebSocket } from "uWebSockets.js";
+import type { URLSearchParams } from "node:url";
+import type { PromiseOr } from "@commutelive/common";
+import type { HttpResponse, WebSocket } from "uWebSockets.js";
 import { md5 } from "~/helpers/";
 import type { DataSource, RegionCode } from "~/types";
-import { Route, RouteGen, RouteExecuteOpts, CreateRouteData } from "../Route.js";
+import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen } from "../Route.js";
 
 const DEFAULT_CACHE_MAX_AGE = 3600; // 1 hour
 

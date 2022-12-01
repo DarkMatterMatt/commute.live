@@ -1,8 +1,8 @@
-import type { TimerId } from "~/types";
 import { clearInterval, clearTimeout, setInterval, setTimeout } from "node:timers";
 import WebSocket from "ws";
-import { getLogger, Logger } from "~/log";
-import { PersistentWebSocket, SendCb, SendOpts } from "./PersistentWebSocket";
+import { getLogger, type Logger } from "~/log";
+import type { TimerId } from "~/types";
+import { PersistentWebSocket, type SendCb, type SendOpts } from "./PersistentWebSocket";
 
 export interface MultiPersistentWebSocketOpts {
     /**

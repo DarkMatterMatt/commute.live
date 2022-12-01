@@ -1,4 +1,4 @@
-import Setting, { BooleanSetting, StringSetting, NumberSetting } from "./Setting";
+import { BooleanSetting, NumberSetting, type Setting, StringSetting } from "./Setting";
 
 function getInput(id: string): HTMLInputElement {
     return document.getElementById(id) as HTMLInputElement;

@@ -1,5 +1,5 @@
-import ShiftedMapCanvasProjection from "./ShiftedMapCanvasProjection";
 import { fromLatLngLiteral } from "./Helpers";
+import type ShiftedMapCanvasProjection from "./ShiftedMapCanvasProjection";
 
 export interface HtmlMarkerOptions {
     anchorPoint?: google.maps.Point;

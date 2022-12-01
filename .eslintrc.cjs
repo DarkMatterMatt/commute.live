@@ -9,7 +9,11 @@ module.exports = {
     env: {
         es6: true,
     },
+    ignorePatterns: [".eslintrc.*"],
     parser: "@typescript-eslint/parser",
+    parserOptions: {
+        project: "tsconfig.json",
+    },
     plugins: [
         "@typescript-eslint",
         "import",
@@ -36,6 +40,8 @@ module.exports = {
         "@typescript-eslint/camelcase": "off",
         "comma-dangle": "off",
         "@typescript-eslint/comma-dangle": ["warn", "always-multiline"],
+        "@typescript-eslint/consistent-type-exports": ["warn"],
+        "@typescript-eslint/consistent-type-imports": ["warn"],
         "eqeqeq": ["error", "smart"],
         "@typescript-eslint/indent": ["warn", 4, {
             SwitchCase: 1,
@@ -46,6 +52,7 @@ module.exports = {
             comments: 100,
             ignorePattern: "^\\s*import.*from.*;$", // ignore long imports
         }],
+        "no-duplicate-imports": "warn",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-inferrable-types": ["warn", {
             ignoreParameters: true,
@@ -61,6 +68,21 @@ module.exports = {
         }],
         "object-curly-spacing": ["warn", "always"],
         "operator-linebreak": ["warn", "before"],
+        "import/order": ["warn", {
+            alphabetize: {
+                order: "asc",
+                caseInsensitive: true,
+            },
+            groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+            pathGroups: [{
+                pattern: "@commutelive/**",
+                group: "internal",
+                position: "before",
+            }, {
+                pattern: "~/**",
+                group: "internal",
+            }],
+        }],
         "prefer-destructuring": "warn",
         "prefer-template": "warn",
         "quotes": "off",
@@ -69,5 +91,9 @@ module.exports = {
         }],
         "quote-props": ["error", "consistent-as-needed"],
         "semi": ["error", "always"],
+        "sort-imports": ["error", {
+            "ignoreCase": true,
+            "ignoreDeclarationSort": true,
+        }]
     },
 };

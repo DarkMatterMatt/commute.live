@@ -4,8 +4,8 @@ import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRe
 import env from "~/env.js";
 import { TimedMap } from "~/helpers/";
 import { getLogger } from "~/log.js";
-import type { DataSource, TripDescriptor, TripUpdate, VehiclePosition } from "~/types/";
 import { publishTripUpdate, publishVehiclePosition, startServer } from "~/server/";
+import type { DataSource, TripDescriptor, TripUpdate, VehiclePosition } from "~/types/";
 
 const LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE = true;
 

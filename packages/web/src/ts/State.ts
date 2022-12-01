@@ -1,11 +1,11 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import type { LiveVehicle } from "@commutelive/common";
-import Route from "./Route";
-import Render from "./Render";
-import { localStorageEnabled, isEmptyObject } from "./Helpers";
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { api } from "./Api";
+import { isEmptyObject, localStorageEnabled } from "./Helpers";
+import type HtmlMarkerView from "./HtmlMarkerView";
+import Render from "./Render";
+import Route from "./Route";
 import { settings } from "./Settings";
-import HtmlMarkerView from "./HtmlMarkerView";
 
 const STATE_VERSION = 2;
 

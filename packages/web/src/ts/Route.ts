@@ -1,6 +1,6 @@
-import { LiveVehicle } from "@commutelive/common";
+import type { LiveVehicle } from "@commutelive/common";
 import { api } from "./Api";
-import HtmlMarkerView from "./HtmlMarkerView";
+import type HtmlMarkerView from "./HtmlMarkerView";
 import VehicleMarker from "./VehicleMarker";
 
 /** Snap location to route if within this many meters */

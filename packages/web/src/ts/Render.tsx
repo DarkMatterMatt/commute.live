@@ -1,7 +1,7 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
+import type { LiveVehicle } from "@commutelive/common";
 import Pickr from "@simonwep/pickr";
 import type { hex } from "color-convert/route";
-import type { LiveVehicle } from "@commutelive/common";
 import { largeScreen } from "./Helpers";
 import React from "./JsxElem";
 

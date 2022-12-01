@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import type { PromiseOr, JSONSerializable } from "@commutelive/common";
+import type { JSONSerializable, PromiseOr } from "@commutelive/common";
 import type { DataSource, RegionCode } from "~/types";
 import { NZL_AKL } from "./nzl_akl/";
 

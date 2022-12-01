@@ -1,13 +1,13 @@
 import { URLSearchParams } from "node:url";
 import Graceful from "node-graceful";
-import uWS, { us_listen_socket, WebSocket } from "uWebSockets.js";
-import { getLogger } from "~/log.js";
-import env from "~/env.js";
-import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
-import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
-import type { DataSource, RegionCode, TripUpdate, VehiclePosition } from "~/types";
+import uWS, { type us_listen_socket, type WebSocket } from "uWebSockets.js";
 import { getStatus as getDataSourcesStatus, getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
+import env from "~/env.js";
+import { getLogger } from "~/log.js";
+import type { DataSource, RegionCode, TripUpdate, VehiclePosition } from "~/types";
+import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
 import { convertTripUpdate, convertVehiclePosition } from "./transmission";
+import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
 

@@ -1,8 +1,8 @@
-import { JSONSerializable } from "@commutelive/common";
-import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position } from "~/types";
-import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
-import { parseEnum, MultiPersistentWebSocket } from "~/helpers/";
+import type { JSONSerializable } from "@commutelive/common";
+import { MultiPersistentWebSocket, parseEnum } from "~/helpers/";
 import { getLogger } from "~/log.js";
+import type { FeedEntity, Position, StopTimeUpdate, TripDescriptor, TripUpdate, TripUpdate$StopTimeEvent, VehicleDescriptor, VehiclePosition } from "~/types";
+import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
 
 /**
  * Restart delay for first WebSocket error is 200ms, for the third error it is 8s, etc.

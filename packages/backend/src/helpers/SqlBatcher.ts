@@ -1,4 +1,4 @@
-import { SqlDatabase } from "gtfs";
+import type { SqlDatabase } from "gtfs";
 import { getLogger } from "~/log";
 
 const log = getLogger("SQLBatcher");

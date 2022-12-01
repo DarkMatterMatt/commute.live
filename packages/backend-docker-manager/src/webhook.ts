@@ -1,7 +1,7 @@
-import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 import fs from "node:fs";
 import http from "node:http";
 import https from "node:https";
+import { createNodeMiddleware, Webhooks } from "@octokit/webhooks";
 
 type Middleware = ReturnType<typeof createNodeMiddleware>;
 

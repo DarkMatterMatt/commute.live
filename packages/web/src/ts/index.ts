@@ -3,14 +3,14 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import type { LiveVehicle } from "@commutelive/common";
-import { state } from "./State";
 import { api } from "./Api";
-import Search from "./Search";
-import mapThemes from "./mapThemes";
-import { settings } from "./Settings";
-import { render } from "./Render";
 import { isOnline, largeScreen } from "./Helpers";
 import HtmlMarkerView from "./HtmlMarkerView";
+import mapThemes from "./mapThemes";
+import { render } from "./Render";
+import Search from "./Search";
+import { settings } from "./Settings";
+import { state } from "./State";
 
 const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 const OPEN_MENU_ON_FIRST_VISIT_TIMEOUT = 5 * 1000;

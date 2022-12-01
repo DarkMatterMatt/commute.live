@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 
-export default abstract class Setting {
+export abstract class Setting {
     private changeListeners: ((value: any, name: string) => void)[] = [];
 
     protected $elem: HTMLInputElement;

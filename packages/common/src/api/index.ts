@@ -1,4 +1,4 @@
-import { LatLng } from "~/geo";
+import type { LatLng } from "~/geo";
 
 export interface LiveVehicle {
     status: "success",

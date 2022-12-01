@@ -1,7 +1,7 @@
-import type { TimerId } from "~/types";
 import { clearInterval, clearTimeout, setInterval, setTimeout } from "node:timers";
 import WebSocket from "ws";
-import { getLogger, Logger } from "~/log";
+import { getLogger, type Logger } from "~/log";
+import type { TimerId } from "~/types";
 
 export const CLOSE_CODE_RESTART = 4002;
 export const CLOSE_CODE_STOPPING = 4003;
