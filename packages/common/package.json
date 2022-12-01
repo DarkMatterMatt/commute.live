@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/common",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "description": "Contains shared types and functions for [Commute.live](https://commute.live).",
     "main": "dist/index.js",
     "author": "Matt Moran",
@@ -23,7 +23,6 @@
     "engines": {
         "node": ">=18"
     },
-    "dependencies": {},
     "devDependencies": {
         "eslint-import-resolver-typescript": "^3.5.2",
         "rimraf": "^3.0.2",
