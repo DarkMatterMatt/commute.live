@@ -8,6 +8,7 @@
         "prepare": "lerna bootstrap"
     },
     "devDependencies": {
-        "lerna": "^6.0.3"
+        "lerna": "^6.0.3",
+        "nx": "^15.2.4"
     }
 }

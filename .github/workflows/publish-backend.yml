@@ -13,7 +13,15 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  check-for-changes:
+    if: github.event_name != 'workflow_dispatch'
+    uses: ./.github/workflows/assert-package-changed.yml
+    with:
+      package: "@commutelive/backend"
+
   build-and-push-image:
+    needs: check-for-changes
+
     runs-on: ubuntu-latest
     permissions:
       contents: read

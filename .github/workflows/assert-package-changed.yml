@@ -1,0 +1,27 @@
+name: Assert that package has been changed
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+
+jobs:
+  assert-package-changed:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: nrwl/nx-set-shas@v3
+
+      - run: npm ci --ignore-scripts
+
+      - id: early-exit
+        name: Early exit
+        run: npx nx print-affected --select=projects | sed 's/, /\n/g' | grep "${{ inputs.package }}"
