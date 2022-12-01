@@ -2,6 +2,7 @@ import "../scss/styles.scss";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
+import type { LiveVehicle } from "@commutelive/common";
 import { state } from "./State";
 import { api } from "./Api";
 import Search from "./Search";

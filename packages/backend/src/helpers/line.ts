@@ -1,4 +1,4 @@
-import { Point } from "../types";
+import type { Point } from "@commutelive/common";
 
 /* Magic from https://stackoverflow.com/a/30269960 */
 

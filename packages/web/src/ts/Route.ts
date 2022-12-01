@@ -1,3 +1,4 @@
+import { LiveVehicle } from "@commutelive/common";
 import { api } from "./Api";
 import HtmlMarkerView from "./HtmlMarkerView";
 import VehicleMarker from "./VehicleMarker";

@@ -1,6 +1,7 @@
-import type { DataSource, JSONSerializable, PromiseOr, RegionCode } from "~/types";
-import path from "node:path";
 import { existsSync, mkdirSync } from "node:fs";
+import path from "node:path";
+import type { PromiseOr, JSONSerializable } from "@commutelive/common";
+import type { DataSource, RegionCode } from "~/types";
 import { NZL_AKL } from "./nzl_akl/";
 
 const regions = new Map([

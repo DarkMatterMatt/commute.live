@@ -1,3 +1,4 @@
+import type { LiveVehicle } from "@commutelive/common";
 import { afterRepaint } from "./Helpers";
 import HtmlMarker from "./HtmlMarker";
 import Render from "./Render";

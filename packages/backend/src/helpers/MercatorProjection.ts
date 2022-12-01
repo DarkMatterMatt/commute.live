@@ -1,4 +1,4 @@
-import { LatLng, Point } from "~/types";
+import { LatLng, Point } from "@commutelive/common";
 import { clamp, degreesToRadians, radiansToDegrees } from "~/helpers/";
 
 const ALMOST_ONE = 1 - 1e-15;

@@ -2,11 +2,6 @@ type TransitType = "bus" | "rail" | "ferry";
 
 type MarkerType = "marker" | "pointyCircle";
 
-interface LatLng {
-    lat: number;
-    lng: number;
-}
-
 interface SearchRoute {
     type?: TransitType;
     shortName: string;

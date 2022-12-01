@@ -1,4 +1,4 @@
-import type { LatLng, Point } from "../";
+import type { LatLng, Point } from "@commutelive/common";
 
 export interface ShapeLatLng extends LatLng {
     dist: number;

@@ -1,17 +1,13 @@
-import type { SqlDatabase } from "gtfs";
-import type { Response } from "node-fetch";
+import { closeDb, openDb, importGtfs, type SqlDatabase } from "gtfs";
+import fetch, { type Response } from "node-fetch";
 import Graceful from "node-graceful";
-import { closeDb, openDb, importGtfs } from "gtfs";
 import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
-import { basename } from "node:path";
+import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
-import fetch from "node-fetch";
-import path from "path";
-import { sleep, SqlBatcher } from "~/helpers/";
+import type { JSONSerializable, StrOrNull } from "@commutelive/common";
+import { defaultProjection, sleep, SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
-import { defaultProjection } from "~/helpers/MercatorProjection.js";
-import type { JSONSerializable, StrOrNull } from "~/types";
 
 const log = getLogger("NZLAKL/static");
 

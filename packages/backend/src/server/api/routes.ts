@@ -1,6 +1,6 @@
+import type { LatLng, LiveVehicle, StrOrNull } from "@commutelive/common";
 import { never } from "~/helpers/";
-import type { LatLng, StrOrNull } from "~/types";
-import { convertVehiclePosition, LiveVehicle } from "../transmission/vehicleUpdate.js";
+import { convertVehiclePosition } from "../transmission/vehicleUpdate.js";
 import { GetRouteGenerator } from "./GetRoute.js";
 
 const validFields = [

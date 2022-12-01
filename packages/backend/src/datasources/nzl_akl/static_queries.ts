@@ -1,6 +1,7 @@
-import { SqlDatabase } from "gtfs";
+import type { StrOrNull, LatLng } from "@commutelive/common";
+import type { SqlDatabase } from "gtfs";
 import { defaultProjection } from "~/helpers/";
-import { LatLng, RouteSummary, ShapeLatLng, StrOrNull } from "~/types";
+import type { RouteSummary, ShapeLatLng } from "~/types";
 
 async function getLongNameByShortNameDirection(
     db: SqlDatabase,

@@ -1,4 +1,5 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
+import type { LiveVehicle } from "@commutelive/common";
 import Route from "./Route";
 import Render from "./Render";
 import { localStorageEnabled, isEmptyObject } from "./Helpers";

@@ -1,3 +1,5 @@
+import type { LiveVehicle, LatLng } from "@commutelive/common";
+
 // eslint-disable-next-line max-len
 type QueryRouteInfo = "shortName" | "longNames" | "vehicles" | "type" | "polylines";
 

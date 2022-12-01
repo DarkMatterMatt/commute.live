@@ -1,4 +1,5 @@
-import type { JSONSerializable, LatLng, StrOrNull, TripUpdate, VehiclePosition } from "./";
+import type { JSONSerializable, LatLng, StrOrNull } from "@commutelive/common";
+import type { TripUpdate, VehiclePosition } from "./";
 
 /**
  * Globally unique region code.

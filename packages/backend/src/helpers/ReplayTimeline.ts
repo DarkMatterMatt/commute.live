@@ -1,4 +1,4 @@
-import { PromiseOr } from "~/types";
+import type { PromiseOr } from "@commutelive/common";
 import { Queue } from "./Queue.js";
 
 /**

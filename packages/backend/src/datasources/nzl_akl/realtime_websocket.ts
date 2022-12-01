@@ -1,4 +1,5 @@
-import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position, JSONSerializable } from "~/types";
+import { JSONSerializable } from "@commutelive/common";
+import type { FeedEntity, TripDescriptor, TripUpdate, StopTimeUpdate, VehicleDescriptor, VehiclePosition, TripUpdate$StopTimeEvent, Position } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
 import { parseEnum, MultiPersistentWebSocket } from "~/helpers/";
 import { getLogger } from "~/log.js";
