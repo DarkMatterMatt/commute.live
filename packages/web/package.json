@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/web",
-    "version": "2.1.2",
+    "version": "2.1.3",
     "description": "The front-end of [commute.live](https://commute.live), which provides bus, train and ferry tracking on a map.",
     "main": "src/ts/index.ts",
     "engines": {
