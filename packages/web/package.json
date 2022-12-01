@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/web",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "description": "The front-end of [commute.live](https://commute.live), which provides bus, train and ferry tracking on a map.",
     "main": "src/ts/index.ts",
     "engines": {
@@ -8,7 +8,7 @@
     },
     "dependencies": {
         "@babel/runtime": "^7.20.1",
-        "@commutelive/common": "^2.1.0",
+        "@commutelive/common": "^2.2.0",
         "@simonwep/pickr": "^1.8.2",
         "@types/color-convert": "^2.0.0",
         "babel-plugin-transform-react-jsx": "^6.24.1",
