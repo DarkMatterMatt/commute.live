@@ -19,15 +19,15 @@ interface ParsedState {
     settings: Record<string, any>;
 }
 
-let instance: State = null;
+let instance: State | null = null;
 
 class State {
     /** Is the user's first visit (i.e. user has never modified the default routes & settings). */
-    private bIsFirstVisit: boolean;
+    private bIsFirstVisit = true;
 
-    private map: google.maps.Map = null;
+    private map: google.maps.Map | null = null;
 
-    private markerView: HtmlMarkerView;
+    private markerView: HtmlMarkerView | null = null;
 
     private routesByShortName = new Map<string, Route>();
 
@@ -118,11 +118,20 @@ class State {
         const showTransitRoutes = settings.getBool("showTransitRoutes");
         const markerType = settings.getStr("markerType") as MarkerType;
 
+        const { map, markerView } = this;
+        if (map == null || markerView == null) {
+            throw new Error("Map or markerView is not set");
+        }
+
         routes.forEach(([shortName, active, color]) => {
             if (!routesData.has(shortName)) {
                 return;
             }
-            const { longName, type } = routesData.get(shortName);
+            const { longName, type } = routesData.get(shortName) ?? {};
+            if (longName == null || type == null) {
+                console.warn(`Route ${shortName} not found`);
+                return;
+            }
 
             const route = new Route({
                 animateMarkerPosition,
@@ -131,15 +140,20 @@ class State {
                 longName,
                 color,
                 type,
-                map: this.map,
-                markerView: this.markerView,
+                map,
+                markerView,
                 markerType,
             });
             this.routesByShortName.set(shortName, route);
 
             if (active) {
-                const $activeRoute = Render.createActiveRoute({ type, shortName, longName }, route.color, false,
-                    this.changeRouteColor.bind(this), this.deactivateRoute.bind(this));
+                const $activeRoute = Render.createActiveRoute(
+                    { type, shortName, longName },
+                    route.color,
+                    false,
+                    this.changeRouteColor.bind(this),
+                    this.deactivateRoute.bind(this),
+                );
                 this.$activeRoutes.appendChild($activeRoute);
                 route.activate();
             }
@@ -195,7 +209,7 @@ class State {
         route.showVehicle(data);
     }
 
-    changeRouteColor({ shortName }: SearchRoute, color: string): void {
+    changeRouteColor(shortName: string, color: string): void {
         const route = this.routesByShortName.get(shortName);
         if (route) {
             route.setColor(color);
@@ -203,7 +217,7 @@ class State {
         this.save();
     }
 
-    deactivateRoute({ shortName, $activeRoute }: SearchRoute): void {
+    deactivateRoute(shortName: string, $activeRoute: HTMLDivElement): void {
         const route = this.routesByShortName.get(shortName);
         if (route !== undefined) {
             route.deactivate();
@@ -213,6 +227,11 @@ class State {
     }
 
     async activateRoute({ shortName, longName, type }: SearchRoute): Promise<void> {
+        const { map, markerView } = this;
+        if (map == null || markerView == null) {
+            throw new Error("Map or markerView is not set");
+        }
+
         let route = this.routesByShortName.get(shortName);
         let showPickr = false;
         if (route === undefined) {
@@ -227,8 +246,8 @@ class State {
                 longName,
                 type,
                 color: this.getNewColor(),
-                map: this.map,
-                markerView: this.markerView,
+                map,
+                markerView,
                 markerType,
             });
             this.routesByShortName.set(shortName, route);
@@ -242,7 +261,7 @@ class State {
         this.save();
     }
 
-    async loadRouteVehicles({ shortName }: SearchRoute): Promise<void> {
+    async loadRouteVehicles(shortName: string): Promise<void> {
         const route = this.routesByShortName.get(shortName);
         if (route === undefined) {
             console.error(`Could not reload vehicles for route: ${shortName}. Route is not in routesByShortName.`);
@@ -254,7 +273,7 @@ class State {
     async loadActiveRoutesVehicles(): Promise<void> {
         await Promise.all([...this.routesByShortName.values()]
             .filter(r => r.isActive())
-            .map(r => this.loadRouteVehicles(r)));
+            .map(r => this.loadRouteVehicles(r.shortName)));
     }
 }
 

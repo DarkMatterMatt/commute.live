@@ -24,7 +24,7 @@ interface RouteOptions {
 class Route {
     map: google.maps.Map;
 
-    markerView: HtmlMarkerView = null;
+    markerView: HtmlMarkerView | null = null;
 
     type: TransitType;
 
@@ -75,28 +75,34 @@ class Route {
     }
 
     showVehicle(v: LiveVehicle): void {
-        let marker = this.vehicleMarkers.get(v.vehicleId);
+        const { vehicleId: id } = v;
+        if (id == null) {
+            console.warn("Vehicle is missing identifier", v);
+            return;
+        }
+
+        let marker = this.vehicleMarkers.get(id);
         if (marker == null) {
             marker = new VehicleMarker({
-                id: v.vehicleId,
+                id,
                 color: this.color,
-                onExpiry: () => this.removeVehicle(v.vehicleId),
+                onExpiry: () => this.removeVehicle(id),
                 animatePosition: this.animateMarkerPosition,
                 transitType: this.type,
                 markerType: this.markerType,
             });
-            this.vehicleMarkers.set(v.vehicleId, marker);
+            this.vehicleMarkers.set(id, marker);
             if (this.markerView != null) {
                 this.markerView.addMarker(marker);
             }
         }
 
-        const shouldSnap = v.snapDeviation < VEHICLE_SNAP_THRESHOLD;
+        const shouldSnap = v.snapDeviation && v.snapDeviation < VEHICLE_SNAP_THRESHOLD;
 
         marker.updateLiveData({
-            lastUpdated: v.lastUpdated,
+            lastUpdated: v.lastUpdated ?? Date.now(),
             position: shouldSnap ? v.snapPosition : v.position,
-            bearing: v.bearing,
+            bearing: v.bearing ?? -1,
         });
     }
 
@@ -127,11 +133,12 @@ class Route {
     }
 
     setMarkerView(markerView: HtmlMarkerView): void {
-        if (this.markerView != null) {
-            this.vehicleMarkers.forEach(m => this.markerView.removeMarker(m));
+        const oldMarkerView = this.markerView;
+        if (oldMarkerView != null) {
+            this.vehicleMarkers.forEach(m => oldMarkerView.removeMarker(m));
         }
         this.markerView = markerView;
-        this.vehicleMarkers.forEach(m => this.markerView.addMarker(m));
+        this.vehicleMarkers.forEach(m => markerView.addMarker(m));
     }
 
     async setShowTransitRoutes(show: boolean): Promise<void> {
@@ -148,6 +155,9 @@ class Route {
     async loadVehicles(): Promise<void> {
         api.subscribe(this.shortName);
         const { vehicles } = await api.queryRoute(this.shortName, ["vehicles"]);
+        if (vehicles == null) {
+            throw new Error(`No vehicles found for route ${this.shortName}`);
+        }
         Object.values(vehicles).map(v => this.showVehicle(v));
     }
 
@@ -159,6 +169,9 @@ class Route {
         const { map, color } = this;
 
         const { polylines } = await api.queryRoute(this.shortName, ["polylines"]);
+        if (polylines == null) {
+            throw new Error(`No polylines found for route ${this.shortName}`);
+        }
         this.polylines = [
             // background line, so the path isn't affected by the map colour
             new google.maps.Polyline({ map, path: polylines[0], strokeColor: "black" }),

@@ -8,7 +8,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
 
     private markers: Map<string, HtmlMarker> = new Map();
 
-    private worldWidth: number;
+    private worldWidth: number | null = null;
 
     private shiftedProj = new ShiftedMapCanvasProjection(null, 0, 0);
 
@@ -29,8 +29,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
     }
 
     onRemove(): void {
-        this.root.parentNode.removeChild(this.root);
-        this.root = null;
+        this.root.parentNode?.removeChild(this.root);
     }
 
     draw(): void {

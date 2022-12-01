@@ -3,7 +3,7 @@ import Render from "./Render";
 import type State from "./State";
 
 class Search {
-    routes: SearchRoute[];
+    routes: SearchRoute[] = [];
 
     state: State;
 
@@ -103,7 +103,7 @@ class Search {
             return;
         }
 
-        this.routes.forEach(r => {
+        const weighted = this.routes.map(r => {
             let filterWeight = 0;
             if (r.shortNameLower === query) {
                 filterWeight += 50;
@@ -123,13 +123,12 @@ class Search {
                 }
             });
 
-            // eslint-disable-next-line no-param-reassign
-            r.filterWeight = filterWeight;
+            return [filterWeight, r] as const;
         });
 
-        const filtered = this.routes.filter(r => r.filterWeight && !this.state.isActive(r));
-        filtered.sort((a, b) => b.filterWeight - a.filterWeight);
-        this.render(filtered);
+        const filtered = weighted.filter(([weight, r]) => weight && !this.state.isActive(r));
+        filtered.sort(([a], [b]) => b - a);
+        this.render(filtered.map(([, r]) => r));
     }
 }
 

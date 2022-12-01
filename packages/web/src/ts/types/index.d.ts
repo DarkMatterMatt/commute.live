@@ -3,13 +3,10 @@ type TransitType = "bus" | "rail" | "ferry";
 type MarkerType = "marker" | "pointyCircle";
 
 interface SearchRoute {
-    type?: TransitType;
+    type: TransitType;
     shortName: string;
-    shortNameLower?: string;
-    longName?: string;
-    longNameLower?: string;
-    longNameWords?: string[];
-    filterWeight?: number;
-    $searchResult?: HTMLDivElement;
-    $activeRoute?: HTMLDivElement;
+    shortNameLower: string;
+    longName: string;
+    longNameLower: string;
+    longNameWords: string[];
 }

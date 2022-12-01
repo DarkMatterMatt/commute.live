@@ -31,13 +31,13 @@ class VehicleMarker extends HtmlMarker {
 
     private directionId: LiveVehicle["directionId"];
 
-    private expiryTimeout: ReturnType<typeof setTimeout>;
+    private expiryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    private lastUpdated: number = null;
+    private lastUpdated: number | null = null;
 
     private markerType: MarkerType;
 
-    private onExpiry: () => void = null;
+    private onExpiry: (() => void) | null = null;
 
     private transitType: TransitType;
 
@@ -50,7 +50,7 @@ class VehicleMarker extends HtmlMarker {
 
         this.color = o.color;
         this.markerType = o.markerType;
-        this.onExpiry = o.onExpiry;
+        this.onExpiry = o.onExpiry ?? null;
         this.transitType = o.transitType;
     }
 
@@ -79,7 +79,7 @@ class VehicleMarker extends HtmlMarker {
     }
 
     private startOpacityTransition(): void {
-        if (this.isAdded()) {
+        if (this.isAdded() && this.lastUpdated != null) {
             const elapsed = Date.now() - this.lastUpdated;
             const elem = this.getHtmlElement();
             elem.style.transitionProperty = "opacity";
@@ -119,7 +119,7 @@ class VehicleMarker extends HtmlMarker {
 
         // update expiry time
         const elapsed = Date.now() - this.lastUpdated;
-        clearTimeout(this.expiryTimeout);
+        clearTimeout(this.expiryTimeout ?? undefined);
         this.expiryTimeout = setTimeout(() => {
             if (this.onExpiry != null) {
                 this.onExpiry();

@@ -5,7 +5,7 @@ export function largeScreen(): boolean {
     return window.matchMedia("(min-width: 900px)").matches;
 }
 
-let localStorageEnabledResult: boolean = null;
+let localStorageEnabledResult: boolean | null = null;
 /**
  * Test if localStorage is working
  */

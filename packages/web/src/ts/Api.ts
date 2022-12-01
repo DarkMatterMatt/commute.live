@@ -1,4 +1,4 @@
-import type { LatLng, LiveVehicle } from "@commutelive/common";
+import { createPromise, type LatLng, type LiveVehicle } from "@commutelive/common";
 
 // eslint-disable-next-line max-len
 type QueryRouteInfo = "shortName" | "longNames" | "vehicles" | "type" | "polylines";
@@ -11,35 +11,42 @@ interface RoutesResult {
     polylines?: [LatLng[], LatLng[]];
 }
 
-let instance: Api = null;
+let instance: Api | null = null;
 
 class Api {
-    ws: WebSocket = null;
+    private ws: WebSocket | null = null;
 
-    apiUrl = process.env.API_URL;
+    private apiUrl: string;
 
-    wsUrl = process.env.WS_URL;
+    private wsUrl: string;
 
-    wsSeq = 0;
+    private wsSeq = 0;
 
-    wsResponseHandlers: [number, (...args: any[]) => void][] = [];
+    private wsResponseHandlers: [number, (...args: any[]) => void][] = [];
 
-    webSocketConnectedPreviously = false;
+    private webSocketConnectedPreviously = false;
 
-    _onWebSocketReconnect: (ws: WebSocket, ev: Event) => void = null;
+    private _onWebSocketReconnect: ((ws: WebSocket, ev: Event) => void)  | null = null;
 
-    _onMessage: (data: Record<string, any>) => void = null;
+    private _onMessage: ((data: Record<string, any>) => void) | null = null;
 
-    promiseWsConnect: Promise<void>;
+    private promiseWsConnect: Promise<void>;
 
-    resolveWhenWsConnect: (value?: void | Promise<void>) => void;
+    private resolveWhenWsConnect: ((value?: void | Promise<void>) => void);
 
-    subscriptions: string[] = [];
+    private subscriptions: string[] = [];
 
     private constructor() {
-        this.promiseWsConnect = new Promise<void>(resolve => {
-            this.resolveWhenWsConnect = resolve;
-        });
+        if (!process.env.API_URL || !process.env.WS_URL) {
+            throw new Error("API_URL and WS_URL must be set");
+        }
+
+        this.apiUrl = process.env.API_URL;
+        this.wsUrl = process.env.WS_URL;
+
+        const [promiseWsConnect, resolveWhenWsConnect] = createPromise<void>();
+        this.promiseWsConnect = promiseWsConnect;
+        this.resolveWhenWsConnect = resolveWhenWsConnect;
     }
 
     static getInstance(): Api {
@@ -94,8 +101,11 @@ class Api {
             if (r.longNames[0] && r.longNames[1]) {
                 longName = r.longNames[0].localeCompare(r.longNames[1]) < 0 ? r.longNames[0] : r.longNames[1];
             }
-            else if (!!r.longNames[0] !== !!r.longNames[1]) {
-                longName = r.longNames[0] || r.longNames[1];
+            else if (r.longNames[0]) {
+                [longName] = r.longNames;
+            }
+            else if (r.longNames[1]) {
+                [, longName] = r.longNames;
             }
 
             return [r.shortName, { ...r, type, longName }];
@@ -133,10 +143,10 @@ class Api {
     }
 
     wsConnect(): Promise<void> {
-        this.ws = new WebSocket(this.wsUrl);
+        const ws = this.ws = new WebSocket(this.wsUrl);
         let wsHeartbeatInterval: NodeJS.Timeout;
 
-        this.ws.addEventListener("open", ev => {
+        ws.addEventListener("open", ev => {
             this.resolveWhenWsConnect();
 
             this.subscriptions.forEach(shortName => {
@@ -148,7 +158,7 @@ class Api {
             });
 
             if (this.webSocketConnectedPreviously && this._onWebSocketReconnect !== null) {
-                this._onWebSocketReconnect(this.ws, ev);
+                this._onWebSocketReconnect(ws, ev);
             }
             this.webSocketConnectedPreviously = true;
 
@@ -158,7 +168,7 @@ class Api {
             }, 5000);
         });
 
-        this.ws.addEventListener("close", ev => {
+        ws.addEventListener("close", ev => {
             if (!ev.wasClean) {
                 console.warn("WebSocket closed", ev);
             }
@@ -166,7 +176,7 @@ class Api {
             setTimeout(() => this.wsConnect(), 500);
         });
 
-        this.ws.addEventListener("message", ev => {
+        ws.addEventListener("message", ev => {
             const data = JSON.parse(ev.data);
             if (data.seq) {
                 this.wsResponseHandlers.find(([seq]) => seq === data.seq)?.[1](data);

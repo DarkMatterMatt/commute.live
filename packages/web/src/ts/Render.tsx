@@ -1,5 +1,5 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
-import type { LiveVehicle } from "@commutelive/common";
+import { type LiveVehicle, UnreachableError } from "@commutelive/common";
 import Pickr from "@simonwep/pickr";
 import type { hex } from "color-convert/route";
 import { largeScreen } from "./Helpers";
@@ -36,12 +36,15 @@ interface TransitIconOptions {
     backgroundBorderRadius?: number;
 }
 
-let instance: Render = null;
+let instance: Render | null = null;
+
+const activeRouteCache = new Map<string, HTMLDivElement>();
+const searchResultCache = new Map<string, HTMLDivElement>();
 
 class Render {
-    locationCenter: google.maps.Marker;
+    locationCenter: google.maps.Marker | null = null;
 
-    locationAccuracy: google.maps.Circle;
+    locationAccuracy: google.maps.Circle | null = null;
 
     private constructor() {
         //
@@ -54,8 +57,8 @@ class Render {
         return instance;
     }
 
-    showLocation(map: google.maps.Map, coords: GeolocationCoordinates): void {
-        if (map == null) {
+    showLocation(map: google.maps.Map | null, coords: GeolocationCoordinates | null): void {
+        if (map == null || coords == null) {
             if (this.locationCenter != null) {
                 this.locationCenter.setMap(null);
             }
@@ -193,7 +196,7 @@ class Render {
                         icon = "M25.6 52.7c0 4.3 3.5 7.9 7.9 7.9L30.1 64v1.1h27V64l-3.4-3.4c4.3 0 7.9-3.5 7.9-7.9V29.1c0-7.9-8.1-9-18-9s-18 1.1-18 9v23.6zm18 3.4c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2.1 4.5-4.5 4.5zm13.5-15.7h-27V29.1h27v11.3z";
                         break;
                     default:
-                        // impossible
+                        throw new UnreachableError(opts.transitType);
                 }
                 const secondaryColor = Render.shouldUseLightText(opts.color) ? "#FFF" : "#000";
                 // if bearing is less than zero (i.e. not valid), show not-pointy circle
@@ -214,12 +217,16 @@ class Render {
         }
     }
 
-    static createActiveRoute(routeData: SearchRoute, color: string, showPickr: boolean,
-        onColorChange: (routeData: SearchRoute, color: string) => void,
-        onRemove: (routeData: SearchRoute) => void): HTMLDivElement {
-        //
-        if (routeData.$activeRoute) {
-            return routeData.$activeRoute;
+    static createActiveRoute(
+        routeData: Pick<SearchRoute, "type" | "shortName" | "longName">,
+        color: string,
+        showPickr: boolean,
+        onColorChange: (shortName: string, color: string) => void,
+        onRemove: (shortName: string, $activeRoute: HTMLDivElement) => void,
+    ): HTMLDivElement {
+        const cached = activeRouteCache.get(routeData.shortName);
+        if (cached != null) {
+            return cached;
         }
 
         const icon = Render.createTransitIcon({
@@ -274,7 +281,7 @@ class Render {
                 type: routeData.type,
                 fill: Render.shouldUseLightText(newColorStr) ? "#FFF" : "#000",
             }).url;
-            onColorChange(routeData, newColorStr);
+            onColorChange(routeData.shortName, newColorStr);
         });
 
         if (showPickr) {
@@ -283,17 +290,17 @@ class Render {
 
         $remove.addEventListener("click", () => {
             pickr.destroyAndRemove();
-            onRemove(routeData);
+            onRemove(routeData.shortName, $parent);
         });
 
-        // eslint-disable-next-line no-param-reassign
-        routeData.$activeRoute = $parent;
+        activeRouteCache.set(routeData.shortName, $parent);
         return $parent;
     }
 
     static createSearchResult(routeData: SearchRoute, onAdd: (routeData: SearchRoute) => void): HTMLDivElement {
-        if (routeData.$searchResult) {
-            return routeData.$searchResult;
+        const cached = searchResultCache.get(routeData.shortName);
+        if (cached != null) {
+            return cached;
         }
 
         let fill = "";
@@ -328,12 +335,11 @@ class Render {
         $parent.addEventListener("click", () => onAdd(routeData));
 
         // eslint-disable-next-line no-param-reassign
-        routeData.$searchResult = $parent;
+        searchResultCache.set(routeData.shortName, $parent);
         return $parent;
     }
 
     static renderFilterDropdown($dropdown: HTMLElement, routes: SearchRoute[], onAdd: (routeData: SearchRoute) => void): void {
-        /* eslint-disable no-param-reassign */
         $dropdown.innerHTML = "";
 
         if (routes.length === 0) {

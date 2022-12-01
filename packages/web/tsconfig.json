@@ -1,27 +1,15 @@
 {
+    "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "target": "ESNext",
-        "moduleResolution": "node",
+        "baseUrl": ".",
+        "outDir": "dist",
+        "rootDir": "src",
+
+        "target": "ES2015",
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "allowJs": true,
-        "noEmit": true,
-        "isolatedModules": true,
-        "esModuleInterop": true,
         "jsx": "react",
-
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "alwaysStrict": true,
-        "strictBindCallApply": true,
-        "strictNullChecks": false,
-        "strictFunctionTypes": true,
-        "strictPropertyInitialization": false,
-
-        "baseUrl": "./",
-        "paths": {
-            "*" : ["src/ts/types/*"]
-        }
+        
     },
-    "include": [
-        "src"
-    ]
+    "include": ["src"]
 }

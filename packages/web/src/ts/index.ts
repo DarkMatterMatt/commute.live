@@ -19,15 +19,23 @@ const OPEN_MENU_ON_FIRST_VISIT_TIMEOUT = 5 * 1000;
  * DOM Element References
  */
 
-const $map = document.getElementById("map");
-const $searchInput = document.getElementById("search") as HTMLInputElement;
-const $dropdownFilter = document.getElementById("results");
-const $activeRoutes = document.getElementById("active");
-const $main = document.getElementById("main");
-const $navShow = document.getElementById("nav-show");
-const $navHide = document.getElementById("nav-hide");
-const $navAbout = document.getElementById("nav-about");
-const $error = document.getElementById("error");
+function getElementById(elementId: string): HTMLElement {
+    const element = document.getElementById(elementId);
+    if (element == null) {
+        throw new Error(`Element with id ${elementId} not found`);
+    }
+    return element;
+}
+
+const $map = getElementById("map");
+const $searchInput = getElementById("search") as HTMLInputElement;
+const $dropdownFilter = getElementById("results");
+const $activeRoutes = getElementById("active");
+const $main = getElementById("main");
+const $navShow = getElementById("nav-show");
+const $navHide = getElementById("nav-hide");
+const $navAbout = getElementById("nav-about");
+const $error = getElementById("error");
 const [$errorMessage] = $error.getElementsByClassName("message");
 const [$errorBtn] = $error.getElementsByClassName("btn");
 
@@ -36,10 +44,10 @@ const [$errorBtn] = $error.getElementsByClassName("btn");
  */
 
 const navMap: [HTMLElement, HTMLElement][] = [
-    [document.getElementById("nav-map"), document.getElementById("map")],
-    [document.getElementById("nav-routes"), document.getElementById("routes")],
-    [document.getElementById("nav-settings"), document.getElementById("settings")],
-    [document.getElementById("nav-about"), document.getElementById("about")],
+    [getElementById("nav-map"), getElementById("map")],
+    [getElementById("nav-routes"), getElementById("routes")],
+    [getElementById("nav-settings"), getElementById("settings")],
+    [getElementById("nav-about"), getElementById("about")],
 ];
 let [navActive] = navMap;
 
@@ -52,7 +60,7 @@ function hideError() {
     setTimeout(() => $errorBtn.classList.remove("show"), 150);
 }
 
-function showError(msg: string, btnText: string = null, btnCallback: () => void = null) {
+function showError(msg: string, btnText?: string, btnCallback?: (() => void)) {
     $errorMessage.textContent = msg;
 
     if (btnText != null) {
@@ -211,7 +219,7 @@ function onGeolocationError(err: GeolocationPositionError) {
         }
     });
 
-    let geoWatch: number = null;
+    let geoWatch: number | null = null;
     settings.addChangeListener("showLocation", showLocation => {
         if (showLocation) {
             geoWatch = navigator.geolocation.watchPosition(
@@ -221,7 +229,9 @@ function onGeolocationError(err: GeolocationPositionError) {
             );
         }
         else {
-            navigator.geolocation.clearWatch(geoWatch);
+            if (geoWatch != null) {
+                navigator.geolocation.clearWatch(geoWatch);
+            }
             render.showLocation(null, null);
         }
     });

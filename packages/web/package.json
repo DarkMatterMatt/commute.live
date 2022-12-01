@@ -69,7 +69,7 @@
         "clean": "rimraf dist",
         "lint": "eslint src/ts/** --fix",
         "start": "webpack serve --env dev --mode development",
-        "typecheck": "tsc"
+        "typecheck": "tsc --noEmit"
     },
     "repository": {
         "type": "git",

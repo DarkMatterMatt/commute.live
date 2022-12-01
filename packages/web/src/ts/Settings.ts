@@ -16,7 +16,7 @@ const SETTINGS = [
     new StringSetting("markerType", getInput("s-marker-type")),
 ];
 
-let instance: Settings = null;
+let instance: Settings | null = null;
 
 class Settings {
     private settings = new Map<string, Setting>();
@@ -52,7 +52,7 @@ class Settings {
     getBool(name: string): boolean {
         const setting = this.settings.get(name);
         if (!(setting instanceof BooleanSetting)) {
-            throw Error(`Cannot call getBool on a setting of type ${setting.constructor.name}`);
+            throw Error(`Cannot call getBool on a setting of type ${setting?.constructor?.name}`);
         }
         return setting && setting.value;
     }
@@ -60,7 +60,7 @@ class Settings {
     getStr(name: string): string {
         const setting = this.settings.get(name);
         if (!(setting instanceof StringSetting)) {
-            throw Error(`Cannot call getStr on a setting of type ${setting.constructor.name}`);
+            throw Error(`Cannot call getStr on a setting of type ${setting?.constructor?.name}`);
         }
         return setting && setting.value;
     }
@@ -68,7 +68,7 @@ class Settings {
     getNum(name: string): number {
         const setting = this.settings.get(name);
         if (!(setting instanceof NumberSetting)) {
-            throw Error(`Cannot call getNum on a setting of type ${setting.constructor.name}`);
+            throw Error(`Cannot call getNum on a setting of type ${setting?.constructor?.name}`);
         }
         return setting && setting.value;
     }
@@ -76,7 +76,7 @@ class Settings {
     setBool(name: string, val: boolean): void {
         const setting = this.settings.get(name);
         if (!(setting instanceof BooleanSetting)) {
-            throw Error(`Cannot call setBool on a setting of type ${setting.constructor.name}`);
+            throw Error(`Cannot call setBool on a setting of type ${setting?.constructor?.name}`);
         }
         setting.value = val;
     }
@@ -84,7 +84,7 @@ class Settings {
     setStr(name: string, val: string): void {
         const setting = this.settings.get(name);
         if (!(setting instanceof StringSetting)) {
-            throw Error(`Cannot call setStr on a setting of type ${setting.constructor.name}`);
+            throw Error(`Cannot call setStr on a setting of type ${setting?.constructor?.name}`);
         }
         setting.value = val;
     }
@@ -92,13 +92,17 @@ class Settings {
     setNum(name: string, val: number): void {
         const setting = this.settings.get(name);
         if (!(setting instanceof NumberSetting)) {
-            throw Error(`Cannot call setNum on a setting of type ${setting.constructor.name}`);
+            throw Error(`Cannot call setNum on a setting of type ${setting?.constructor?.name}`);
         }
         setting.value = val;
     }
 
     getSetting(name: string): Setting {
-        return this.settings.get(name);
+        const result = this.settings.get(name);
+        if (result == null) {
+            throw Error(`No setting with name ${name}`);
+        }
+        return result;
     }
 
     getNames(): string[] {
