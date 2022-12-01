@@ -2,6 +2,7 @@ import fs from "node:fs";
 import http from "node:http";
 import https from "node:https";
 import { createNodeMiddleware, Webhooks } from "@octokit/webhooks";
+import { log } from "./log.js";
 
 type Middleware = ReturnType<typeof createNodeMiddleware>;
 
@@ -41,7 +42,7 @@ export function createHttpsServer(
             const newKey = fs.readFileSync(keyFile);
             const newCert = fs.readFileSync(certFile);
             if (!newKey.equals(key) || !newCert.equals(cert)) {
-                console.log("SSL certificate changed, updating server");
+                log("SSL certificate changed, updating server");
                 key = newKey;
                 cert = newCert;
                 server.setSecureContext({ key, cert });

@@ -1,6 +1,7 @@
 import http from "node:http";
 import { pullImage, removeWorker, renameStartingContainer, startWorker } from "./docker.js";
 import { getEnv, getWorkerEnv } from "./env.js";
+import { log } from "./log.js";
 import { createHttpServer, createHttpsServer, createWebhookMiddleware } from "./webhook.js";
 
 let restartQueued = false;
@@ -30,15 +31,15 @@ async function gracefullyReloadWorker(
     const loaded = new Promise<void>(res => onWorkerLoad = res);
 
     if (workerImage.includes("/")) {
-        console.log("Downloading updates");
+        log("Downloading updates");
         await pullImage(workerImage);
     }
     else {
-        console.log(`Using local image: ${workerImage}`);
+        log(`Using local image: ${workerImage}`);
     }
 
     // start new worker
-    console.log("Starting new worker");
+    log("Starting new worker");
     await removeWorker(`${workerName}-starting`);
     await startWorker(
         workerImage,
@@ -49,17 +50,17 @@ async function gracefullyReloadWorker(
     );
 
     // wait for worker to load
-    console.log("Waiting for new worker to load");
+    log("Waiting for new worker to load");
     await loaded;
     onWorkerLoad = null;
 
     // stop and remove old worker
-    console.log("Stopping old worker");
+    log("Stopping old worker");
     await removeWorker(workerName);
 
     // rename new "starting" worker to the actual worker name
     await renameStartingContainer(workerName);
-    console.log("Finished graceful reload");
+    log("Finished graceful reload");
 }
 
 function startInternalListener(workerCallbackPort: number, reload: () => void) {
