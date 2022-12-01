@@ -50,9 +50,12 @@ module.exports = {
                     },
                 ]
             }, {
-                test: /\.tsx?$/,
+                test: /\.[j|t]sx?$/,
                 use: "babel-loader",
                 exclude: /node_modules/,
+                resolve: {
+                    fullySpecified: false,
+                },
             }, {
                 test: /\.(sass|scss|css)$/,
                 use: [
