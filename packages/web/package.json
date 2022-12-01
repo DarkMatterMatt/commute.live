@@ -1,8 +1,47 @@
 {
     "name": "@commutelive/web",
     "version": "2.1.4",
-    "description": "The front-end of [commute.live](https://commute.live), which provides bus, train and ferry tracking on a map.",
+    "description": "The main frontend of [Commute.live](https://commute.live), which provides a user-friendly interface to view vehicles on one or more public transport routes.",
     "main": "src/ts/index.ts",
+    "author": "Matt Moran",
+    "license": "GPL-3.0",
+    "homepage": "https://github.com/DarkMatterMatt/commute.live/packages/web#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+    },
+    "bugs": {
+        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+    },
+    "scripts": {
+        "build": "webpack --env prod --mode production",
+        "clean": "rimraf dist",
+        "lint": "eslint src/ts/** --fix",
+        "start": "webpack serve --env dev --mode development",
+        "typecheck": "tsc --noEmit"
+    },
+    "nx": {
+        "targets": {
+            "lint": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            },
+            "start": {
+                "dependsOn": [
+                    "typecheck"
+                ],
+                "outputs": []
+            },
+            "typecheck": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            }
+        }
+    },
     "engines": {
         "node": ">=18"
     },
@@ -63,44 +102,5 @@
         "webpack-pwa-manifest": "^4.3.0",
         "webpack-stream": "^6.1.2",
         "workbox-webpack-plugin": "^6.5.4"
-    },
-    "scripts": {
-        "build": "webpack --env prod --mode production",
-        "clean": "rimraf dist",
-        "lint": "eslint src/ts/** --fix",
-        "start": "webpack serve --env dev --mode development",
-        "typecheck": "tsc --noEmit"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
-    },
-    "author": "Matt Moran",
-    "license": "GPL-3.0",
-    "bugs": {
-        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
-    },
-    "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
-    "nx": {
-        "targets": {
-            "lint": {
-                "dependsOn": [
-                    "^build"
-                ],
-                "outputs": []
-            },
-            "start": {
-                "dependsOn": [
-                    "typecheck"
-                ],
-                "outputs": []
-            },
-            "typecheck": {
-                "dependsOn": [
-                    "^build"
-                ],
-                "outputs": []
-            }
-        }
     }
 }

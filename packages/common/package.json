@@ -1,28 +1,29 @@
 {
     "name": "@commutelive/common",
     "version": "2.3.0",
-    "description": "",
+    "description": "Contains shared types and functions for [Commute.live](https://commute.live).",
     "main": "dist/index.js",
+    "author": "Matt Moran",
+    "license": "GPL-3.0",
+    "homepage": "https://github.com/DarkMatterMatt/commute.live/packages/common#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+    },
+    "bugs": {
+        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+    },
     "scripts": {
         "clean": "rimraf dist",
         "build": "tsc",
         "lint": "eslint --fix src && tsc --noEmit",
         "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
     },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
-    },
-    "author": "Matt Moran",
-    "license": "GPL-3.0",
-    "bugs": {
-        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
-    },
-    "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
     "type": "module",
     "engines": {
         "node": ">=18"
     },
+    "dependencies": {},
     "devDependencies": {
         "eslint-import-resolver-typescript": "^3.5.2",
         "rimraf": "^3.0.2",

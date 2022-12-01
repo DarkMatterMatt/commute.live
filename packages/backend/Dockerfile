@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ############################################################
-# Build commute.live backend.
+# Build Commute.live backend.
 ############################################################
 FROM node:lts-slim AS builder
 WORKDIR /app

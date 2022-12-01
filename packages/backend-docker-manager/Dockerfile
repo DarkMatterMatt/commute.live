@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ############################################################
-# Build commute.live backend Docker manager.
+# Build Commute.live backend Docker manager.
 ############################################################
 FROM node:lts-alpine AS builder
 WORKDIR /app

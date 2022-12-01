@@ -1,5 +1,16 @@
-# AT-Live-Server
+# @commutelive/backend
 
-An intermediary server to provide normalised live data to [commute.live](https://commute.live).
+The main backend of [Commute.live](https://commute.live), which aggregates static and realtime data from multiple sources and exposes it via an API.
 
-See also: [AT-Live-Client](https://github.com/DarkMatterMatt/AT-Live-Client).
+## Environmental variables
+
+See the [example `.env`](./example.env) file. A default value of ⭐ indicates that the variable is required.
+
+| Name                          | Description                                                                               | Type      | Default       |
+| :---------------------------- | :---------------------------------------------------------------------------------------- | :-------- | :------------ |
+| `AUCKLAND_TRANSPORT_KEY`      | API key for the [Auckland Transport Developer Portal](https://dev-portal.at.govt.nz/).    | string    | ⭐            |
+| `FETCH_URL_WHEN_LOADED`       | The backend will send a GET request to this URL when it is ready to serve requests.       | string    | undefined     |
+| `PORT`                        | Port to expose the API with.                                                              | number    | 9001          |
+| `SSL_CERT_FILE`               | SSL certificate file in the PEM format.                                                   | string    | undefined     |
+| `SSL_KEY_FILE`                | SSL key file in the PEM format.                                                           | string    | undefined     |
+| `USE_SSL`                     | Enables SSL, disabled by default.                                                         | boolean   | false         |

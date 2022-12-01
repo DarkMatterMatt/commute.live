@@ -1,12 +1,31 @@
 {
     "name": "@commutelive/root",
+    "description": "[Commute.live](https://commute.live) provides real-time tracking for buses, trains and ferries.",
     "private": true,
+    "author": "Matt Moran",
+    "license": "GPL-3.0",
+    "keywords": [
+        "public",
+        "transport",
+        "commute",
+        "live",
+        "tracker"
+    ],
+    "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+    },
+    "bugs": {
+        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+    },
     "workspaces": [
         "packages/*"
     ],
     "scripts": {
         "prepare": "lerna bootstrap"
     },
+    "dependencies": {},
     "devDependencies": {
         "lerna": "^6.0.3",
         "nx": "^15.2.4"

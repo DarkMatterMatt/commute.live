@@ -1,8 +1,18 @@
 {
     "name": "@commutelive/backend-docker-manager",
     "version": "2.1.3",
-    "description": "",
+    "description": "This is deployed on the server to automatically update the [Commute.live](https://commute.live) backend with zero downtime.",
     "main": "dist/index.js",
+    "author": "Matt Moran",
+    "license": "GPL-3.0",
+    "homepage": "https://github.com/DarkMatterMatt/commute.live/packages/backend-docker-manager#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+    },
+    "bugs": {
+        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+    },
     "scripts": {
         "build": "tsc",
         "build:docker": "docker build -f Dockerfile -t commute.live-manager ../../",
@@ -37,19 +47,14 @@
             }
         }
     },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
-    },
-    "author": "Matt Moran",
-    "license": "GPL-3.0",
-    "bugs": {
-        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
-    },
-    "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
     "type": "module",
     "engines": {
         "node": ">=18"
+    },
+    "dependencies": {
+        "@octokit/webhooks": "^10.3.1",
+        "dotenv": "^16.0.3",
+        "envalid": "^7.3.1"
     },
     "devDependencies": {
         "@octokit/webhooks-types": "^6.7.0",
@@ -57,10 +62,5 @@
         "eslint-import-resolver-typescript": "^3.5.2",
         "rimraf": "^3.0.2",
         "typescript": "^4.8.4"
-    },
-    "dependencies": {
-        "@octokit/webhooks": "^10.3.1",
-        "dotenv": "^16.0.3",
-        "envalid": "^7.3.1"
     }
 }

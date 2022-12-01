@@ -4,9 +4,9 @@ const path = require("path");
 require("dotenv").config();
 
 module.exports = {
-    name: "Commute Live",
-    short_name: "Commute Live",
-    description: "Commute Live provides real-time tracking for buses, trains and ferries on the Auckland Transport network.",
+    name: "Commute.live",
+    short_name: "Commute.live",
+    description: "Commute.live provides real-time tracking for buses, trains and ferries.",
     theme_color: "#2e7699",
     background_color: "#2e7699",
 

@@ -2,17 +2,12 @@ import { accessSync, constants } from "node:fs";
 import dotenv from "dotenv";
 import { bool, cleanEnv, makeValidator, port, str } from "envalid";
 
-type NodeEnv = "development" | "production" | "test";
-
-const nodeEnv = makeValidator(x => str({ choices: ["development", "test", "production"] })._parse(x) as NodeEnv);
-
 const file = makeValidator(x => (accessSync(x, constants.R_OK), x));
 
 dotenv.config();
 
 const env = cleanEnv(process.env, {
     FETCH_URL_WHEN_LOADED: str({ default: undefined }),
-    NODE_ENV: nodeEnv({ default: "development" }),
     PORT: port({ default: 9001 }),
     SSL_CERT_FILE: file({ default: undefined }),
     SSL_KEY_FILE: file({ default: undefined }),
