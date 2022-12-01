@@ -1,4 +1,4 @@
-import { createPromise } from "./";
+import { createPromise } from "@commutelive/common";
 
 /**
  * Stream from `ReadableStream` to a `WritableStream`.

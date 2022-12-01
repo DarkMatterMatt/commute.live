@@ -1,5 +1,4 @@
-import type { LatLng, LiveVehicle, StrOrNull } from "@commutelive/common";
-import { never } from "~/helpers/";
+import { type LatLng, type LiveVehicle, type StrOrNull, UnreachableError } from "@commutelive/common";
 import { convertVehiclePosition } from "../transmission/vehicleUpdate.js";
 import { GetRouteGenerator } from "./GetRoute.js";
 
@@ -85,7 +84,7 @@ export const routesRoute = new GetRouteGenerator({
                         break;
                     }
 
-                    default: never(f);
+                    default: throw new UnreachableError(f);
                 }
             }
         }
