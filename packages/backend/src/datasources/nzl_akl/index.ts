@@ -1,5 +1,6 @@
 import env from "~/env.js";
 import type { DataSource, RegionCode } from "~/types";
+import { checkForUpdate as checkForConvertUpdate, initialize as initializeConvert } from "./convertOldToNewIds.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
 import { getLongNamesByShortName, getRoutesSummary, getRouteTypeByShortName, getShapesByShortName, getShortNameByTripId, getShortNames, getTripIdByTripDetails, hasShortName } from "./static_queries.js";
@@ -20,7 +21,11 @@ export const NZL_AKL: DataSource = {
 
     checkForRealtimeUpdate,
 
-    checkForStaticUpdate,
+    checkForStaticUpdate: async () => {
+        const updated = await checkForStaticUpdate();
+        const convertUpdated = await checkForConvertUpdate();
+        return updated || convertUpdated;
+    },
 
     getLongNamesByShortName: shortName =>
         getLongNamesByShortName(getDatabase(), shortName),
@@ -62,6 +67,8 @@ export const NZL_AKL: DataSource = {
             initializeRealtime(cacheDir, WS_URL, REALTIME_API_URL),
             initializeStatic(cacheDir, GTFS_URL),
         ]);
+        // This relies on the static data being initialized first
+        await initializeConvert(cacheDir);
     },
 
     registerTripUpdateListener,

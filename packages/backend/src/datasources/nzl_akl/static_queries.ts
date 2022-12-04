@@ -283,6 +283,40 @@ export async function getRouteIdsByShortName(
 }
 
 /**
+ * Get a map of route identifiers for each specified route short names.
+ */
+export async function getRouteIdsByShortNames(
+    db: SqlDatabase,
+    shortNames: string[],
+): Promise<Map<string, string[]>> {
+    if (shortNames.length === 0) {
+        return new Map();
+    }
+
+    const result: {
+        routeId: string;
+        shortName: string;
+    }[] = await db.all(`
+        SELECT route_id AS routeId, route_short_name AS shortName
+        FROM routes
+        WHERE route_short_name IN (${shortNames.map(() => "?").join()})
+    `, shortNames);
+
+    const map = new Map<string, string[]>();
+    for (const row of result) {
+        const routeIds = map.get(row.shortName);
+        if (routeIds == null) {
+            map.set(row.shortName, [row.routeId]);
+        }
+        else {
+            routeIds.push(row.routeId);
+        }
+    }
+
+    return map;
+}
+
+/**
  * Get a list of trip identifiers for the specified route short name.
  */
 export async function getTripIdsByShortName(
@@ -310,6 +344,10 @@ export async function getTripIdsByShortNames(
     db: SqlDatabase,
     shortNames: string[],
 ): Promise<Map<string, string[]>> {
+    if (shortNames.length === 0) {
+        return new Map();
+    }
+
     const result: {
         tripId: string;
         shortName: string;

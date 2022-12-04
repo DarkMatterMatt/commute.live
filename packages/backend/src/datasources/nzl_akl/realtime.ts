@@ -84,7 +84,7 @@ export function addTripUpdate(tripUpdate: TripUpdate): boolean {
 
 export function addVehicleUpdate(vehicleUpdate: VehiclePosition): boolean {
     const vehicleId = vehicleUpdate.vehicle?.id;
-    if (vehicleId == null) {
+    if (vehicleId == null || vehicleUpdate.trip == null) {
         // missing required information
         return false;
     }

@@ -183,11 +183,19 @@ function ensureNumber(t: string | number): number {
 
 function fixTrip(t: TripDescriptor & Record<string, any>): TripDescriptor {
     const direction_id = t.direction_id ?? t.directionId;
-    const route_id = t.route_id ?? t.routeId;
+    let route_id = t.route_id ?? t.routeId;
     const schedule_relationship = t.schedule_relationship ?? t.scheduleRelationship;
     const start_date = t.start_date ?? t.startDate;
     const start_time = t.start_time ?? t.startTime;
-    const trip_id = t.trip_id ?? t.tripId;
+    let trip_id = t.trip_id ?? t.tripId;
+
+    if (route_id.includes("_v")) {
+        route_id = getNewRouteIdFromOldRouteId(route_id);
+    }
+
+    if (trip_id.includes("_v")) {
+        trip_id = getNewTripIdFromOldTripId(trip_id);
+    }
 
     const output: TripDescriptor = {};
     if (direction_id != null) output.direction_id = direction_id;
