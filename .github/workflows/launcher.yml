@@ -1,0 +1,46 @@
+name: ⚛ Workflow Launcher
+
+on:
+  # Deploy each push to the main branch
+  push:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # backend
+  check-backend:
+    uses: ./.github/workflows/check-if-package-changed.yml
+    with:
+      package: '@commutelive/backend'
+      workflow-id: publish-backend.yml
+
+  process-backend:
+    needs: check-backend
+    if: needs.check-backend.outputs.changed
+    uses: ./.github/workflows/publish-backend.yml
+
+  # backend-docker-manager
+  check-backend-docker-manager:
+    uses: ./.github/workflows/check-if-package-changed.yml
+    with:
+      package: '@commutelive/backend-docker-manager'
+      workflow-id: publish-backend-docker-manager.yml
+
+  process-backend-docker-manager:
+    needs: check-backend-docker-manager
+    if: needs.check-backend-docker-manager.outputs.changed
+    uses: ./.github/workflows/publish-backend-docker-manager.yml
+
+  # web
+  check-web:
+    uses: ./.github/workflows/check-if-package-changed.yml
+    with:
+      package: '@commutelive/web'
+      workflow-id: deploy-web.yml
+
+  process-web:
+    needs: check-web
+    if: needs.check-web.outputs.changed
+    uses: ./.github/workflows/deploy-web.yml
