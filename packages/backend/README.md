@@ -9,6 +9,7 @@ See the [example `.env`](./example.env) file. A default value of ⭐ indicates t
 | Name                          | Description                                                                                                   | Type      | Default       |
 | :---------------------------- | :------------------------------------------------------------------------------------------------------------ | :-------- | :------------ |
 | `AUCKLAND_TRANSPORT_KEY`      | API key for the [Auckland Transport Developer Portal](https://dev-portal.at.govt.nz/).                        | string    | ⭐            |
+| `CACHE_DIR`                   | Directory to store semi-permanent data (e.g. processed GTFS data that changes infrequently).                  | string    | 'cache'       |
 | `LOG_FORMAT`                  | Log filename format for [winston-daily-rotate-file](https://github.com/winstonjs/winston-daily-rotate-file).  | string    | '%DATE%.log'  |
 | `FETCH_URL_WHEN_LOADED`       | The backend will send a GET request to this URL when it is ready to serve requests.                           | string    | undefined     |
 | `PORT`                        | Port to expose the API with.                                                                                  | number    | 9001          |

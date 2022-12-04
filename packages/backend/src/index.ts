@@ -66,7 +66,7 @@ async function getShortNameForTrip(
 
 (async () => {
     log.info("Initializing regions.");
-    await initialize("cache");
+    await initialize(env.CACHE_DIR);
 
     log.info("Looking for static updates.");
     await checkForStaticUpdates();
