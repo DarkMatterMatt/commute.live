@@ -3,6 +3,7 @@ import { MultiPersistentWebSocket, parseEnum, RollingAverage } from "~/helpers/"
 import { getLogger } from "~/log.js";
 import type { FeedEntity, Position, StopTimeUpdate, TripDescriptor, TripUpdate, TripUpdate$StopTimeEvent, VehicleDescriptor, VehiclePosition } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
+import { getNewRouteIdFromOldRouteId, getNewTripIdFromOldTripId } from "./convertOldToNewIds";
 
 /**
  * Restart delay for first WebSocket error is 200ms, for the third error it is 8s, etc.
@@ -139,9 +140,9 @@ function fixPosition(p: Position & Record<string, any>): Position {
         latitude,
         longitude,
     };
-    if (bearing != null) output.bearing = bearing;
-    if (odometer != null) output.odometer = odometer;
-    if (speed != null) output.speed = speed;
+    if (bearing != null) output.bearing = ensureNumber(bearing);
+    if (odometer != null) output.odometer = ensureNumber(odometer);
+    if (speed != null) output.speed = ensureNumber(speed);
     return output;
 }
 
@@ -149,9 +150,9 @@ function fixStopTimeEvent(ste: TripUpdate$StopTimeEvent & Record<string, any>): 
     const { delay, time, uncertainty } = ste;
 
     const output: TripUpdate$StopTimeEvent = {};
-    if (delay != null) output.delay = delay;
-    if (time != null) output.time = fixTimestamp(time);
-    if (uncertainty != null) output.uncertainty = uncertainty;
+    if (delay != null) output.delay = ensureNumber(delay);
+    if (time != null) output.time = ensureNumber(time);
+    if (uncertainty != null) output.uncertainty = ensureNumber(uncertainty);
     return output;
 }
 
@@ -169,11 +170,11 @@ function fixStopTimeUpdate(stu: StopTimeUpdate & Record<string, any>): StopTimeU
             TripUpdate$StopTimeUpdate$ScheduleRelationship, schedule_relationship);
     }
     if (stop_id != null) output.stop_id = stop_id;
-    if (stop_sequence != null) output.stop_sequence = stop_sequence;
+    if (stop_sequence != null) output.stop_sequence = ensureNumber(stop_sequence);
     return output;
 }
 
-function fixTimestamp(t: string | number): number {
+function ensureNumber(t: string | number): number {
     if (typeof t === "string") {
         return Number.parseInt(t);
     }
@@ -212,8 +213,8 @@ export function fixTripUpdate(tu: TripUpdate & Record<string, any>): TripUpdate 
         stop_time_update: stop_time_update.map(fixStopTimeUpdate),
         trip: fixTrip(trip),
     };
-    if (delay != null) output.delay = delay;
-    if (timestamp != null) output.timestamp = fixTimestamp(timestamp);
+    if (delay != null) output.delay = ensureNumber(delay);
+    if (timestamp != null) output.timestamp = ensureNumber(timestamp);
     if (vehicle != null) output.vehicle = fixVehicleDescriptor(vehicle);
     return output;
 }
@@ -244,7 +245,7 @@ export function fixVehiclePosition(vp: VehiclePosition & Record<string, any>): V
     if (occupancy_status != null) output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
     if (position != null) output.position = fixPosition(position);
     if (stop_id != null) output.stop_id = stop_id;
-    if (timestamp != null) output.timestamp = fixTimestamp(timestamp);
+    if (timestamp != null) output.timestamp = ensureNumber(timestamp);
     if (trip != null) output.trip = fixTrip(trip);
     if (vehicle != null) output.vehicle = fixVehicleDescriptor(vehicle);
     return output;
