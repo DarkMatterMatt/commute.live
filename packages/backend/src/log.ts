@@ -3,7 +3,8 @@ import chalk, { type Chalk } from "chalk";
 import jsonStringify_ from "fast-safe-stringify";
 import { type TransformableInfo } from "logform";
 import { createLogger, format, transports } from "winston";
-import "winston-daily-rotate-file";
+import DailyRotateFile from "winston-daily-rotate-file";
+import env from "./env";
 
 const logLevels = ["debug", "verbose", "info", "warn", "error"] as const;
 
@@ -56,9 +57,9 @@ const extractData = (info: TransformableInfo) => ({
 
 const log = createLogger({
     transports: [
-        new transports.DailyRotateFile({
+        new DailyRotateFile({
             level: "info",
-            filename: "%DATE%.log",
+            filename: env.LOG_FORMAT,
             maxFiles: "14d",
             format: format.combine(
                 format.timestamp(),

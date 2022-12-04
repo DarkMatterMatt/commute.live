@@ -8,6 +8,7 @@ dotenv.config();
 
 const env = cleanEnv(process.env, {
     FETCH_URL_WHEN_LOADED: str({ default: undefined }),
+    LOG_FORMAT: str({ default: "%DATE%.log" }),
     PORT: port({ default: 9001 }),
     SSL_CERT_FILE: file({ default: undefined }),
     SSL_KEY_FILE: file({ default: undefined }),
