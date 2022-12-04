@@ -9,6 +9,20 @@ async function docker(...args: string[]): Promise<string> {
     return stdout;
 }
 
+export async function containerExists(workerName: string): Promise<boolean> {
+    try {
+        await docker("container", "inspect", workerName);
+        return true;
+    }
+    catch (err) {
+        // ignore missing container
+        if (err instanceof Error && err.message.includes("No such container")) {
+            return false;
+        }
+        throw err;
+    }
+}
+
 export async function renameStartingContainer(workerName: string): Promise<void> {
     await docker("rename", `${workerName}-starting`, workerName);
 }

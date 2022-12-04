@@ -1,5 +1,5 @@
 import http from "node:http";
-import { pullImage, removeWorker, renameStartingContainer, startWorker } from "./docker.js";
+import { containerExists, pullImage, removeWorker, renameStartingContainer, startWorker } from "./docker.js";
 import { getEnv, getWorkerEnv } from "./env.js";
 import { log } from "./log.js";
 import { createHttpServer, createHttpsServer, createWebhookMiddleware } from "./webhook.js";
@@ -92,6 +92,7 @@ function startInternalListener(workerCallbackPort: number, reload: () => void) {
     );
 
     // listen for workers being loaded
+    log("Starting internal listener");
     startInternalListener(env.MANAGER_INTERNAL_PORT, reload);
 
     // get middleware for handling GitHub webhooks
@@ -102,6 +103,7 @@ function startInternalListener(workerCallbackPort: number, reload: () => void) {
     );
 
     // create server for handling GitHub webhooks
+    log("Starting webhook server");
     if (env.MANAGER_USE_SSL) {
         createHttpsServer(
             env.MANAGER_PORT,
@@ -115,5 +117,11 @@ function startInternalListener(workerCallbackPort: number, reload: () => void) {
         createHttpServer(env.MANAGER_PORT, middleware);
     }
 
-    await reload();
+    // make sure the worker exists (note that this doesn't start a stopped worker)
+    if (!await containerExists(env.MANAGER_WORKER_NAME)) {
+        log("Starting worker");
+        await reload();
+    }
+
+    log("Initialization complete");
 })();
