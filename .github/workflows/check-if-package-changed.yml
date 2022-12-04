@@ -1,6 +1,4 @@
-name: Check if the package has been changed since the last successful run of the workflow
-
-run-name: Checking if ${{ inputs.package }} has changed since last successful run of ${{ inputs.workflow-id }}
+run-name: Check if ${{ inputs.package }} has changed since last successful run of ${{ inputs.workflow-id }}
 
 on:
   # Allows this workflow to be triggered from another workflow
@@ -12,11 +10,16 @@ on:
       workflow-id:
         required: true
         type: string
+    outputs:
+      changed:
+        description: "If package was changed then 1, otherwise an empty string."
+        value: ${{ jobs.check-if-package-changed.outputs.changed }}
+
 
 jobs:
   check-if-package-changed:
     outputs:
-      changed: ${{ steps.check-for-changes.outputs.output }}
+      changed: ${{ steps.check-for-changes.outputs.changed }}
 
     runs-on: ubuntu-latest
     permissions:
@@ -36,7 +39,7 @@ jobs:
 
       - name: Check for changes
         id: check-for-changes
-        run: 'echo "output=$(
+        run: 'echo "changed=$(
           npx nx print-affected --select=projects
             | sed ''s/, /\n/g''
             | grep -q ''^${{ inputs.package }}$''
