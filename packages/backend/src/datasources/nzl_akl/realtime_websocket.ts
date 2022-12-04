@@ -1,5 +1,5 @@
 import type { JSONSerializable } from "@commutelive/common";
-import { MultiPersistentWebSocket, parseEnum } from "~/helpers/";
+import { MultiPersistentWebSocket, parseEnum, RollingAverage } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import type { FeedEntity, Position, StopTimeUpdate, TripDescriptor, TripUpdate, TripUpdate$StopTimeEvent, VehicleDescriptor, VehiclePosition } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
@@ -14,15 +14,27 @@ const log = getLogger("NZLAKL/realtime/ws");
 let mpws: MultiPersistentWebSocket;
 const consecutiveErrors: number[] = [];
 
-let addTripUpdate: (tripUpdate: TripUpdate) => void;
+let addTripUpdate: (tripUpdate: TripUpdate) => boolean;
 
-let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => void;
+let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => boolean;
+
+const recentTripUpdatesAverageAge = new RollingAverage({
+    windowType: "time",
+    windowSize: 2 * 60 * 1000,
+});
+
+const recentVehiclePositionsAverageAge = new RollingAverage({
+    windowType: "time",
+    windowSize: 2 * 60 * 1000,
+});
 
 export async function getStatus(): Promise<JSONSerializable> {
     return {
         readyState: mpws.readyState,
         lastReceiveTime: mpws.getLastReceive(),
         consecutiveErrors,
+        recentTripUpdatesAverageAge: recentTripUpdatesAverageAge.getAverage(),
+        recentVehiclePositionsAverageAge: recentVehiclePositionsAverageAge.getAverage(),
     };
 }
 
@@ -58,12 +70,18 @@ function onMessage(wsIdx: number, data_: string): void {
     const trip_update = data.trip_update ?? data.tripUpdate;
 
     if (trip_update != null) {
-        addTripUpdate(fixTripUpdate(trip_update));
+        const tu = fixTripUpdate(trip_update);
+        if (addTripUpdate(tu) && tu.timestamp != null) {
+            recentTripUpdatesAverageAge.add(Date.now() - (tu.timestamp * 1000));
+        }
         return;
     }
 
     if (vehicle != null) {
-        addVehicleUpdate(fixVehiclePosition(vehicle));
+        const vp = fixVehiclePosition(vehicle);
+        if (addVehicleUpdate(vp) && vp.timestamp != null) {
+            recentVehiclePositionsAverageAge.add(Date.now() - (vp.timestamp * 1000));
+        }
         return;
     }
 }
@@ -85,8 +103,8 @@ function onOpen(wsIdx: number): void {
 
 export async function initialize(
     url: string,
-    addTripUpdate_: (tripUpdate: TripUpdate) => void,
-    addVehicleUpdate_: (vehicleUpdate: VehiclePosition) => void,
+    addTripUpdate_: (tripUpdate: TripUpdate) => boolean,
+    addVehicleUpdate_: (vehicleUpdate: VehiclePosition) => boolean,
 ): Promise<void> {
     addTripUpdate = addTripUpdate_;
     addVehicleUpdate = addVehicleUpdate_;

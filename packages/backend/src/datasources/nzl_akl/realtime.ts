@@ -54,18 +54,18 @@ export async function checkForRealtimeUpdate(): Promise<boolean> {
     return checkForRealtimeUpdatePolling();
 }
 
-export function addTripUpdate(tripUpdate: TripUpdate) {
+export function addTripUpdate(tripUpdate: TripUpdate): boolean {
     const tripId = tripUpdate.trip.trip_id;
     if (tripId == null) {
         // missing required information
-        return;
+        return false;
     }
 
     const lastTripUpdate = tripUpdates.get(tripId);
     if (lastTripUpdate?.timestamp != null && tripUpdate?.timestamp != null
             && lastTripUpdate.timestamp >= tripUpdate.timestamp) {
         // already have newer information
-        return;
+        return false;
     }
 
     // valid for two minutes
@@ -74,25 +74,26 @@ export function addTripUpdate(tripUpdate: TripUpdate) {
         : KEEP_TRIP_UPDATES_FOR;
     if (ttl <= 0) {
         // old data
-        return;
+        return false;
     }
 
     tripUpdates.set(tripId, tripUpdate, ttl);
     tripUpdateListeners.forEach(l => l(tripUpdate));
+    return true;
 }
 
-export function addVehicleUpdate(vehicleUpdate: VehiclePosition) {
+export function addVehicleUpdate(vehicleUpdate: VehiclePosition): boolean {
     const vehicleId = vehicleUpdate.vehicle?.id;
     if (vehicleId == null) {
         // missing required information
-        return;
+        return false;
     }
 
     const lastVehicleUpdate = vehicleUpdates.get(vehicleId);
     if (lastVehicleUpdate?.timestamp != null && vehicleUpdate?.timestamp != null
             && lastVehicleUpdate.timestamp >= vehicleUpdate.timestamp) {
         // already have newer information
-        return;
+        return false;
     }
 
     // valid for two minutes
@@ -101,11 +102,12 @@ export function addVehicleUpdate(vehicleUpdate: VehiclePosition) {
         : KEEP_TRIP_UPDATES_FOR;
     if (ttl <= 0) {
         // old data
-        return;
+        return false;
     }
 
     vehicleUpdates.set(vehicleId, vehicleUpdate, ttl);
     vehicleUpdateListeners.forEach(l => l(vehicleUpdate));
+    return true;
 }
 
 export async function getTripUpdates(

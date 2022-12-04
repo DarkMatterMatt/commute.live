@@ -8,6 +8,7 @@ export * from "./PersistentWebSocket.js";
 export * from "./Queue.js";
 export * from "./RateLimiter.js";
 export * from "./ReplayTimeline.js";
+export * from "./RollingAverage.js";
 export * from "./SqlBatcher.js";
 export * from "./stream.js";
 export * from "./time.js";
