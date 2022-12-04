@@ -85,7 +85,7 @@ async function getShortNameForTrip(
     });
 
     log.info("Connecting realtime regional events to web server.");
-    mapRegionsSync(ds => {
+    let results = await mapRegionsSync(ds => {
         ds.registerTripUpdateListener(async update => {
             const shortName = await getShortNameForTrip(ds, update, LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE);
             if (shortName != null) {
@@ -93,7 +93,13 @@ async function getShortNameForTrip(
             }
         });
     });
-    mapRegionsSync(ds => {
+    for (const result of results) {
+        if (result.status === "rejected") {
+            log.error("Failed to register trip update listener.", result.reason);
+        }
+    }
+
+    results = await mapRegionsSync(ds => {
         ds.registerVehicleUpdateListener(async update => {
             const shortName = await getShortNameForTrip(ds, update, LOG_TRIP_NOT_FOUND_FOR_VEHICLE_UPDATE);
             if (shortName != null) {
@@ -101,6 +107,11 @@ async function getShortNameForTrip(
             }
         });
     });
+    for (const result of results) {
+        if (result.status === "rejected") {
+            log.error("Failed to register vehicle update listener.", result.reason);
+        }
+    }
 
     if (env.FETCH_URL_WHEN_LOADED != null) {
         log.info("Signalling that we are ready for action!");

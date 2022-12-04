@@ -121,9 +121,6 @@ function onMessage(data: FeedEntity & Record<string, any>): void {
         const tu = fixTripUpdate(trip_update);
         if (addTripUpdate(tu) && tu.timestamp != null) {
             recentTripUpdatesAverageAge.add(Date.now() - (tu.timestamp * 1000));
-            if (tu.timestamp > Date.now() / 100) {
-                console.warn("trip update", tu);
-            }
         }
         return;
     }
@@ -132,9 +129,6 @@ function onMessage(data: FeedEntity & Record<string, any>): void {
         const vp = fixVehiclePosition(vehicle);
         if (addVehicleUpdate(vp) && vp.timestamp != null) {
             recentVehiclePositionsAverageAge.add(Date.now() - (vp.timestamp * 1000));
-            if (vp.timestamp > Date.now() / 100) {
-                console.warn("vehicle position", vp);
-            }
         }
         return;
     }

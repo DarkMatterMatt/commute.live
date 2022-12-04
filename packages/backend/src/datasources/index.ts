@@ -1,8 +1,11 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import type { JSONSerializable, PromiseOr } from "@commutelive/common";
+import { getLogger } from "~/log";
 import type { DataSource, RegionCode } from "~/types";
 import { NZL_AKL } from "./nzl_akl/";
+
+const log = getLogger("datasources");
 
 const regions = new Map([
     NZL_AKL,
@@ -56,27 +59,42 @@ export async function initialize(cacheDir: string): Promise<void> {
     }
 
     // initialize each region
-    await mapRegions(async r => {
+    const results = await mapRegions(async r => {
         const regionCache = path.join(cacheDir, r.code.toLowerCase());
         if (!existsSync(regionCache)){
             mkdirSync(regionCache);
         }
         await r.initialize(regionCache);
     });
+    for (const result of results) {
+        if (result.status === "rejected") {
+            log.error("Failed to initialize region.", result.reason);
+        }
+    }
 }
 
 export async function checkForRealtimeUpdates() {
-    return mapRegions(async r => {
+    const results = await mapRegions(async r => {
         const wasUpdated = await r.checkForRealtimeUpdate();
         return [r, wasUpdated] as [DataSource, boolean];
     });
+    for (const result of results) {
+        if (result.status === "rejected") {
+            log.error("Failed checking for realtime updates.", result.reason);
+        }
+    }
 }
 
 export async function checkForStaticUpdates() {
-    return mapRegionsSync(async r => {
+    const results = await mapRegionsSync(async r => {
         const wasUpdated = await r.checkForStaticUpdate();
         return [r, wasUpdated] as [DataSource, boolean];
     });
+    for (const result of results) {
+        if (result.status === "rejected") {
+            log.error("Failed checking for static updates.", result.reason);
+        }
+    }
 }
 
 export async function getStatus() {
