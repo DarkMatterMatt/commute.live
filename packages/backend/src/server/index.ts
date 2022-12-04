@@ -93,9 +93,8 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
             }
 
             const route = wsRoutes.get(routeName) || defaultWsRoute;
-            route.createRoute({ ws, seq })
+            route.createRoute({ params: json, seq, ws })
                 .execute({
-                    params: json,
                     activeWebSockets,
                     availableRegions,
                     getRegion,
@@ -105,14 +104,13 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
 
     app.get("/v3/:route", (res, req) => {
         const routeName = req.getParameter(0);
-        const params = new URLSearchParams(req.getQuery());
+        const params = Object.fromEntries(new URLSearchParams(req.getQuery()));
         const headers: Record<string, string> = {};
         req.forEach((k, v) => headers[k] = v);
 
         const route = apiRoutes.get(routeName) || defaultApiRoute;
-        route.createRoute({ res, headers })
+        route.createRoute({ headers, params, res })
             .execute({
-                params,
                 activeWebSockets,
                 availableRegions,
                 getRegion,

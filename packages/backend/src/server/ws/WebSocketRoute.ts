@@ -19,13 +19,13 @@ export interface WebSocketRouteExecuteOpts {
     activeWebSockets: Set<WebSocket>;
     availableRegions: RegionCode[];
     getRegion: (region: string) => DataSource | null;
-    params: Record<string, unknown>;
 }
 
 export interface WebSocketRouteOpts<R extends readonly string[], O extends readonly string[]> {
     executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
     name: string;
     optionalParams: O;
+    params: Record<string, unknown>;
     requiredParams: R;
     requiresRegion: boolean;
     seq: number; // sequence number for WebSocket
@@ -35,6 +35,8 @@ export interface WebSocketRouteOpts<R extends readonly string[], O extends reado
 export class WebSocketRoute<R extends readonly string[], O extends readonly string[]> extends Route {
     private readonly executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
     private readonly optionalParams: O;
+    private readonly params: Record<string, unknown>;
+    private readonly prettyJson: boolean;
     private readonly requiredParams: R;
     private readonly requiresRegion: boolean;
     private readonly seq: number;
@@ -42,8 +44,13 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
 
     constructor (opts: WebSocketRouteOpts<R, O>) {
         super(opts.name);
+
+        const { pretty: prettyJson, ...params } = opts.params;
+
         this.executor = opts.executor;
         this.optionalParams = opts.optionalParams;
+        this.params = params;
+        this.prettyJson = !["undefined", "null", "0", "false"].includes(`${prettyJson}`);
         this.requiredParams = opts.requiredParams;
         this.requiresRegion = opts.requiresRegion;
         this.seq = opts.seq;
@@ -53,12 +60,12 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
     public async execute(opts: WebSocketRouteExecuteOpts): Promise<void> {
         const { activeWebSockets } = opts;
 
-        const [params, errors] = this.validateParams(opts.params, opts.availableRegions);
+        const [params, errors] = this.validateParams(this.params, opts.availableRegions);
         if (errors != null) {
             return this.finish("error", { errors });
         }
 
-        const regionName = opts.params.region as string | undefined;
+        const regionName = this.params.region as string | undefined;
         const region = regionName == null ? null : opts.getRegion(regionName);
         await this.executor(this, { activeWebSockets, params, ws: this.ws, region });
     }
@@ -104,12 +111,13 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
             route: this.name,
             seq: this.seq,
             status,
-        });
+        }, null, this.prettyJson ? 4 : 0);
         this.ws.send(json);
     }
 }
 
 export interface CreateWebSocketRouteData extends CreateRouteData {
+    params: Record<string, unknown>;
     seq: number; // sequence number for WebSocket
     ws: WebSocket;
 }
@@ -136,11 +144,12 @@ export class WebSocketRouteGenerator<R extends readonly string[], O extends read
         this.requiresRegion = opts.requiresRegion ?? false;
     }
 
-    public createRoute({ seq, ws }: CreateWebSocketRouteData): WebSocketRoute<R, O> {
+    public createRoute({ params, seq, ws }: CreateWebSocketRouteData): WebSocketRoute<R, O> {
         return new WebSocketRoute({
             executor: this.executor,
             name: this.name,
             optionalParams: this.optionalParams,
+            params,
             requiredParams: this.requiredParams,
             requiresRegion: this.requiresRegion,
             seq,

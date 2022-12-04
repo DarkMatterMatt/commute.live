@@ -1,4 +1,3 @@
-import type { URLSearchParams } from "node:url";
 import type { PromiseOr } from "@commutelive/common";
 import type { HttpResponse, WebSocket } from "uWebSockets.js";
 import { md5 } from "~/helpers/";
@@ -22,7 +21,6 @@ export interface GetRouteExecuteOpts {
     activeWebSockets: Set<WebSocket>;
     availableRegions: RegionCode[];
     getRegion: (region: string) => DataSource | null;
-    params: URLSearchParams;
 }
 
 export interface GetRouteOpts<R extends readonly string[], O extends readonly string[]> {
@@ -31,6 +29,7 @@ export interface GetRouteOpts<R extends readonly string[], O extends readonly st
     headers: Record<string, string>;
     name: string;
     optionalParams: O;
+    params: Record<string, string>;
     requiredParams: R;
     requiresRegion: boolean;
     res: HttpResponse;
@@ -42,16 +41,23 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
     private cacheMaxAge: number;
     private readonly headers: Record<string, string>;
     private readonly optionalParams: O;
+    private readonly params: Record<string, string>;
+    private readonly prettyJson: boolean;
     private readonly requiredParams: R;
     private readonly requiresRegion: boolean;
     private readonly res: HttpResponse;
 
     constructor (opts: GetRouteOpts<R, O>) {
         super(opts.name);
+
+        const { pretty: prettyJson, ...params } = opts.params;
+
         this.executor = opts.executor;
         this.cacheMaxAge = opts.cacheMaxAge;
         this.headers = opts.headers;
         this.optionalParams = opts.optionalParams;
+        this.params = params;
+        this.prettyJson = !["undefined", "null", "0", "false"].includes(`${prettyJson}`);
         this.requiredParams = opts.requiredParams;
         this.requiresRegion = opts.requiresRegion;
         this.res = opts.res;
@@ -67,29 +73,31 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
 
     public async execute(opts: GetRouteExecuteOpts): Promise<void> {
         const { activeWebSockets } = opts;
-        const [params, errors] = this.validateParams(opts.params, opts.availableRegions);
+
+        const [params, errors] = this.validateParams(this.params, opts.availableRegions);
         if (errors != null) {
             return this.finish("error", { errors });
         }
 
-        const regionName = opts.params.get("region");
-        const region = regionName == null ? null : opts.getRegion(regionName);
+        const regionName = this.params.region;
+        const region = regionName == null ? null : opts.getRegion(this.params.region);
         await this.executor(this, { activeWebSockets, params, region });
     }
 
-    private validateParams(params: URLSearchParams, availableRegions: string[]): [ValidParams<R, O>, null];
-    private validateParams(params: URLSearchParams, availableRegions: string[]): [null, string[]];
+    private validateParams(params: Record<string, string>, availableRegions: string[]): [ValidParams<R, O>, null];
+    private validateParams(params: Record<string, string>, availableRegions: string[]): [null, string[]];
     private validateParams(
-        params: URLSearchParams, availableRegions: string[],
+        params: Record<string, string>, availableRegions: string[],
     ): [ValidParams<R, O> | null, null | string[]] {
         const errors = [];
 
+        const keys = Object.keys(params);
         for (const key of this.requiredParams) {
-            if (params.get(key) === null) {
+            if (!keys.includes(key)) {
                 errors.push(`Missing required parameter: ${key}.`);
             }
         }
-        for (const key of params.keys()) {
+        for (const key of keys) {
             if (!this.requiredParams.includes(key) && !this.optionalParams.includes(key)) {
                 errors.push(`Unknown parameter: ${key}.`);
             }
@@ -101,8 +109,8 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
         }
 
         if (this.requiresRegion) {
-            const region = params.get("region")?.toLowerCase();
-            if (region == null || !availableRegions.includes(region)) {
+            const { region } = params;
+            if (typeof region !== "string" || !availableRegions.includes(region.toLowerCase())) {
                 errors.push(`Unknown region: ${region}.`);
             }
         }
@@ -110,7 +118,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
         if (errors.length > 0) {
             return [null, errors];
         }
-        return [Object.fromEntries(params.entries()) as ValidParams<R, O>, null];
+        return [params as ValidParams<R, O>, null];
     }
 
     public setCacheMaxAge(secs: number): this {
@@ -128,7 +136,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
             ...data,
             route: this.name,
             status,
-        });
+        }, null, this.prettyJson ? 4 : 0);
 
         if (this.cacheMaxAge <= 0) {
             this.res.writeHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -159,6 +167,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
 
 export interface CreateGetRouteData extends CreateRouteData {
     headers: Record<string, string>;
+    params: Record<string, string>;
     res: HttpResponse;
 }
 
@@ -187,13 +196,14 @@ export class GetRouteGenerator<R extends readonly string[], O extends readonly s
         this.requiresRegion = opts.requiresRegion ?? false;
     }
 
-    public createRoute({ headers, res }: CreateGetRouteData): GetRoute<R, O> {
+    public createRoute({ headers, params, res }: CreateGetRouteData): GetRoute<R, O> {
         return new GetRoute({
             cacheMaxAge: this.cacheMaxAge,
             executor: this.executor,
             headers,
             name: this.name,
             optionalParams: this.optionalParams,
+            params,
             requiredParams: this.requiredParams,
             requiresRegion: this.requiresRegion,
             res,
