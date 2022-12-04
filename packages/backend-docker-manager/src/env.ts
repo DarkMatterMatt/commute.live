@@ -1,7 +1,12 @@
 import { accessSync, constants } from "node:fs";
 import dotenv from "dotenv";
 import { bool, cleanEnv, makeValidator, num, port, str } from "envalid";
-import { getEnvBind } from "./docker.js";
+
+const envFile = process.env.ENV_FILE;
+if (!envFile) {
+    throw new Error("env.ENV_FILE must be set.");
+}
+accessSync(envFile, constants.R_OK);
 
 const file = makeValidator(x => (accessSync(x, constants.R_OK), x));
 const size = makeValidator(x => {
@@ -18,8 +23,7 @@ const size = makeValidator(x => {
 });
 
 export async function getEnv() {
-    const [, envDir] = (await getEnvBind()).split(":");
-    dotenv.config({ path: `${envDir}/.env`, override: true });
+    dotenv.config({ path: envFile, override: true });
 
     const env = cleanEnv(process.env, {
         MANAGER_PORT: port(),
@@ -47,8 +51,7 @@ export async function getEnv() {
 }
 
 export async function getWorkerEnv() {
-    const [, envDir] = (await getEnvBind()).split(":");
-    const { error, parsed: parsedEnvFile } = dotenv.config({ path: `${envDir}/.env`, override: true });
+    const { error, parsed: parsedEnvFile } = dotenv.config({ path: envFile, override: true });
     if (error || parsedEnvFile == null) {
         throw error;
     }

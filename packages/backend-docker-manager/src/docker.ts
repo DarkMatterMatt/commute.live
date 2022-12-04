@@ -31,7 +31,7 @@ export async function startWorker(
         ...Object.entries(workerEnv).flatMap(([k, v]) => ["--env", `${k}=${v}`]),
         ...maxMemoryInBytes == null ? [] : ["--memory", `${maxMemoryInBytes}b`],
         "--env", `FETCH_URL_WHEN_LOADED=${fetchUrlWhenLoaded}`,
-        "-v", await getEnvBind(),
+        ...(await getWorkerBinds()).flatMap(b => ["-v", b]),
         workerImage,
     );
     return id;
@@ -66,10 +66,10 @@ export async function removeWorker(workerName: string): Promise<boolean> {
     }
 }
 
-let getEnvBindCache: string | undefined;
-export async function getEnvBind(): Promise<string> {
-    if (getEnvBindCache != null) {
-        return getEnvBindCache;
+let workerBinds: string[];
+export async function getWorkerBinds(): Promise<string[]> {
+    if (workerBinds != null) {
+        return workerBinds;
     }
 
     const result = await docker(
@@ -77,15 +77,8 @@ export async function getEnvBind(): Promise<string> {
         "-f", "{{json .HostConfig.Binds}}",
         MANAGER_ID,
     );
-
     const binds: string[] = JSON.parse(result);
-    if (binds.length !== 2) {
-        throw new Error("Expected two binds for the manager container, docker.sock and the env dir");
-    }
+    workerBinds = binds.filter(b => !b.includes("docker.sock"));
 
-    const [envBind] = binds
-        .map(b => b.replace(/:ro$/, ""))
-        .filter(b => !b.endsWith("docker.sock"));
-
-    return getEnvBindCache = `${envBind}:ro`;
+    return workerBinds;
 }
