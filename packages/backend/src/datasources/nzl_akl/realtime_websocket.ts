@@ -182,9 +182,13 @@ function fixTrip(t: TripDescriptor & Record<string, any>): TripDescriptor {
     return output;
 }
 
-function fixTripUpdate(tu: TripUpdate & Record<string, any>): TripUpdate {
+export function fixTripUpdate(tu: TripUpdate & Record<string, any>): TripUpdate {
     const { delay, timestamp, trip, vehicle } = tu;
-    const stop_time_update = tu.stop_time_update ?? tu.stopTimeUpdate ?? [];
+    let stop_time_update = tu.stop_time_update ?? tu.stopTimeUpdate ?? [];
+
+    if (typeof stop_time_update === "object" && !Array.isArray(stop_time_update)) {
+        stop_time_update = [stop_time_update];
+    }
 
     const output: TripUpdate = {
         stop_time_update: stop_time_update.map(fixStopTimeUpdate),
@@ -207,7 +211,7 @@ function fixVehicleDescriptor(vd: VehicleDescriptor & Record<string, any>): Vehi
     return output;
 }
 
-function fixVehiclePosition(vp: VehiclePosition & Record<string, any>): VehiclePosition {
+export function fixVehiclePosition(vp: VehiclePosition & Record<string, any>): VehiclePosition {
     const { position, timestamp, trip, vehicle } = vp;
     const congestion_level = vp.congestion_level ?? vp.congestionLevel;
     const current_status = vp.current_status ?? vp.currentStatus;

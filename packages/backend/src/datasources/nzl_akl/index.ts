@@ -8,6 +8,8 @@ const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
 
 const GTFS_URL = "https://gtfs.at.govt.nz/gtfs.zip";
 
+const REALTIME_API_URL = "https://api.at.govt.nz/v2/public/realtime";
+
 const WS_URL = "wss://mobile.at.govt.nz/mobile/streaming/v1"
     + `?subscription_key=${AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY}`;
 
@@ -57,7 +59,7 @@ export const NZL_AKL: DataSource = {
 
     initialize: async cacheDir => {
         await Promise.allSettled([
-            initializeRealtime(cacheDir, WS_URL),
+            initializeRealtime(cacheDir, WS_URL, REALTIME_API_URL),
             initializeStatic(cacheDir, GTFS_URL),
         ]);
     },

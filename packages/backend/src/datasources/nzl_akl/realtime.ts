@@ -3,6 +3,7 @@ import type { SqlDatabase } from "gtfs";
 import { TimedMap } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
+import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling } from "./realtime_polling.js";
 import { getStatus as getWebSocketStatus, initialize as initializeWebSocket } from "./realtime_websocket.js";
 import { getRouteIdsByShortName, getTripIdsByShortName } from "./static_queries.js";
 
@@ -45,11 +46,12 @@ export async function getStatus(): Promise<JSONSerializable> {
         numberOfRecentTripUpdates: tripUpdates.size,
         numberOfRecentVehicleUpdates: vehicleUpdates.size,
         webSocket: await getWebSocketStatus(),
+        polling: await getPollingStatus(),
     };
 }
 
 export async function checkForRealtimeUpdate(): Promise<boolean> {
-    throw new Error("Function not implemented.");
+    return checkForRealtimeUpdatePolling();
 }
 
 export function addTripUpdate(tripUpdate: TripUpdate) {
@@ -179,6 +181,7 @@ export function registerVehicleUpdateListener(listener: VehicleUpdateListener): 
     vehicleUpdateListeners.add(listener);
 }
 
-export async function initializeRealtime(_cacheDir: string, wsUrl: string) {
+export async function initializeRealtime(_cacheDir: string, wsUrl: string, realtimeApiUrl: string) {
     await initializeWebSocket(wsUrl, addTripUpdate, addVehicleUpdate);
+    await initializePolling(realtimeApiUrl, addTripUpdate, addVehicleUpdate);
 }
