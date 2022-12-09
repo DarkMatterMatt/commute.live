@@ -41,6 +41,7 @@ export async function startWorker(
     const id = await docker(
         "run", "-d",
         "--name", workerName,
+        "--restart", "unless-stopped",
         "--network", `container:${MANAGER_ID}`,
         ...Object.entries(workerEnv).flatMap(([k, v]) => ["--env", `${k}=${v}`]),
         ...maxMemoryInBytes == null ? [] : ["--memory", `${maxMemoryInBytes}b`],

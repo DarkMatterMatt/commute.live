@@ -15,6 +15,7 @@ docker run -d --name <ANYTHING> \
     -v <DOCKER_CACHE_DIR>:/cache \
     -p <MANAGER_PORT>:<MANAGER_PORT> \
     -p <WORKER_PORT>:<WORKER_PORT> \
+    --restart unless-stopped \
     ghcr.io/darkmattermatt/commute.live-manager:main
 ```
 
