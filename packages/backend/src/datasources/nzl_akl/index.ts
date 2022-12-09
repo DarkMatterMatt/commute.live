@@ -1,6 +1,5 @@
 import env from "~/env.js";
 import type { DataSource, RegionCode } from "~/types";
-import { checkForUpdate as checkForConvertUpdate, initialize as initializeConvert } from "./convertOldToNewIds.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
 import { getLongNamesByShortName, getRoutesSummary, getRouteTypeByShortName, getShapesByShortName, getShortNameByTripId, getShortNames, getTripIdByTripDetails, hasShortName } from "./static_queries.js";
@@ -9,7 +8,7 @@ const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
 
 const GTFS_URL = "https://gtfs.at.govt.nz/gtfs.zip";
 
-const REALTIME_API_URL = "https://api.at.govt.nz/v2/public/realtime";
+const REALTIME_API_URL = "https://api.at.govt.nz/realtime/legacy";
 
 const WS_URL = "wss://mobile.at.govt.nz/mobile/streaming/v1"
     + `?subscription_key=${AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY}`;
@@ -21,11 +20,7 @@ export const NZL_AKL: DataSource = {
 
     checkForRealtimeUpdate,
 
-    checkForStaticUpdate: async () => {
-        const updated = await checkForStaticUpdate();
-        const convertUpdated = await checkForConvertUpdate();
-        return updated || convertUpdated;
-    },
+    checkForStaticUpdate,
 
     getLongNamesByShortName: shortName =>
         getLongNamesByShortName(getDatabase(), shortName),
@@ -67,8 +62,6 @@ export const NZL_AKL: DataSource = {
             initializeRealtime(cacheDir, WS_URL, REALTIME_API_URL),
             initializeStatic(cacheDir, GTFS_URL),
         ]);
-        // This relies on the static data being initialized first
-        await initializeConvert(cacheDir);
     },
 
     registerTripUpdateListener,

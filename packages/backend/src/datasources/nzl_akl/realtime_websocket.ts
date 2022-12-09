@@ -3,7 +3,6 @@ import { MultiPersistentWebSocket, parseEnum, RollingAverage } from "~/helpers/"
 import { getLogger } from "~/log.js";
 import type { FeedEntity, Position, StopTimeUpdate, TripDescriptor, TripUpdate, TripUpdate$StopTimeEvent, VehicleDescriptor, VehiclePosition } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
-import { getNewRouteIdFromOldRouteId, getNewTripIdFromOldTripId } from "./convertOldToNewIds";
 
 /**
  * Restart delay for first WebSocket error is 200ms, for the third error it is 8s, etc.
@@ -183,19 +182,11 @@ function ensureNumber(t: string | number): number {
 
 function fixTrip(t: TripDescriptor & Record<string, any>): TripDescriptor {
     const direction_id = t.direction_id ?? t.directionId;
-    let route_id = t.route_id ?? t.routeId;
+    const route_id = t.route_id ?? t.routeId;
     const schedule_relationship = t.schedule_relationship ?? t.scheduleRelationship;
     const start_date = t.start_date ?? t.startDate;
     const start_time = t.start_time ?? t.startTime;
-    let trip_id = t.trip_id ?? t.tripId;
-
-    if (route_id.includes("_v")) {
-        route_id = getNewRouteIdFromOldRouteId(route_id);
-    }
-
-    if (trip_id.includes("_v")) {
-        trip_id = getNewTripIdFromOldTripId(trip_id);
-    }
+    const trip_id = t.trip_id ?? t.tripId;
 
     const output: TripDescriptor = {};
     if (direction_id != null) output.direction_id = direction_id;
