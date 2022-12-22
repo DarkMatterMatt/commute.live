@@ -3,11 +3,13 @@ import path from "node:path";
 import type { JSONSerializable, PromiseOr } from "@commutelive/common";
 import { getLogger } from "~/log";
 import type { DataSource, RegionCode } from "~/types";
+import { AUS_SYD } from "./aus_syd/";
 import { NZL_AKL } from "./nzl_akl/";
 
 const log = getLogger("datasources");
 
 const regions = new Map([
+    AUS_SYD,
     NZL_AKL,
 ].map(r => [r.code.toLowerCase(), r]));
 

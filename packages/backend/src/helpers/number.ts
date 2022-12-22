@@ -46,6 +46,15 @@ export function asc(a: number, b: number) {
 }
 
 /**
+ * Sum the numbers in an array.
+ *
+ * Usage: `sum([11, 2])`
+ */
+export function sum(arr: number[]) {
+    return arr.reduce((a, b) => a + b, 0);
+}
+
+/**
  * Get the q'th quantile of an array.
  *
  * Modified from https://stackoverflow.com/a/55297611.

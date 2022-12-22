@@ -4,6 +4,9 @@ cache/
 # winston log-rotate tracking file
 .*-audit.json
 
+# generated Protocol Buffer files 
+*.proto.ts
+
 ################################################################################
 ## Everything below this is from
 ## https://github.com/github/gitignore/blob/main/Node.gitignore

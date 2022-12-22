@@ -5,9 +5,10 @@
             "options": {
                 "cacheableOperations": [
                     "build",
+                    "docker:build",
+                    "generate:proto",
                     "lint",
                     "test",
-                    "docker:build",
                     "typecheck"
                 ]
             }

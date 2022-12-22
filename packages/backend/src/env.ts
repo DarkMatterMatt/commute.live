@@ -9,6 +9,7 @@ dotenv.config();
 
 const env = cleanEnv(process.env, {
     AUCKLAND_TRANSPORT_KEY: str(),
+    NSW_KEY: str(),
     CACHE_DIR: dir({ default: "cache" }),
     FETCH_URL_WHEN_LOADED: str({ default: undefined }),
     LOG_FORMAT: str({ default: "%DATE%.log" }),

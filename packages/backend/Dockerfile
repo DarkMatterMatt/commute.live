@@ -11,9 +11,11 @@ WORKDIR /app
 # --> git
 # ----> ssh
 # ------> ca-certificates
+# > ts-proto
+# --> protobuf-compiler
 
 RUN apt-get update \
-    && apt-get install git ssh ca-certificates \
+    && apt-get install git ssh ca-certificates protobuf-compiler \
         -yq --reinstall --no-install-suggests --no-install-recommends --allow-downgrades --allow-remove-essential --allow-change-held-packages
 
 # Install Lerna.
@@ -33,6 +35,7 @@ RUN lerna --scope=*/common run build
 COPY packages/backend/package*.json packages/backend/
 RUN lerna --scope=*/backend bootstrap --include-dependencies
 COPY packages/backend/*.json packages/backend/
+COPY packages/backend/tools/ packages/backend/tools/
 COPY packages/backend/src/ packages/backend/src/
 RUN lerna --scope=*/backend run build
 

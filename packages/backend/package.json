@@ -16,8 +16,10 @@
     "scripts": {
         "build": "tsc",
         "build:docker": "docker build -f Dockerfile -t commute.live ../../",
-        "clean": "rimraf dist",
+        "clean": "rimraf dist && npm run clean:proto",
+        "clean:proto": "rimraf src/**/*.proto.ts",
         "clean:docker": "docker rm commute.live || echo\\",
+        "generate:proto": "node ./tools/generateProto.mjs protoc ../../node_modules/.bin/protoc-gen-ts_proto src/**/*.proto",
         "lint": "eslint --fix src && tsc --noEmit",
         "start": "node --experimental-loader ./dist/loader.js dist/index.js",
         "start:docker": "docker run --env-file ../../.env --name commute.live -dp 9001:9001 commute.live",
@@ -27,6 +29,15 @@
     },
     "nx": {
         "targets": {
+            "build": {
+                "dependsOn": [
+                    "^build",
+                    "generate:proto"
+                ],
+                "outputs": [
+                    "{projectRoot}/dist"
+                ]
+            },
             "build:docker": {
                 "dependsOn": [
                     "^build"
@@ -38,6 +49,15 @@
                     "stop:docker"
                 ],
                 "outputs": []
+            },
+            "generate:proto": {
+                "dependsOn": [],
+                "inputs": [
+                    "{projectRoot}/src/**/*.proto"
+                ],
+                "outputs": [
+                    "{projectRoot}/src/**/*.proto.ts"
+                ]
             },
             "lint": {
                 "dependsOn": [
@@ -79,6 +99,7 @@
         "gtfs": "^3.6.0",
         "node-fetch": "3.2.8",
         "node-graceful": "^3.1.0",
+        "ts-proto": "^1.135.0",
         "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.14.0",
         "winston": "^3.8.2",
         "winston-daily-rotate-file": "^4.7.1",

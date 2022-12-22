@@ -6,6 +6,7 @@ export * from "./MultiPersistentWebSocket.js";
 export * from "./number.js";
 export * from "./PersistentWebSocket.js";
 export * from "./Queue.js";
+export * from "./QueueingRateLimiter.js";
 export * from "./RateLimiter.js";
 export * from "./ReplayTimeline.js";
 export * from "./RollingAverage.js";
