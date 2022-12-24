@@ -17,7 +17,7 @@ export function createWebhookMiddleware(secret: string, workerImage: string, rel
         if (!["docker", "container"].includes(payload.package.package_type.toLowerCase())) {
             return;
         }
-        if (!payload.package.package_version.installation_command.includes(workerImage)) {
+        if (!payload.package.package_version?.installation_command?.includes(workerImage)) {
             return;
         }
         reload();
