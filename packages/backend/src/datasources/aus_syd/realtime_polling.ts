@@ -56,13 +56,16 @@ async function processUrl(
 ): Promise<number> {
     try {
         const updates = await queryApiAndDecode(url, decode);
-        for (const update of updates) {
-            onMessage(update);
-        }
-        return updates.length;
+        return sum(updates.map(u => onMessage(u) ? 1 : 0));
     }
     catch (err) {
-        log.error("Error looking for realtime updates", url, err);
+        if (err instanceof Error && err.message.startsWith("Got status 503")) {
+            // we (sadly) expect to receive 503 errors
+            log.warn("Error looking for realtime updates", err.message);
+        }
+        else {
+            log.error("Error looking for realtime updates", url, err);
+        }
         return 0;
     }
 }
@@ -108,26 +111,33 @@ export async function initialize(
 /**
  * Received a message.
  */
-function onMessage(data: FeedEntityV1 | FeedEntityV2): void {
+function onMessage(data: FeedEntityV1 | FeedEntityV2): boolean {
     // NOTE: AT sometimes incorrectly uses camelCase keys, string timestamps, and string enums
 
     const { id: _id, trip_update, vehicle, alert: _alert } = data;
 
     if (trip_update != null) {
         const tu = fixTripUpdate(trip_update); // result is null if tu.trip is null.
-        if (tu != null && addTripUpdate(tu) && trip_update.timestamp != null) {
+        if (tu == null) {
+            return false;
+        }
+        const added = addTripUpdate(tu);
+        if (added && trip_update.timestamp != null) {
             recentTripUpdatesAverageAge.add(Date.now() - (trip_update.timestamp * 1000));
         }
-        return;
+        return added;
     }
 
     if (vehicle != null) {
         const vp = fixVehiclePosition(vehicle);
-        if (addVehicleUpdate(vp) && vehicle.timestamp != null) {
+        const added = addVehicleUpdate(vp);
+        if (added && vehicle.timestamp != null) {
             recentVehiclePositionsAverageAge.add(Date.now() - (vehicle.timestamp * 1000));
         }
-        return;
+        return added;
     }
+
+    return false;
 }
 
 function fixPosition(p: PositionV1 | PositionV2): Position {

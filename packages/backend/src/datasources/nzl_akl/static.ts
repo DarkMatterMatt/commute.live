@@ -2,12 +2,13 @@ import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
 import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
-import type { JSONSerializable, StrOrNull } from "@commutelive/common";
+import type { Id, JSONSerializable, StrOrNull } from "@commutelive/common";
 import { closeDb, importGtfs, openDb, type SqlDatabase } from "gtfs";
 import fetch, { type Response } from "node-fetch";
 import Graceful from "node-graceful";
 import { defaultProjection, sleep, SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
+import { makeId } from "./id";
 
 const log = getLogger("NZLAKL/static");
 
@@ -287,7 +288,6 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             FROM routes
         ) R ON R.route_id=T.route_id
         GROUP BY direction_id, route_long_name, trip_headsign
-        ORDER BY route_short_name, direction_id
     `);
 
     // Auckland Transport no longer provides route_long_name, so we use the trip headsign instead.
@@ -300,19 +300,22 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
 
     await db.run(`
         CREATE TABLE route_summaries (
+            id VARCHAR(255) NOT NULL,
             route_long_name_0 VARCHAR(255),
             route_long_name_1 VARCHAR(255),
-            route_short_name VARCHAR(255) PRIMARY KEY,
+            route_short_name VARCHAR(255),
             route_type INTEGER NOT NULL,
             shape_id_0 VARCHAR(255),
-            shape_id_1 VARCHAR(255)
+            shape_id_1 VARCHAR(255),
+            PRIMARY KEY (id)
         )
     `);
 
-    const batcher = new SqlBatcher<[StrOrNull, StrOrNull, string, number, StrOrNull, StrOrNull]>({
+    const batcher = new SqlBatcher<[Id, StrOrNull, StrOrNull, string, number, StrOrNull, StrOrNull]>({
         db,
         table: "route_summaries",
         columns: [
+            "id",
             "route_long_name_0",
             "route_long_name_1",
             "route_short_name",
@@ -325,18 +328,22 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
     const maxInArr = <T>(arr: T[], getter: (item: T) => number) =>
         arr.reduce((a, b) => Math.max(a, getter(b)), -Infinity);
 
-    for (let i = 0; i < routes.length;) {
-        // sorted by short name, then by direction id
-        const { shortName, routeType } = routes[i];
+    type RouteWithId = typeof routes[0] & { id: Id };
+    const routesByKey = new Map<string, [RouteWithId[], RouteWithId[]]>();
+    for (const r of routes) {
+        const id = makeId(r.shortName);
+        const arr = routesByKey.get(id) ?? [[], []];
+        arr[r.directionId].push({ ...r, id });
+        routesByKey.set(id, arr);
+    }
 
+    for (const possibilitiesByDirection of routesByKey.values()) {
+        const { id, shortName, routeType } = (possibilitiesByDirection[0][0] ?? possibilitiesByDirection[1][0]);
         const longNames: [StrOrNull, StrOrNull] = [null, null];
         const shapeIds: [StrOrNull, StrOrNull] = [null, null];
+
         for (const directionId of [0, 1] as const) {
-            const start = i;
-            while (routes[i]?.shortName === shortName && routes[i].directionId === directionId) {
-                i++;
-            }
-            let possibilities = routes.slice(start, i);
+            let possibilities = possibilitiesByDirection[directionId];
             if (possibilities.length === 0) {
                 // no long names for this direction
                 continue;
@@ -362,15 +369,9 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         }
 
         // add to database
-        await batcher.queue(longNames[0], longNames[1], shortName, routeType, shapeIds[0], shapeIds[1]);
+        await batcher.queue(id, longNames[0], longNames[1], shortName, routeType, shapeIds[0], shapeIds[1]);
     }
     await batcher.flush();
-
-    // add index for route_summaries.route_short_name
-    await db.run(`
-        CREATE INDEX idx_route_summaries_route_short_name
-        ON route_summaries (route_short_name)
-    `);
 }
 
 /**

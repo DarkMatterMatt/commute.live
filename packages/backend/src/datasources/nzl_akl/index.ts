@@ -1,8 +1,9 @@
 import env from "~/env.js";
-import type { DataSource, RegionCode } from "~/types";
+import type { DataSource } from "~/types";
+import { regionCode } from "./id.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
-import { getLongNamesByShortName, getRoutesSummary, getRouteTypeByShortName, getShapesByShortName, getShortNameByTripId, getShortNames, getTripIdByTripDetails, hasShortName } from "./static_queries.js";
+import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries.js";
 
 const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
 
@@ -13,8 +14,6 @@ const REALTIME_API_URL = "https://api.at.govt.nz/realtime/legacy";
 const WS_URL = "wss://mobile.at.govt.nz/mobile/streaming/v1"
     + `?subscription_key=${AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY}`;
 
-const regionCode: RegionCode = "NZL_AKL";
-
 export const NZL_AKL: DataSource = {
     code: regionCode,
 
@@ -22,23 +21,17 @@ export const NZL_AKL: DataSource = {
 
     checkForStaticUpdate,
 
-    getLongNamesByShortName: shortName =>
-        getLongNamesByShortName(getDatabase(), shortName),
+    getIdByTripId: tripId =>
+        getIdByTripId(getDatabase(), tripId),
 
-    getRouteTypeByShortName: shortName =>
-        getRouteTypeByShortName(getDatabase(), shortName),
+    getRouteSummary: id =>
+        getRouteSummary(getDatabase(), id),
 
     getRoutesSummary: () =>
         getRoutesSummary(getDatabase()),
 
-    getShapesByShortName: shortName =>
-        getShapesByShortName(getDatabase(), shortName),
-
-    getShortNameByTripId: tripId =>
-        getShortNameByTripId(getDatabase(), tripId),
-
-    getShortNames: () =>
-        getShortNames(getDatabase()),
+    getShapes: id =>
+        getShapes(getDatabase(), id),
 
     getStatus: async () => ({
         realtime: await getRealtimeStatus(),
@@ -54,11 +47,8 @@ export const NZL_AKL: DataSource = {
     getVehicleUpdates: shortName =>
         getVehicleUpdates(getDatabase(), shortName),
 
-    hasShortName: shortName =>
-        hasShortName(getDatabase(), shortName),
-
     initialize: async cacheDir => {
-        await Promise.allSettled([
+        await Promise.all([
             initializeRealtime(cacheDir, WS_URL, REALTIME_API_URL),
             initializeStatic(cacheDir, GTFS_URL),
         ]);

@@ -1,9 +1,10 @@
-import type { DataSource, RegionCode } from "~/types";
+import type { DataSource } from "~/types";
 import { FeedMessage as FeedMessageV1 } from "./gtfs-realtime.proto.js";
 import { FeedMessage as FeedMessageV2 } from "./gtfs-realtime_v2.proto.js";
+import { regionCode } from "./id.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
-import { getLongNamesByShortName, getRoutesSummary, getRouteTypeByShortName, getShapesByShortName, getShortNameByTripId, getShortNames, getTripIdByTripDetails, hasShortName } from "./static_queries.js";
+import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries.js";
 
 const GTFS_URL = "https://api.transport.nsw.gov.au/v1/publictransport/timetables/complete/gtfs";
 
@@ -18,8 +19,6 @@ const REALTIME_API_URLS: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessa
     ["https://api.transport.nsw.gov.au/v2/gtfs/vehiclepos/sydneytrains", FeedMessageV2.decode],
 ];
 
-const regionCode: RegionCode = "AUS_SYD";
-
 export const AUS_SYD: DataSource = {
     code: regionCode,
 
@@ -27,23 +26,17 @@ export const AUS_SYD: DataSource = {
 
     checkForStaticUpdate,
 
-    getLongNamesByShortName: shortName =>
-        getLongNamesByShortName(getDatabase(), shortName),
+    getIdByTripId: tripId =>
+        getIdByTripId(getDatabase(), tripId),
 
-    getRouteTypeByShortName: shortName =>
-        getRouteTypeByShortName(getDatabase(), shortName),
+    getRouteSummary: id =>
+        getRouteSummary(getDatabase(), id),
 
     getRoutesSummary: () =>
         getRoutesSummary(getDatabase()),
 
-    getShapesByShortName: shortName =>
-        getShapesByShortName(getDatabase(), shortName),
-
-    getShortNameByTripId: tripId =>
-        getShortNameByTripId(getDatabase(), tripId),
-
-    getShortNames: () =>
-        getShortNames(getDatabase()),
+    getShapes: id =>
+        getShapes(getDatabase(), id),
 
     getStatus: async () => ({
         realtime: await getRealtimeStatus(),
@@ -58,9 +51,6 @@ export const AUS_SYD: DataSource = {
 
     getVehicleUpdates: shortName =>
         getVehicleUpdates(getDatabase(), shortName),
-
-    hasShortName: shortName =>
-        hasShortName(getDatabase(), shortName),
 
     initialize: async cacheDir => {
         await Promise.all([

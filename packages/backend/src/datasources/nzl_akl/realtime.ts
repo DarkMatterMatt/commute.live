@@ -1,11 +1,11 @@
-import type { JSONSerializable } from "@commutelive/common";
+import type { Id, JSONSerializable } from "@commutelive/common";
 import type { SqlDatabase } from "gtfs";
 import { TimedMap } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
 import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling } from "./realtime_polling.js";
 import { getStatus as getWebSocketStatus, initialize as initializeWebSocket } from "./realtime_websocket.js";
-import { getRouteIdsByShortName, getTripIdsByShortName } from "./static_queries.js";
+import { getRouteIds, getTripIds } from "./static_queries.js";
 
 const MINUTE = 60 * 1000;
 
@@ -112,20 +112,20 @@ export function addVehicleUpdate(vehicleUpdate: VehiclePosition): boolean {
 
 export async function getTripUpdates(
     db: SqlDatabase,
-    shortName?: string,
+    id?: Id,
 ): Promise<ReadonlyMap<string, TripUpdate>> {
-    if (shortName == null) {
+    if (id == null) {
         return tripUpdates;
     }
 
-    const routeIds = await getRouteIdsByShortName(db, shortName);
+    const routeIds = await getRouteIds(db, id);
     if (routeIds.length === 0) {
-        log.warn(`No route identifiers found for short name ${shortName}`);
+        log.warn(`No route identifiers found for identifier ${id}`);
     }
 
-    const tripIds = await getTripIdsByShortName(db, shortName);
+    const tripIds = await getTripIds(db, id);
     if (tripIds.length === 0) {
-        log.warn(`No trip identifiers found for short name ${shortName}`);
+        log.warn(`No trip identifiers found for identifier ${id}`);
     }
 
     return new Map([...tripUpdates.entries()]
@@ -144,21 +144,20 @@ export async function getTripUpdates(
 
 export async function getVehicleUpdates(
     db: SqlDatabase,
-    shortName?: string,
+    id?: Id,
 ): Promise<ReadonlyMap<string, VehiclePosition>> {
-    if (shortName == null) {
+    if (id == null) {
         return vehicleUpdates;
     }
 
-    const routeIds = await getRouteIdsByShortName(db, shortName);
+    const routeIds = await getRouteIds(db, id);
     if (routeIds.length === 0) {
-        log.warn(`No route identifiers found for short name ${shortName}`);
-        return new Map();
+        log.warn(`No route identifiers found for identifier ${id}`);
     }
 
-    const tripIds = await getTripIdsByShortName(db, shortName);
+    const tripIds = await getTripIds(db, id);
     if (tripIds.length === 0) {
-        log.warn(`No trip identifiers found for short name ${shortName}`);
+        log.warn(`No trip identifiers found for identifier ${id}`);
     }
 
     return new Map([...vehicleUpdates.entries()]

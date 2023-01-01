@@ -1,10 +1,11 @@
 import { URLSearchParams } from "node:url";
+import type { Id, RegionCode } from "@commutelive/common";
 import Graceful from "node-graceful";
 import uWS, { type us_listen_socket, type WebSocket } from "uWebSockets.js";
 import { getStatus as getDataSourcesStatus, getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
 import env from "~/env.js";
 import { getLogger } from "~/log.js";
-import type { DataSource, RegionCode, TripUpdate, VehiclePosition } from "~/types";
+import type { DataSource, TripUpdate, VehiclePosition } from "~/types";
 import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
 import { convertTripUpdate, convertVehiclePosition } from "./transmission";
 import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
@@ -138,14 +139,14 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
     });
 }
 
-export function publishVehiclePosition(region: string, shortName: string, vp: VehiclePosition): void {
-    const mqtt = getMQTTForVehicleUpdates(region, shortName);
-    const data = JSON.stringify(convertVehiclePosition(region, shortName, vp));
+export function publishVehiclePosition(id: Id, vp: VehiclePosition): void {
+    const mqtt = getMQTTForVehicleUpdates(id);
+    const data = JSON.stringify(convertVehiclePosition(id, vp));
     app.publish(mqtt, data);
 }
 
-export function publishTripUpdate(region: string, shortName: string, tu: TripUpdate): void {
-    const mqtt = getMQTTForTripUpdates(region, shortName);
-    const data = JSON.stringify(convertTripUpdate(region, shortName, tu));
+export function publishTripUpdate(id: Id, tu: TripUpdate): void {
+    const mqtt = getMQTTForTripUpdates(id);
+    const data = JSON.stringify(convertTripUpdate(id, tu));
     app.publish(mqtt, data);
 }

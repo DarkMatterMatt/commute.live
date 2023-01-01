@@ -1,4 +1,5 @@
 import { clearInterval, setInterval } from "node:timers";
+import type { Id } from "@commutelive/common";
 import Graceful from "node-graceful";
 import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize, mapRegionsSync } from "~/datasources/";
 import env from "~/env.js";
@@ -38,11 +39,11 @@ async function getTripIdForTrip(ds: DataSource, trip?: TripDescriptor): Promise<
     return tripId ?? null;
 }
 
-async function getShortNameForTrip(
+async function getIdForTrip(
     ds: DataSource,
     update: TripUpdate | VehiclePosition,
     logIfTripNotFound: boolean,
-): Promise<string | null> {
+): Promise<Id | null> {
     const tripId = await getTripIdForTrip(ds, update.trip);
     if (tripId == null) {
         if (logIfTripNotFound) {
@@ -52,13 +53,13 @@ async function getShortNameForTrip(
     }
 
     try {
-        return await ds.getShortNameByTripId(tripId);
+        return await ds.getIdByTripId(tripId);
     }
     catch (err) {
         const key = `${ds.code}\0${tripId}`;
         if (!knownMissingTripIds.has(key)) {
             knownMissingTripIds.set(key);
-            log.warn("Could not find short name for trip update/vehicle position with trip id.", ds.code, tripId);
+            log.warn("Could not find identifier for trip update/vehicle position with trip id.", ds.code, tripId);
         }
         return null;
     }
@@ -87,9 +88,9 @@ async function getShortNameForTrip(
     log.info("Connecting realtime regional events to web server.");
     let results = await mapRegionsSync(ds => {
         ds.registerTripUpdateListener(async update => {
-            const shortName = await getShortNameForTrip(ds, update, LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE);
-            if (shortName != null) {
-                publishTripUpdate(ds.code, shortName, update);
+            const id = await getIdForTrip(ds, update, LOG_TRIP_NOT_FOUND_FOR_TRIP_UPDATE);
+            if (id != null) {
+                publishTripUpdate(id, update);
             }
         });
     });
@@ -101,9 +102,9 @@ async function getShortNameForTrip(
 
     results = await mapRegionsSync(ds => {
         ds.registerVehicleUpdateListener(async update => {
-            const shortName = await getShortNameForTrip(ds, update, LOG_TRIP_NOT_FOUND_FOR_VEHICLE_UPDATE);
-            if (shortName != null) {
-                publishVehiclePosition(ds.code, shortName, update);
+            const id = await getIdForTrip(ds, update, LOG_TRIP_NOT_FOUND_FOR_VEHICLE_UPDATE);
+            if (id != null) {
+                publishVehiclePosition(id, update);
             }
         });
     });

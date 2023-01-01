@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import type { JSONSerializable, PromiseOr } from "@commutelive/common";
+import type { Id, JSONSerializable, Primitive, PromiseOr, RegionCode } from "@commutelive/common";
 import { getLogger } from "~/log";
-import type { DataSource, RegionCode } from "~/types";
+import type { DataSource } from "~/types";
 import { AUS_SYD } from "./aus_syd/";
 import { NZL_AKL } from "./nzl_akl/";
 
@@ -46,12 +46,34 @@ export function getRegion(region: RegionCode | string) {
     return regions.get(region.toLowerCase()) ?? null;
 }
 
-export function getMQTTForVehicleUpdates(region: RegionCode | string, shortName: string) {
-    return `${region}/vehicles/${shortName}`;
+export function getMQTTForVehicleUpdates(id: Id) {
+    return `vehicles/${id}`;
 }
 
-export function getMQTTForTripUpdates(region: RegionCode | string, shortName: string) {
-    return `${region}/trips/${shortName}`;
+export function getMQTTForTripUpdates(id: Id) {
+    return `trips/${id}`;
+}
+
+const ID_COMPONENT_REGEX = /^[a-zA-Z0-9_-]+$/;
+export function makeRegionalId(region: RegionCode, ...idComponents: Primitive[]): Id {
+    if (idComponents.some(s => ID_COMPONENT_REGEX.test(s?.toString() ?? ""))) {
+        throw new Error(`Id components must match ${ID_COMPONENT_REGEX}. Received ${idComponents}`);
+    }
+    return [region, ...idComponents].join("|") as Id;
+}
+
+export function parseRegionalId(id: Id): [RegionCode, string[]];
+export function parseRegionalId(region: RegionCode, id: Id): string[];
+export function parseRegionalId(regionOrId: Id | RegionCode, id?: Id): [RegionCode, string[]] | string[] {
+    if (id == null) {
+        return regionOrId.split("|");
+    }
+
+    const [region, ...idComponents] = id.split("|");
+    if (region !== regionOrId) {
+        throw new Error(`Expected region ${regionOrId}, got ${region}`);
+    }
+    return idComponents;
 }
 
 export async function initialize(cacheDir: string): Promise<void> {

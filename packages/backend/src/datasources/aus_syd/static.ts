@@ -2,13 +2,14 @@ import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
 import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
-import type { JSONSerializable, StrOrNull } from "@commutelive/common";
+import type { Id, JSONSerializable, StrOrNull } from "@commutelive/common";
 import { closeDb, importGtfs, openDb, type SqlDatabase } from "gtfs";
 import type { Response } from "node-fetch";
 import Graceful from "node-graceful";
 import { sleep, SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import { queryApi } from "./api";
+import { makeId } from "./id";
 
 const log = getLogger("AUSSYD/static");
 
@@ -207,26 +208,27 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             FROM routes
         ) R ON R.route_id=T.route_id
         GROUP BY direction_id, route_long_name, trip_headsign
-        ORDER BY route_type, route_short_name, direction_id
     `);
     log.debug(`Found ${routes.length} routes.`);
 
     await db.run(`
         CREATE TABLE route_summaries (
+            id VARCHAR(255) NOT NULL,
             route_long_name_0 VARCHAR(255),
             route_long_name_1 VARCHAR(255),
             route_short_name VARCHAR(255),
             route_type INTEGER NOT NULL,
             shape_id_0 VARCHAR(255),
             shape_id_1 VARCHAR(255),
-            PRIMARY KEY (route_type, route_short_name)
+            PRIMARY KEY (id)
         )
     `);
 
-    const batcher = new SqlBatcher<[StrOrNull, StrOrNull, string, number, StrOrNull, StrOrNull]>({
+    const batcher = new SqlBatcher<[string, StrOrNull, StrOrNull, string, number, StrOrNull, StrOrNull]>({
         db,
         table: "route_summaries",
         columns: [
+            "id",
             "route_long_name_0",
             "route_long_name_1",
             "route_short_name",
@@ -239,16 +241,17 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
     const maxInArr = <T>(arr: T[], getter: (item: T) => number) =>
         arr.reduce((a, b) => Math.max(a, getter(b)), -Infinity);
 
-    const routesByKey = new Map<string, [typeof routes, typeof routes]>();
+    type RouteWithId = typeof routes[0] & { id: Id };
+    const routesByKey = new Map<string, [RouteWithId[], RouteWithId[]]>();
     for (const r of routes) {
-        const key = [r.routeType, r.shortName].join("\0");
-        const arr = routesByKey.get(key) ?? [[], []];
-        arr[r.directionId].push(r);
-        routesByKey.set(key, arr);
+        const id = makeId(r.routeType, r.shortName);
+        const arr = routesByKey.get(id) ?? [[], []];
+        arr[r.directionId].push({ ...r, id });
+        routesByKey.set(id, arr);
     }
 
     for (const possibilitiesByDirection of routesByKey.values()) {
-        const { shortName, routeType } = (possibilitiesByDirection[0][0] ?? possibilitiesByDirection[1][0]);
+        const { id, shortName, routeType } = (possibilitiesByDirection[0][0] ?? possibilitiesByDirection[1][0]);
         const longNames: [StrOrNull, StrOrNull] = [null, null];
         const shapeIds: [StrOrNull, StrOrNull] = [null, null];
 
@@ -279,15 +282,9 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         }
 
         // add to database
-        await batcher.queue(longNames[0], longNames[1], shortName, routeType, shapeIds[0], shapeIds[1]);
+        await batcher.queue(id, longNames[0], longNames[1], shortName, routeType, shapeIds[0], shapeIds[1]);
     }
     await batcher.flush();
-
-    // add index for route_summaries.route_short_name
-    await db.run(`
-        CREATE INDEX idx_route_summaries_route_short_name
-        ON route_summaries (route_short_name)
-    `);
 }
 
 /**
