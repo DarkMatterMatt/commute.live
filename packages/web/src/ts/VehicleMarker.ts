@@ -2,6 +2,7 @@ import type { LiveVehicle } from "@commutelive/common";
 import { afterRepaint } from "./Helpers";
 import HtmlMarker from "./HtmlMarker";
 import Render from "./Render";
+import type { MarkerType } from "./types";
 
 const ANIMATE_POSITION_DURATION = 1000;
 const FADE_OUT_EASING = "ease-in";
@@ -15,7 +16,7 @@ interface VehicleMarkerOptions {
     onExpiry?: () => void;
     markerType: MarkerType;
     animatePosition: boolean;
-    transitType: TransitType;
+    transitType: number;
 }
 
 interface UpdateLiveDataOpts {
@@ -39,7 +40,7 @@ class VehicleMarker extends HtmlMarker {
 
     private onExpiry: (() => void) | null = null;
 
-    private transitType: TransitType;
+    private transitType: number;
 
     public constructor(o: VehicleMarkerOptions) {
         super({

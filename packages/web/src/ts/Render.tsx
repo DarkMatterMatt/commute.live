@@ -1,9 +1,10 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
-import { type LiveVehicle, UnreachableError } from "@commutelive/common";
+import { type Id, type LiveVehicle, UnreachableError } from "@commutelive/common";
 import Pickr from "@simonwep/pickr";
 import type { hex } from "color-convert/route";
 import { largeScreen } from "./Helpers";
 import React from "./JsxElem";
+import type { MarkerType, SearchRoute } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const convert = require("color-convert");
@@ -21,14 +22,14 @@ const SUGGESTED_COLORS = [
 
 export interface MarkerIconOptions {
     type: MarkerType;
-    transitType: TransitType;
+    transitType: number;
     color: string;
     directionId: LiveVehicle["directionId"];
     bearing: number;
 }
 
 interface TransitIconOptions {
-    type: TransitType;
+    type: number;
     fill: string;
     opacity?: number;
     backgroundFill?: string;
@@ -38,8 +39,8 @@ interface TransitIconOptions {
 
 let instance: Render | null = null;
 
-const activeRouteCache = new Map<string, HTMLDivElement>();
-const searchResultCache = new Map<string, HTMLDivElement>();
+const activeRouteCache = new Map<Id, HTMLDivElement>();
+const searchResultCache = new Map<Id, HTMLDivElement>();
 
 class Render {
     locationCenter: google.maps.Marker | null = null;
@@ -105,6 +106,63 @@ class Render {
         return SUGGESTED_COLORS.find(c => !existingRoutes.find(r => r.color === c)) || SUGGESTED_COLORS[0];
     }
 
+    private static toSimpleType(transitType: number): 2 | 3 | 4 {
+        // see https://developers.google.com/transit/gtfs/reference/extended-route-types
+        if (transitType === 0) {
+            // tram/light rail
+            return 2;
+        }
+        if (transitType === 1) {
+            // subway/underground rail
+            return 2;
+        }
+        if (transitType === 2 || transitType === 3 || transitType === 4) {
+            // already a simple type
+            return transitType;
+        }
+        if (transitType === 5) {
+            // cable tram
+            return 2;
+        }
+        if (transitType === 11) {
+            // trolleybus
+            return 3;
+        }
+        if (transitType === 12) {
+            // monorail
+            return 2;
+        }
+        if (100 <= transitType && transitType < 200) {
+            // rail
+            return 2;
+        }
+        if (200 <= transitType && transitType < 300) {
+            // coach
+            return 3;
+        }
+        if (400 <= transitType && transitType < 500) {
+            // urban railway
+            return 2;
+        }
+        if (700 <= transitType && transitType < 800) {
+            // bus
+            return 3;
+        }
+        if (800 <= transitType && transitType < 900) {
+            // trolleybus
+            return 3;
+        }
+        if (900 <= transitType && transitType < 1000) {
+            // tram
+            return 2;
+        }
+        if (1200 <= transitType && transitType < 1300) {
+            // ferry
+            return 4;
+        }
+        throw new Error(`Unknown transit type: ${transitType}`);
+    }
+
     static createLocationIcon(): google.maps.Icon {
         /* eslint-disable max-len */
         const svg = `
@@ -133,8 +191,10 @@ class Render {
 
         let svg = "";
 
-        switch (type) {
-            case "bus":
+        const simpleType = Render.toSimpleType(type);
+        switch (simpleType) {
+            case 3:
+                // bus
                 svg = `
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <rect style="fill: ${backgroundFill}; opacity: ${backgroundOpacity}" width="24" height="24" rx="${backgroundBorderRadius}" />
@@ -142,7 +202,8 @@ class Render {
                     </svg>
                 `;
                 break;
-            case "ferry":
+            case 4:
+                // ferry
                 svg = `
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <rect style="fill: ${backgroundFill}; opacity: ${backgroundOpacity}" width="24" height="24" rx="${backgroundBorderRadius}" />
@@ -150,7 +211,8 @@ class Render {
                         </svg>
                 `;
                 break;
-            case "rail":
+            case 2:
+                // rail
                 svg = `
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <rect style="fill: ${backgroundFill}; opacity: ${backgroundOpacity}" width="24" height="24" rx="${backgroundBorderRadius}" />
@@ -159,7 +221,7 @@ class Render {
                 `;
                 break;
             default:
-                // impossible
+                throw new UnreachableError(simpleType);
         }
 
         return {
@@ -185,18 +247,22 @@ class Render {
                 );
             case "pointyCircle": {
                 let icon: string;
-                switch (opts.transitType) {
-                    case "bus":
+                const simpleType = Render.toSimpleType(opts.transitType);
+                switch (simpleType) {
+                    case 3:
+                        // bus
                         icon = "M25.56 52.72a6.74 6.74 0 002.25 5v4A2.26 2.26 0 0030.06 64h2.25a2.25 2.25 0 002.25-2.25v-2.28h18v2.25A2.26 2.26 0 0054.81 64h2.25a2.25 2.25 0 002.25-2.25v-4a6.71 6.71 0 002.25-5V30.22c0-7.87-8.05-9-18-9s-18 1.13-18 9zM33.44 55a3.38 3.38 0 113.37-3.37A3.37 3.37 0 0133.44 55zm20.25 0a3.38 3.38 0 113.37-3.37A3.37 3.37 0 0153.69 55zm3.37-13.5h-27V30.22h27z";
                         break;
-                    case "ferry":
+                    case 4:
+                        // ferry
                         icon = "M60.4 59.5c-2.9 0-5.8-1-8.4-2.8-5.1 3.6-11.7 3.6-16.8 0-2.6 1.8-5.5 2.8-8.4 2.8h-4.2v4.2h4.2c2.9 0 5.8-.7 8.4-2.1 5.3 2.7 11.5 2.7 16.8 0 2.6 1.4 5.5 2.1 8.4 2.1h4.2v-4.2h-4.2zm-33.7-4.2h.1c3.4 0 6.3-1.8 8.4-4.2 2.1 2.4 5 4.2 8.4 4.2 3.4 0 6.3-1.8 8.4-4.2 2.1 2.4 5 4.2 8.4 4.2h.1l4-14c.2-.5.1-1.1-.1-1.6s-.7-.9-1.3-1l-2.7-.9V28c0-2.3-1.9-4.2-4.2-4.2h-6.3v-6.3H37.3v6.3H31c-2.3 0-4.2 1.9-4.2 4.2v9.7l-2.7.9c-.5.2-1 .5-1.3 1-.3.5-.3 1.1-.1 1.6l4 14.1zM31 28h25.2v8.3l-12.6-4.1L31 36.3V28z";
                         break;
-                    case "rail":
+                    case 2:
+                        // rail
                         icon = "M25.6 52.7c0 4.3 3.5 7.9 7.9 7.9L30.1 64v1.1h27V64l-3.4-3.4c4.3 0 7.9-3.5 7.9-7.9V29.1c0-7.9-8.1-9-18-9s-18 1.1-18 9v23.6zm18 3.4c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2.1 4.5-4.5 4.5zm13.5-15.7h-27V29.1h27v11.3z";
                         break;
                     default:
-                        throw new UnreachableError(opts.transitType);
+                        throw new UnreachableError(simpleType);
                 }
                 const secondaryColor = Render.shouldUseLightText(opts.color) ? "#FFF" : "#000";
                 // if bearing is less than zero (i.e. not valid), show not-pointy circle
@@ -218,13 +284,13 @@ class Render {
     }
 
     static createActiveRoute(
-        routeData: Pick<SearchRoute, "type" | "shortName" | "longName">,
+        routeData: Pick<SearchRoute, "id" | "type" | "shortName" | "longName">,
         color: string,
         showPickr: boolean,
-        onColorChange: (shortName: string, color: string) => void,
-        onRemove: (shortName: string, $activeRoute: HTMLDivElement) => void,
+        onColorChange: (id: Id, color: string) => void,
+        onRemove: (id: Id, $activeRoute: HTMLDivElement) => void,
     ): HTMLDivElement {
-        const cached = activeRouteCache.get(routeData.shortName);
+        const cached = activeRouteCache.get(routeData.id);
         if (cached != null) {
             return cached;
         }
@@ -281,7 +347,7 @@ class Render {
                 type: routeData.type,
                 fill: Render.shouldUseLightText(newColorStr) ? "#FFF" : "#000",
             }).url;
-            onColorChange(routeData.shortName, newColorStr);
+            onColorChange(routeData.id, newColorStr);
         });
 
         if (showPickr) {
@@ -290,32 +356,36 @@ class Render {
 
         $remove.addEventListener("click", () => {
             pickr.destroyAndRemove();
-            onRemove(routeData.shortName, $parent);
+            onRemove(routeData.id, $parent);
         });
 
-        activeRouteCache.set(routeData.shortName, $parent);
+        activeRouteCache.set(routeData.id, $parent);
         return $parent;
     }
 
     static createSearchResult(routeData: SearchRoute, onAdd: (routeData: SearchRoute) => void): HTMLDivElement {
-        const cached = searchResultCache.get(routeData.shortName);
+        const cached = searchResultCache.get(routeData.id);
         if (cached != null) {
             return cached;
         }
 
         let fill = "";
-        switch (routeData.type) {
-            case "bus":
+        const simpleType = Render.toSimpleType(routeData.type);
+        switch (simpleType) {
+            case 3:
+                // bus
                 fill = "#093";
                 break;
-            case "ferry":
+            case 4:
+                // ferry
                 fill = "#33f";
                 break;
-            case "rail":
+            case 2:
+                // rail
                 fill = "#fc0";
                 break;
             default:
-                // impossible
+                throw new UnreachableError(simpleType);
         }
 
         const icon = Render.createTransitIcon({
@@ -335,7 +405,7 @@ class Render {
         $parent.addEventListener("click", () => onAdd(routeData));
 
         // eslint-disable-next-line no-param-reassign
-        searchResultCache.set(routeData.shortName, $parent);
+        searchResultCache.set(routeData.id, $parent);
         return $parent;
     }
 

@@ -1,6 +1,7 @@
-import type { LiveVehicle } from "@commutelive/common";
+import type { Id, LiveVehicle, StrOrNull } from "@commutelive/common";
 import { api } from "./Api";
 import type HtmlMarkerView from "./HtmlMarkerView";
+import type { MarkerType } from "./types";
 import VehicleMarker from "./VehicleMarker";
 
 /** Snap location to route if within this many meters */
@@ -14,6 +15,7 @@ interface RouteOptions {
     color: string;
     active?: boolean;
     longName: Route["longName"];
+    id: Route["id"];
     markerView: HtmlMarkerView;
     markerType: MarkerType;
     shortName: Route["shortName"];
@@ -22,44 +24,57 @@ interface RouteOptions {
 }
 
 class Route {
-    map: google.maps.Map;
+    private map: google.maps.Map;
 
-    markerView: HtmlMarkerView | null = null;
+    private markerView: HtmlMarkerView | null = null;
 
-    type: TransitType;
+    private readonly type: number;
 
-    color: string;
+    public color: string;
 
-    active: boolean;
+    public active = false;
 
-    longName: string;
+    public readonly id: Id;
 
-    markerType: MarkerType;
+    private readonly longName: string;
 
-    shortName: string;
+    private markerType: MarkerType;
 
-    polylines: google.maps.Polyline[];
+    public shortName: string;
 
-    animateMarkerPosition: boolean;
+    private polylines: google.maps.Polyline[] = [];
 
-    showTransitRoutes: boolean;
+    private animateMarkerPosition: boolean;
 
-    vehicleMarkers: Map<string, VehicleMarker>;
+    private showTransitRoutes: boolean;
+
+    private readonly vehicleMarkers = new Map<string, VehicleMarker>();
+
+    public static getLongName(longNames: [StrOrNull, StrOrNull]) {
+        // find best long name, take the first alphabetically if both are specified
+        if (longNames[0] && longNames[1]) {
+            return longNames[0].localeCompare(longNames[1]) < 0 ? longNames[0] : longNames[1];
+        }
+        else if (longNames[0]) {
+            return longNames[0];
+        }
+        else if (longNames[1]) {
+            return longNames[1];
+        }
+        throw new Error("No longNames provided");
+    }
 
     constructor(o: RouteOptions) {
         this.map = o.map;
         this.type = o.type;
         this.color = o.color;
         this.longName = o.longName;
+        this.id = o.id;
         this.markerType = o.markerType;
         this.markerView = o.markerView;
         this.shortName = o.shortName;
         this.animateMarkerPosition = o.animateMarkerPosition;
         this.showTransitRoutes = o.showTransitRoutes;
-
-        this.active = false;
-        this.polylines = [];
-        this.vehicleMarkers = new Map();
     }
 
     removeVehicle(markerOrId: VehicleMarker | string): void {
@@ -153,10 +168,10 @@ class Route {
     }
 
     async loadVehicles(): Promise<void> {
-        api.subscribe(this.shortName);
-        const { vehicles } = await api.queryRoute(this.shortName, ["vehicles"]);
+        api.subscribe(this.id);
+        const { vehicles } = await api.queryRoute(this.id, ["vehicles"]);
         if (vehicles == null) {
-            throw new Error(`No vehicles found for route ${this.shortName}`);
+            throw new Error(`No vehicles found for route ${this.id}`);
         }
         Object.values(vehicles).map(v => this.showVehicle(v));
     }
@@ -168,7 +183,7 @@ class Route {
         const strokeOpacity = 0.7;
         const { map, color } = this;
 
-        const { polylines } = await api.queryRoute(this.shortName, ["polylines"]);
+        const { polylines } = await api.queryRoute(this.id, ["polylines"]);
         if (polylines == null) {
             throw new Error(`No polylines found for route ${this.shortName}`);
         }
@@ -199,7 +214,7 @@ class Route {
             return;
         }
         this.active = false;
-        api.unsubscribe(this.shortName);
+        api.unsubscribe(this.id);
 
         this.polylines.forEach(p => p.setMap(null));
         this.polylines = [];

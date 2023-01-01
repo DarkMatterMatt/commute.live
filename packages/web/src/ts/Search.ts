@@ -1,6 +1,9 @@
+import type { RegionCode } from "@commutelive/common";
 import { api } from "./Api";
 import Render from "./Render";
+import Route from "./Route";
 import type State from "./State";
+import type { SearchRoute } from "./types";
 
 class Search {
     routes: SearchRoute[] = [];
@@ -34,15 +37,16 @@ class Search {
         });
     }
 
-    async load(): Promise<void> {
+    async load(region: RegionCode): Promise<void> {
         const REGEX_WORD = /[a-z]+/g;
         const REGEX_TWO_DIGITS = /^\d\d\D?$/;
 
-        const routes = await api.queryRoutes();
+        const routes = await api.listRoutes(region);
 
         this.routes = [...routes.values()].map(r => {
+            const longName = Route.getLongName(r.longNames);
             const shortNameLower = r.shortName.toLowerCase();
-            const longNameLower = r.longName.toLowerCase();
+            const longNameLower = longName.toLowerCase();
             const longNameWords = [];
 
             let m;
@@ -54,10 +58,11 @@ class Search {
             } while (m);
 
             return {
+                id: r.id,
                 type: r.type,
                 shortName: r.shortName,
                 shortNameLower,
-                longName: r.longName,
+                longName,
                 longNameLower,
                 longNameWords,
             };

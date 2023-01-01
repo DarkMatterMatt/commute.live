@@ -1,9 +1,10 @@
-type TransitType = "bus" | "rail" | "ferry";
+import type { Id } from "@commutelive/common";
 
 type MarkerType = "marker" | "pointyCircle";
 
 interface SearchRoute {
-    type: TransitType;
+    id: Id;
+    type: number;
     shortName: string;
     shortNameLower: string;
     longName: string;

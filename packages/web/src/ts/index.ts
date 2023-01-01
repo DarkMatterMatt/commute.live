@@ -150,7 +150,6 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Pre-init
      */
 
-    state.load();
     settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
     if (!largeScreen()) {
         showNav();
@@ -189,6 +188,8 @@ function onGeolocationError(err: GeolocationPositionError) {
     const markerView = new HtmlMarkerView(map);
     state.setMarkerView(markerView);
 
+    state.load();
+
     const wsConnectTimeout = setTimeout(() => {
         showError("Waiting to connect to server.... Your internet is fine, it's my server that's broken :(");
     }, 2000);
@@ -196,7 +197,7 @@ function onGeolocationError(err: GeolocationPositionError) {
         clearInterval(wsConnectTimeout);
         hideError();
         const search = new Search(state, $searchInput, $dropdownFilter);
-        search.load();
+        search.load("NZL_AKL");
     });
 
     /*

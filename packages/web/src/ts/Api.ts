@@ -1,15 +1,4 @@
-import { createPromise, type LatLng, type LiveVehicle } from "@commutelive/common";
-
-// eslint-disable-next-line max-len
-type QueryRouteInfo = "shortName" | "longNames" | "vehicles" | "type" | "polylines";
-
-interface RoutesResult {
-    shortName?: string;
-    longNames?: [string | null, string | null];
-    vehicles?: Record<string, LiveVehicle>;
-    type?: TransitType;
-    polylines?: [LatLng[], LatLng[]];
-}
+import { createPromise, type Id, type ListRouteResult, type ListRoutesResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RouteDataResult } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -34,7 +23,7 @@ class Api {
 
     private resolveWhenWsConnect: ((value?: void | Promise<void>) => void);
 
-    private subscriptions: string[] = [];
+    private subscriptions: Id[] = [];
 
     private constructor() {
         if (!process.env.API_URL || !process.env.WS_URL) {
@@ -49,26 +38,15 @@ class Api {
         this.resolveWhenWsConnect = resolveWhenWsConnect;
     }
 
-    static getInstance(): Api {
+    public static getInstance(): Api {
         if (instance == null) {
             instance = new Api();
         }
         return instance;
     }
 
-    private static convertToTransitType(type: number): TransitType {
-        // convert numerical enum to TransitType
-        // see `route_type` in https://developers.google.com/transit/gtfs/reference#routestxt
-        switch (type) {
-            case 2: return "rail";
-            case 3: return "bus";
-            case 4: return "ferry";
-            default: throw new Error(`Unknown transit type: ${type}`);
-        }
-    }
-
     private async query<T>(path: string, params: Record<string, string>): Promise<T> {
-        const queryStr = `?${new URLSearchParams({ region: "NZL_AKL", ...params })}`;
+        const queryStr = `?${new URLSearchParams(params)}`;
         const response = await fetch(this.apiUrl + path + queryStr).then(r => r.json());
         if (response.status !== "success") {
             throw new Error(`Failed querying API: ${path}${queryStr}`);
@@ -76,62 +54,46 @@ class Api {
         return response;
     }
 
-    async queryRoutes(): Promise<Map<string, {
-        longNames: [string | null, string | null];
-        shapeIds: [string | null, string | null];
-        shortName: string;
-        longName: string;
-        type: TransitType;
-    }>> {
-        type QueryRoutesResponse = Record<string, {
-            longNames: [string | null, string | null];
-            shapeIds: [string | null, string | null];
-            shortName: string;
-            type: number;
-        }>;
-
-        const response = await this.query<{ routes: QueryRoutesResponse }>("list", {});
-        return new Map(Object.values(response.routes).map(r => {
-            // convert numerical enum to TransitType
-            // see `route_type` in https://developers.google.com/transit/gtfs/reference#routestxt
-            const type = Api.convertToTransitType(r.type);
-
-            // find best long name, take the first alphabetically if both are specified
-            let longName = "";
-            if (r.longNames[0] && r.longNames[1]) {
-                longName = r.longNames[0].localeCompare(r.longNames[1]) < 0 ? r.longNames[0] : r.longNames[1];
-            }
-            else if (r.longNames[0]) {
-                [longName] = r.longNames;
-            }
-            else if (r.longNames[1]) {
-                [, longName] = r.longNames;
-            }
-
-            return [r.shortName, { ...r, type, longName }];
-        }));
+    public async listRoutes(region: RegionCode): Promise<Map<string, ListRouteResult>> {
+        const response = await this.query<{ routes: ListRoutesResult }>("list", { region });
+        return new Map(Object.values(response.routes).map(r => [r.id, r]));
     }
 
-    async queryRoute(shortName: string, fields?: QueryRouteInfo[]): Promise<RoutesResult> {
-        type QueryRouteResponse = Record<string, {
-            longNames?: [string | null, string | null];
-            polylines?: [LatLng[], LatLng[]];
-            shortName?: string;
-            type?: number;
-            vehicles?: Record<string, LiveVehicle>;
-        }>;
-
-        const query: Record<string, string> = { shortNames: shortName };
+    public async queryRoute<T extends keyof RouteDataResult>(
+        id: Id,
+        fields: T[],
+    ): Promise<PartialRouteDataResult<T>> {
+        const query: Record<string, string> = {
+            fields: fields.join(","),
+            routeIds: id,
+        };
         if (fields) query.fields = fields.join(",");
-        const response = await this.query<{ routes: QueryRouteResponse }>("routes", query);
-
-        const { type, ...data } = response.routes[shortName];
-        const result: RoutesResult = data;
-        if (type) result.type = Api.convertToTransitType(type);
-        return result;
+        const response = await this.query<{ routes: PartialRoutesDataResult<T> }>("routes", query);
+        if (response.routes.length === 0) {
+            throw new Error(`Route not found: ${id}`);
+        }
+        return response.routes[0];
     }
 
-    wsSend<T = void>(data: Record<string, any>): Promise<undefined | T> {
+    public async queryRoutes<T extends keyof RouteDataResult>(
+        ids: Id[],
+        fields: T[],
+    ): Promise<PartialRoutesDataResult<T>> {
+        const query: Record<string, string> = {
+            fields: fields.join(","),
+            routeIds: ids.join(","),
+        };
+        const response = await this.query<{
+            routes: PartialRoutesDataResult<T>;
+            unknown?: Id[];
+        }>("routes", query);
+        if (response.unknown?.length) {
+            console.warn("Some routes were not found", response.unknown);
+        }
+        return response.routes;
+    }
+
+    private wsSend<T = void>(data: Record<string, any>): Promise<undefined | T> {
         if (this.ws == null || this.ws.readyState !== this.ws.OPEN) {
             throw new Error("WebSocket is not connected");
         }
@@ -142,19 +104,15 @@ class Api {
         });
     }
 
-    wsConnect(): Promise<void> {
+    public wsConnect(): Promise<void> {
         const ws = this.ws = new WebSocket(this.wsUrl);
         let wsHeartbeatInterval: NodeJS.Timeout;
 
         ws.addEventListener("open", ev => {
             this.resolveWhenWsConnect();
 
-            this.subscriptions.forEach(shortName => {
-                this.wsSend({
-                    route: "subscribe",
-                    region: "NZL_AKL",
-                    shortName,
-                });
+            this.subscriptions.forEach(id => {
+                this.wsSend({ route: "subscribe", id });
             });
 
             if (this.webSocketConnectedPreviously && this._onWebSocketReconnect !== null) {
@@ -190,41 +148,33 @@ class Api {
         return this.promiseWsConnect;
     }
 
-    subscribe(shortName: string): void {
-        if (this.subscriptions.includes(shortName)) {
+    public subscribe(id: Id): void {
+        if (this.subscriptions.includes(id)) {
             return;
         }
 
-        this.subscriptions.push(shortName);
+        this.subscriptions.push(id);
         if (this.ws != null && this.ws.readyState === this.ws.OPEN) {
-            this.wsSend({
-                route: "subscribe",
-                region: "NZL_AKL",
-                shortName,
-            });
+            this.wsSend({ route: "subscribe", id });
         }
     }
 
-    unsubscribe(shortName: string): void {
-        if (!this.subscriptions.includes(shortName)) {
+    public unsubscribe(id: Id): void {
+        if (!this.subscriptions.includes(id)) {
             return;
         }
 
-        this.subscriptions = this.subscriptions.filter(n => n !== shortName);
+        this.subscriptions = this.subscriptions.filter(n => n !== id);
         if (this.ws != null && this.ws.readyState === this.ws.OPEN) {
-            this.wsSend({
-                route: "unsubscribe",
-                region: "NZL_AKL",
-                shortName,
-            });
+            this.wsSend({ route: "unsubscribe", id });
         }
     }
 
-    onWebSocketReconnect(listener: (ws: WebSocket, ev: Event) => void): void {
+    public onWebSocketReconnect(listener: (ws: WebSocket, ev: Event) => void): void {
         this._onWebSocketReconnect = listener;
     }
 
-    onMessage(listener: (data: Record<string, any>) => void): void {
+    public onMessage(listener: (data: Record<string, any>) => void): void {
         this._onMessage = listener;
     }
 }
