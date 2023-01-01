@@ -1,3 +1,4 @@
+import type { ListRoutesResult } from "@commutelive/common";
 import { GetRouteGenerator } from "./GetRoute.js";
 
 export const listRoute = new GetRouteGenerator({
@@ -10,10 +11,10 @@ export const listRoute = new GetRouteGenerator({
             throw new Error("Region is expected.");
         }
 
-        const data = await region.getRoutesSummary();
+        const routes: ListRoutesResult = await region.getRoutesSummary();
         return route.finish("success", {
             message: "See routes attached.",
-            routes:  Object.fromEntries(data.entries()),
+            routes,
         });
     },
 });

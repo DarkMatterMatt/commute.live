@@ -1,8 +1,10 @@
-import { type LatLng, type LiveVehicle, type StrOrNull, UnreachableError } from "@commutelive/common";
+import { type Id, type RouteDataResult, UnreachableError } from "@commutelive/common";
+import { parseRegionalId } from "~/datasources/index.js";
 import { convertVehiclePosition } from "../transmission/vehicleUpdate.js";
 import { GetRouteGenerator } from "./GetRoute.js";
 
 const validFields = [
+    "id",
     "longNames",
     "polylines",
     "shortName",
@@ -12,27 +14,12 @@ const validFields = [
 
 type ValidField = typeof validFields[number];
 
-interface RouteData {
-    longNames: [StrOrNull, StrOrNull];
-    polylines: [LatLng[], LatLng[]];
-    shortName: string;
-    type: number;
-    vehicles: Record<string, LiveVehicle>;
-}
-
 export const routesRoute = new GetRouteGenerator({
     name: "routes",
-    requiredParams: ["fields", "region", "shortNames"] as const,
+    requiredParams: ["fields", "routeIds"] as const,
     optionalParams: [] as const,
-    requiresRegion: true,
-    executor: async (route, { region, params }) => {
-        if (region == null) {
-            throw new Error("Region is expected.");
-        }
-
-        const rawShortNames = params.shortNames.split(",");
+    executor: async (route, { getRegion, params }) => {
         const rawFields = params.fields.split(",");
-
         for (const field of rawFields) {
             if (!validFields.includes(field as ValidField)) {
                 return route.finish("error", {
@@ -48,50 +35,68 @@ export const routesRoute = new GetRouteGenerator({
             route.setCacheMaxAge(0);
         }
 
-        const availableShortNames = await region.getShortNames();
-        const shortNames = new Set(rawShortNames.filter(sn => availableShortNames.includes(sn)));
+        const results: Partial<RouteDataResult>[] = [];
+        const unknown: Id[] = [];
 
-        const data: Record<string, Partial<RouteData>> = {};
-        for (const sn of shortNames) {
-            data[sn] = {};
+        for (const id of params.routeIds.split(",") as Id[]) {
+            const [regionStr] = parseRegionalId(id);
+            const region = getRegion(regionStr);
+            if (region == null) {
+                unknown.push(id);
+                continue;
+            }
+
+            const summary = await region.getRouteSummary(id);
+            if (summary == null) {
+                unknown.push(id);
+                continue;
+            }
+            const result: Partial<RouteDataResult> = {};
 
             for (const f of fields) {
                 switch (f) {
+                    case "id": {
+                        result["id"] = summary.id;
+                        break;
+                    }
+
                     case "shortName": {
-                        data[sn]["shortName"] = sn;
+                        result["shortName"] = summary.shortName;
                         break;
                     }
 
                     case "longNames": {
-                        data[sn]["longNames"] = await region.getLongNamesByShortName(sn);
+                        result["longNames"] = summary.longNames;
                         break;
                     }
 
                     case "polylines":{
-                        data[sn]["polylines"] = await region.getShapesByShortName(sn);
+                        result["polylines"] = await region.getShapes(id);
                         break;
                     }
 
                     case "type": {
-                        data[sn]["type"] = await region.getRouteTypeByShortName(sn);
+                        result["type"] = summary.type;
                         break;
                     }
 
                     case "vehicles": {
-                        const res = await region.getVehicleUpdates(sn);
-                        data[sn]["vehicles"] = Object.fromEntries([...res.entries()].map(
-                            ([k, v]) => [k, convertVehiclePosition(region.code, sn, v)]));
+                        const res = await region.getVehicleUpdates(id);
+                        result["vehicles"] = [...res.values()].map(v => convertVehiclePosition(id, v));
                         break;
                     }
 
                     default: throw new UnreachableError(f);
                 }
             }
+
+            results.push(result);
         }
 
         return route.finish("success", {
             message: "See routes attached",
-            routes:  data,
+            routes: results,
+            unknown,
         });
     },
 });

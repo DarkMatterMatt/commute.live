@@ -1,25 +1,31 @@
-import { getMQTTForVehicleUpdates } from "~/datasources/";
+import { type Id } from "@commutelive/common";
+import { getMQTTForVehicleUpdates, getRegion, parseRegionalId } from "~/datasources/";
 import { WebSocketRouteGenerator } from "./WebSocketRoute.js";
 
 export const subscribeRoute = new WebSocketRouteGenerator({
     name: "subscribe",
-    requiredParams: ["region", "shortName"] as const,
+    requiredParams: ["id"] as const,
     optionalParams: [] as const,
-    requiresRegion: true,
-    executor: async (route, { region, params: { shortName }, ws }) => {
+    executor: async (route, { params, ws }) => {
+        const fail = () => route.finish("error", {
+            message: `Unknown route id: ${id}.`,
+        });
+
+        const id = params.id as Id;
+        const [regionStr] = parseRegionalId(id);
+        const region = getRegion(regionStr);
         if (region == null) {
-            throw new Error("Region is expected.");
+            return fail();
         }
 
-        if (!await region.hasShortName(shortName)) {
-            return route.finish("error", {
-                message: `Unknown route short name: ${shortName}.`,
-            });
+        const summary = await region.getRouteSummary(id);
+        if (summary == null) {
+            return fail();
         }
 
-        ws.subscribe(getMQTTForVehicleUpdates(region.code, shortName));
+        ws.subscribe(getMQTTForVehicleUpdates(id));
         return route.finish("success", {
-            message: `Subscribed to ${shortName}.`,
+            message: `Subscribed to ${id}.`,
         });
     },
 });

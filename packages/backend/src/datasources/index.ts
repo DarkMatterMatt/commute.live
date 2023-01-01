@@ -56,7 +56,7 @@ export function getMQTTForTripUpdates(id: Id) {
 
 const ID_COMPONENT_REGEX = /^[a-zA-Z0-9_-]+$/;
 export function makeRegionalId(region: RegionCode, ...idComponents: Primitive[]): Id {
-    if (idComponents.some(s => ID_COMPONENT_REGEX.test(s?.toString() ?? ""))) {
+    if (idComponents.some(s => !ID_COMPONENT_REGEX.test(s?.toString() ?? ""))) {
         throw new Error(`Id components must match ${ID_COMPONENT_REGEX}. Received ${idComponents}`);
     }
     return [region, ...idComponents].join("|") as Id;

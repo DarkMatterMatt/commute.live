@@ -1,7 +1,7 @@
-import type { PromiseOr } from "@commutelive/common";
+import type { PromiseOr, RegionCode } from "@commutelive/common";
 import type { HttpResponse, WebSocket } from "uWebSockets.js";
 import { md5 } from "~/helpers/";
-import type { DataSource, RegionCode } from "~/types";
+import type { DataSource } from "~/types";
 import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen } from "../Route.js";
 
 const DEFAULT_CACHE_MAX_AGE = 3600; // 1 hour
@@ -13,6 +13,7 @@ export interface GetRouteExecutorOpts<
     R extends readonly string[],
     O extends readonly string[],
 > extends RouteExecuteOpts {
+    getRegion: (region: string) => DataSource | null;
     params: ValidParams<R, O>;
     region: DataSource | null;
 }
@@ -72,7 +73,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
     }
 
     public async execute(opts: GetRouteExecuteOpts): Promise<void> {
-        const { activeWebSockets } = opts;
+        const { activeWebSockets, getRegion } = opts;
 
         const [params, errors] = this.validateParams(this.params, opts.availableRegions);
         if (errors != null) {
@@ -80,8 +81,8 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
         }
 
         const regionName = this.params.region;
-        const region = regionName == null ? null : opts.getRegion(this.params.region);
-        await this.executor(this, { activeWebSockets, params, region });
+        const region = regionName == null ? null : getRegion(this.params.region);
+        await this.executor(this, { activeWebSockets, getRegion, params, region });
     }
 
     private validateParams(params: Record<string, string>, availableRegions: string[]): [ValidParams<R, O>, null];

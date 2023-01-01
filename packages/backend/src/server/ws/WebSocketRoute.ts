@@ -1,6 +1,6 @@
-import type { PromiseOr } from "@commutelive/common";
+import type { PromiseOr, RegionCode } from "@commutelive/common";
 import type { WebSocket } from "uWebSockets.js";
-import type { DataSource, RegionCode } from "~/types";
+import type { DataSource } from "~/types";
 import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen } from "../Route.js";
 
 export type ValidParams<R extends readonly string[], O extends readonly string[]> =

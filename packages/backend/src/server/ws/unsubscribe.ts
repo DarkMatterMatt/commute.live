@@ -1,19 +1,16 @@
+import type { Id } from "@commutelive/common";
 import { getMQTTForVehicleUpdates } from "~/datasources/";
 import { WebSocketRouteGenerator } from "./WebSocketRoute.js";
 
 export const unsubscribeRoute = new WebSocketRouteGenerator({
     name: "unsubscribe",
-    requiredParams: ["region", "shortName"] as const,
+    requiredParams: ["id"] as const,
     optionalParams: [] as const,
-    requiresRegion: true,
-    executor: async (route, { region, params: { shortName }, ws }) => {
-        if (region == null) {
-            throw new Error("Region is expected.");
-        }
-
-        const wasSubscribed = await ws.unsubscribe(getMQTTForVehicleUpdates(region.code, shortName));
+    executor: async (route, { params, ws }) => {
+        const id = params.id as Id;
+        const wasSubscribed = await ws.unsubscribe(getMQTTForVehicleUpdates(id));
         return route.finish("success", {
-            message: `${wasSubscribed ? "Unsubscribed" : "Already unsubscribed"} from ${shortName}.`,
+            message: `${wasSubscribed ? "Unsubscribed" : "Already unsubscribed"} from ${id}.`,
         });
     },
 });
