@@ -7,6 +7,7 @@ const validFields = [
     "id",
     "longNames",
     "polylines",
+    "region",
     "shortName",
     "type",
     "vehicles",
@@ -72,6 +73,11 @@ export const routesRoute = new GetRouteGenerator({
 
                     case "polylines":{
                         result["polylines"] = await region.getShapes(id);
+                        break;
+                    }
+
+                    case "region": {
+                        result["region"] = region.code;
                         break;
                     }
 

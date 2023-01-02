@@ -1,10 +1,11 @@
 import type { StrOrNull } from "~/types";
 import type { LatLng } from "../geo";
-import type { Id } from "./id";
+import type { Id, RegionCode } from "./id";
 import type { LiveVehicle } from "./websocket";
 
 export type RouteDataResult = {
     id: Id;
+    region: RegionCode;
     longNames: [StrOrNull, StrOrNull];
     polylines: [LatLng[], LatLng[]];
     shortName: string;
