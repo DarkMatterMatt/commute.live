@@ -17,6 +17,13 @@ const WS_URL = "wss://mobile.at.govt.nz/mobile/streaming/v1"
 export const NZL_AKL: DataSource = {
     code: regionCode,
 
+    country: "New Zealand",
+
+    region: "Auckland",
+
+    // eslint-disable-next-line max-len
+    attributionHTML: '<a href="https://at.govt.nz/about-us/at-data-sources/">Transit information</a> from Auckland Transport / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
+
     checkForRealtimeUpdate,
 
     checkForStaticUpdate,

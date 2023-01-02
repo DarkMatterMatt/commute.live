@@ -25,6 +25,21 @@ export interface DataSource {
     readonly code: RegionCode;
 
     /**
+     * Human-readable version of the COUNTRY in the region code.
+     */
+    readonly country: string;
+
+    /**
+     * Human-readable version of the REGION in the region code.
+     */
+    readonly region: string;
+
+    /**
+     * Data source attribution and/or copyright notice.
+     */
+    readonly attributionHTML: string;
+
+    /**
      * Returns true if an update was processed. Should be called regularly.
      */
     checkForRealtimeUpdate: () => Promise<boolean>;

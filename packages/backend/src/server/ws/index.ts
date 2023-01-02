@@ -8,7 +8,7 @@ export const defaultRoute = new WebSocketRouteGenerator({
     requiredParams: [] as const,
     optionalParams: [] as const,
     executor: route => route.finish("error", {
-        message: `Unknown route: ${route.name}.`,
+        message: "Unknown route.",
         availableRoutes: [...routes.keys()],
     }),
 });

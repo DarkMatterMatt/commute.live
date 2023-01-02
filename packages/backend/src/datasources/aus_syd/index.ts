@@ -22,6 +22,13 @@ const REALTIME_API_URLS: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessa
 export const AUS_SYD: DataSource = {
     code: regionCode,
 
+    country: "Australia",
+
+    region: "New South Wales",
+
+    // eslint-disable-next-line max-len
+    attributionHTML: '<a href="https://opendata.transport.nsw.gov.au/">Transit information</a> from Transport for NSW / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
+
     checkForRealtimeUpdate,
 
     checkForStaticUpdate,
