@@ -20,7 +20,7 @@ interface ParsedState {
     settings: Record<string, any>;
 
     /** map settings, array of [lat, lng, zoom] */
-    map: null | [lat: number, lng: number, zoom: number];
+    map: [lat: number, lng: number, zoom: number];
 }
 
 let instance: State | null = null;
@@ -48,22 +48,13 @@ class State {
         return instance;
     }
 
-    static migrate(data: Record<string, any>): ParsedState & { isFirstVisit: boolean } {
+    static migrate(data: Record<string, any>): (ParsedState & { isFirstVisit: false }) | { isFirstVisit: true } {
         /* eslint-disable no-param-reassign */
         const version = data.version as number;
 
         // on first load, show route 25B and 70
         if (isEmptyObject(data)) {
-            return {
-                isFirstVisit: true,
-                version: STATE_VERSION,
-                routes: [
-                    ["NZL_AKL|25B" as Id, true, "#9400D3"],
-                    ["NZL_AKL|70" as Id, true, "#E67C13"],
-                ],
-                settings: {},
-                map: null,
-            };
+            return { isFirstVisit: true };
         }
 
         if (version < 2) {
@@ -79,8 +70,11 @@ class State {
         }
 
         if (version < 4) {
-            // add map settings
-            data.map = null;
+            // add NZL_AKL map settings
+            data.map = {
+                center: { lat: -36.8484, lng: 174.7633 },
+                zoom: 13,
+            };
         }
 
         return {
@@ -111,12 +105,16 @@ class State {
     }
 
     toJSON(onlyActive = false): ParsedState {
+        if (!this.map) {
+            throw new Error("Map is not set");
+        }
+
         const routes = [...this.routes.values()].filter(r => !onlyActive || r.active);
         return {
             version: STATE_VERSION,
             routes: routes.map(r => [r.id, r.active, r.color]),
             settings,
-            map: this.map && [this.map.getCenter().lat(), this.map.getCenter().lng(), this.map.getZoom()],
+            map: [this.map.getCenter().lat(), this.map.getCenter().lng(), this.map.getZoom()],
         };
     }
 
@@ -181,7 +179,25 @@ class State {
         });
     }
 
-    load() {
+    static async getFirstVisitState(): Promise<ParsedState> {
+        const result = await api.queryRegionByIp();
+
+        const defaultColors = ["#9400D3", "#E67C13", "#1DCE1D", "#5555FF"];
+        const routes = result.region.defaultRouteIds
+            .slice(0, defaultColors.length)
+            .map((id, i) => [id, true, defaultColors[i]] as [Id, boolean, string]);
+
+        return {
+            version: STATE_VERSION,
+            routes,
+            settings: {
+                currentRegion: result.region.code,
+            },
+            map: [result.region.location.lat, result.region.location.lng, result.region.defaultZoom],
+        };
+    }
+
+    async load() {
         // trim leading # off location.hash
         const hash = window.location.hash.replace(/^#/, "");
 
@@ -195,15 +211,17 @@ class State {
         const parsed = State.migrate(data ? JSON.parse(data) : {});
         this.bIsFirstVisit = parsed.isFirstVisit;
 
-        settings.import(parsed.settings);
+        const state = parsed.isFirstVisit ? await State.getFirstVisitState() : parsed;
+
+        settings.import(state.settings);
         settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save(), false));
 
         // return function to load routes
         return {
-            loadRoutes: () => this.loadRoutes(parsed.routes),
-            map: parsed.map && {
-                center: { lat: parsed.map[0], lng: parsed.map[1] },
-                zoom: parsed.map[2],
+            loadRoutes: () => this.loadRoutes(state.routes),
+            map: {
+                center: { lat: state.map[0], lng: state.map[1] },
+                zoom: state.map[2],
             },
         };
     }

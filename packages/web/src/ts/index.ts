@@ -2,7 +2,7 @@ import "../scss/styles.scss";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-import type { LatLng, LiveVehicle } from "@commutelive/common";
+import type { LiveVehicle } from "@commutelive/common";
 import { api } from "./Api";
 import { isOnline, largeScreen } from "./Helpers";
 import HtmlMarkerView from "./HtmlMarkerView";
@@ -149,7 +149,7 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Pre-init
      */
 
-    const { loadRoutes, map: lastMapState } = state.load();
+    const { loadRoutes, map: { center, zoom } } = await state.load();
 
     settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
     if (!largeScreen()) {
@@ -174,21 +174,6 @@ function onGeolocationError(err: GeolocationPositionError) {
     /*
      * Init
      */
-
-    let center: LatLng;
-    let zoom = 13;
-
-    if (lastMapState == null) {
-        const result = await api.queryRegionByIp();
-        center = result.region.location;
-    }
-    else {
-        ({ center, zoom } = lastMapState);
-    }
-
-    if (!settings.getStr("currentRegion")) {
-        settings.setStr("currentRegion", (await api.queryRegionByIp()).region.code);
-    }
 
     const map = new google.maps.Map($map, {
         center,
