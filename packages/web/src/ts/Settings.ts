@@ -5,6 +5,7 @@ function getInput(id: string): HTMLInputElement {
 }
 
 const SETTINGS = [
+    new StringSetting("currentRegion", getInput("s-current-region")),
     new BooleanSetting("darkMode", getInput("sw-dark-mode")),
     new BooleanSetting("hideAbout", getInput("sw-hide-about")),
     new BooleanSetting("showMenuToggle", getInput("sw-show-menu-toggle")),

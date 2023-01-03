@@ -2,7 +2,7 @@ import "../scss/styles.scss";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-import type { LiveVehicle } from "@commutelive/common";
+import type { LatLng, LiveVehicle } from "@commutelive/common";
 import { api } from "./Api";
 import { isOnline, largeScreen } from "./Helpers";
 import HtmlMarkerView from "./HtmlMarkerView";
@@ -12,7 +12,6 @@ import Search from "./Search";
 import { settings } from "./Settings";
 import { state } from "./State";
 
-const AUCKLAND_COORDS = { lat: -36.848461, lng: 174.763336 };
 const OPEN_MENU_ON_FIRST_VISIT_TIMEOUT = 5 * 1000;
 
 /*
@@ -135,20 +134,6 @@ function onGeolocationError(err: GeolocationPositionError) {
     console.warn(err);
 }
 
-async function getCenterAndZoom(
-    lastMapState: null | { center: google.maps.LatLngLiteral, zoom: number },
-): Promise<{ center: google.maps.LatLngLiteral, zoom: number }> {
-    if (lastMapState != null) {
-        const { center, zoom } = lastMapState;
-        return { center, zoom };
-    }
-    const result = await api.queryRegionByIp();
-    if (result != null) {
-        return { center: result.region.location, zoom: 13 };
-    }
-    return { center: AUCKLAND_COORDS, zoom: 13 };
-}
-
 (async (): Promise<void> => {
     // export things to global scope for development
     if (process.env.NODE_ENV === "development") {
@@ -190,7 +175,21 @@ async function getCenterAndZoom(
      * Init
      */
 
-    const { center, zoom } = await getCenterAndZoom(lastMapState);
+    let center: LatLng;
+    let zoom = 13;
+
+    if (lastMapState == null) {
+        const result = await api.queryRegionByIp();
+        center = result.region.location;
+    }
+    else {
+        ({ center, zoom } = lastMapState);
+    }
+
+    if (!settings.getStr("currentRegion")) {
+        settings.setStr("currentRegion", (await api.queryRegionByIp()).region.code);
+    }
+
     const map = new google.maps.Map($map, {
         center,
         zoom,
@@ -209,13 +208,16 @@ async function getCenterAndZoom(
     await loadRoutes();
 
     const search = new Search(state, $searchInput, $dropdownFilter);
-    await search.load("AUS_SYD");
 
     /*
      * Add settings event listeners
      */
 
     map.addListener("idle", () => state.save());
+
+    settings.addChangeListener("currentRegion", s => {
+        search.load(s);
+    });
 
     settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
     settings.addChangeListener("showMenuToggle", v => setClass($navShow, "hide-0-899", !v));

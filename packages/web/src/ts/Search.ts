@@ -14,6 +14,8 @@ class Search {
 
     $dropdown: HTMLElement;
 
+    currentRegion: RegionCode | null = null;
+
     constructor(state: State, $search: HTMLInputElement, $dropdown: HTMLElement) {
         this.state = state;
         this.$search = $search;
@@ -38,10 +40,19 @@ class Search {
     }
 
     async load(region: RegionCode): Promise<void> {
+        if (this.currentRegion === region) {
+            return;
+        }
+        this.currentRegion = region;
+
         const REGEX_WORD = /[a-z]+/g;
         const REGEX_TWO_DIGITS = /^\d\d\D?$/;
 
         const routes = await api.listRoutes(region);
+        if (this.currentRegion !== region) {
+            // another region was loaded while we were waiting for the API response
+            return;
+        }
 
         this.routes = [...routes.values()].map(r => {
             const longName = Route.getLongName(r.longNames);
