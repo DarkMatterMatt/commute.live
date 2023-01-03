@@ -57,7 +57,7 @@ class Api {
     /**
      * Returns the closest region to the current IP address. Used when first visiting commute.live
      */
-    public async queryRegionByIp(): Promise<null | IpRegionResult> {
+    public async queryRegionByIp(): Promise<IpRegionResult> {
         try {
             const response = await this.query<{ result: IpRegionResult }>("ipregion");
             return response.result;
@@ -66,7 +66,12 @@ class Api {
             if (err instanceof Error && err.message.includes("Failed querying API")) {
                 // this is raised when the IP address cannot be resolved,
                 // e.g. due to a private IP during development
-                return null;
+                console.warn("Failed guessing region by IP address, using Auckland as default");
+                const region = await this.queryRegion("NZL_AKL");
+                return {
+                    region,
+                    userLocation: region.location,
+                };
             }
             throw err;
         }
