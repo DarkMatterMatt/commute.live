@@ -54,10 +54,10 @@ export function getMQTTForTripUpdates(id: Id) {
     return `trips/${id}`;
 }
 
-const ID_COMPONENT_REGEX = /^[a-zA-Z0-9_-]+$/;
 export function makeRegionalId(region: RegionCode, ...idComponents: Primitive[]): Id {
-    if (idComponents.some(s => !ID_COMPONENT_REGEX.test(s?.toString() ?? ""))) {
-        throw new Error(`Id components must match ${ID_COMPONENT_REGEX}. Received ${idComponents}`);
+    const idComponentRegex = /^[a-zA-Z0-9_-]+$/;
+    if (idComponents.some(s => !idComponentRegex.test(s?.toString() ?? ""))) {
+        throw new Error(`Id components must match ${idComponentRegex}. Received ${idComponents}`);
     }
     return [region, ...idComponents].join("|") as Id;
 }

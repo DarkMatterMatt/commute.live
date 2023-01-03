@@ -129,15 +129,8 @@ export const ipRegionRoute = new GetRouteGenerator({
             }
         }
 
-        const [region] = closestRegion;
         const result: IpRegionResult = {
-            region: {
-                code: region.code,
-                location: region.location,
-                country: region.country,
-                region: region.region,
-                attributionHTML: region.attributionHTML,
-            },
+            region: closestRegion[0],
             userLocation,
         };
 

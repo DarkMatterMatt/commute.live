@@ -1,5 +1,5 @@
 import type { LatLng } from "../geo/";
-import type { RegionCode } from "./id";
+import type { Id, RegionCode } from "./id";
 
 export interface RegionResult {
     code: RegionCode;
@@ -7,4 +7,6 @@ export interface RegionResult {
     country: string;
     region: string;
     attributionHTML: string;
+    defaultZoom: number;
+    defaultRouteIds: Id[];
 }

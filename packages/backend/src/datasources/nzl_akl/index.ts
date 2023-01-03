@@ -1,6 +1,6 @@
 import env from "~/env.js";
 import type { DataSource } from "~/types";
-import { regionCode } from "./id.js";
+import { makeId, regionCode } from "./id.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
 import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries.js";
@@ -25,6 +25,10 @@ export const NZL_AKL: DataSource = {
 
     // eslint-disable-next-line max-len
     attributionHTML: '<a href="https://at.govt.nz/about-us/at-data-sources/">Transit information</a> from Auckland Transport / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
+
+    defaultZoom: 13,
+
+    defaultRouteIds: [makeId("25B"), makeId("70")],
 
     checkForRealtimeUpdate,
 

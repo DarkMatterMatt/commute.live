@@ -1,7 +1,7 @@
 import type { DataSource } from "~/types";
 import { FeedMessage as FeedMessageV1 } from "./gtfs-realtime.proto.js";
 import { FeedMessage as FeedMessageV2 } from "./gtfs-realtime_v2.proto.js";
-import { regionCode } from "./id.js";
+import { makeId, regionCode } from "./id.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
 import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries.js";
@@ -22,7 +22,7 @@ const REALTIME_API_URLS: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessa
 export const AUS_SYD: DataSource = {
     code: regionCode,
 
-    location: { lat: -33.9049, lng: 151.0839 },
+    location: { lat: -33.8869, lng: 151.1866 },
 
     country: "Australia",
 
@@ -30,6 +30,10 @@ export const AUS_SYD: DataSource = {
 
     // eslint-disable-next-line max-len
     attributionHTML: '<a href="https://opendata.transport.nsw.gov.au/">Transit information</a> from Transport for NSW / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
+
+    defaultZoom: 13,
+
+    defaultRouteIds: [makeId(700, "333"), makeId(2, "T8"), makeId(4, "F8")],
 
     checkForRealtimeUpdate,
 

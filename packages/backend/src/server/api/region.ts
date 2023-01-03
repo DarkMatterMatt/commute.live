@@ -11,13 +11,7 @@ export const regionRoute = new GetRouteGenerator({
             throw new Error("Region is expected.");
         }
 
-        const result: RegionResult = {
-            code: region.code,
-            location: region.location,
-            country: region.country,
-            region: region.region,
-            attributionHTML: region.attributionHTML,
-        };
+        const result: RegionResult = region;
 
         return route.finish("success", {
             message: "See region attached.",

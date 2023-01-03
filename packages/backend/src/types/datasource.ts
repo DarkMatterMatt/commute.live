@@ -45,6 +45,16 @@ export interface DataSource {
     readonly attributionHTML: string;
 
     /**
+     * Default map zoom level when centered on this data source.
+     */
+    defaultZoom: number;
+
+    /**
+     * Default routes to show to new users.
+     */
+    defaultRouteIds: Id[];
+
+    /**
      * Returns true if an update was processed. Should be called regularly.
      */
     checkForRealtimeUpdate: () => Promise<boolean>;
