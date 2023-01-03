@@ -384,9 +384,9 @@ async function cleanUp(zipPath: string, oldDatabase: null | SqlDatabase): Promis
     // assume that in 30 secs nobody will be using the old data
     await sleep(30 * 1000);
 
-    unlink(zipPath);
+    await unlink(zipPath);
     if (oldDatabase != null) {
-        closeDb(oldDatabase);
-        unlink(oldDatabase.config.filename);
+        await closeDb(oldDatabase);
+        await unlink(oldDatabase.config.filename);
     }
 }
