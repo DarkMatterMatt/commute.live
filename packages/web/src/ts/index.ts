@@ -135,6 +135,20 @@ function onGeolocationError(err: GeolocationPositionError) {
     console.warn(err);
 }
 
+async function getCenterAndZoom(
+    lastMapState: null | { center: google.maps.LatLngLiteral, zoom: number },
+): Promise<{ center: google.maps.LatLngLiteral, zoom: number }> {
+    if (lastMapState != null) {
+        const { center, zoom } = lastMapState;
+        return { center, zoom };
+    }
+    const result = await api.queryRegionByIp();
+    if (result != null) {
+        return { center: result.region.location, zoom: 13 };
+    }
+    return { center: AUCKLAND_COORDS, zoom: 13 };
+}
+
 (async (): Promise<void> => {
     // export things to global scope for development
     if (process.env.NODE_ENV === "development") {
@@ -150,7 +164,7 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Pre-init
      */
 
-    const loadRoutes = state.load();
+    const { loadRoutes, map: lastMapState } = state.load();
 
     settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
     if (!largeScreen()) {
@@ -176,9 +190,10 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Init
      */
 
+    const { center, zoom } = await getCenterAndZoom(lastMapState);
     const map = new google.maps.Map($map, {
-        center: AUCKLAND_COORDS,
-        zoom: 13,
+        center,
+        zoom,
         streetViewControl: false,
         mapTypeControl: false,
         fullscreenControl: false,
@@ -190,22 +205,17 @@ function onGeolocationError(err: GeolocationPositionError) {
     const markerView = new HtmlMarkerView(map);
     state.setMarkerView(markerView);
 
-    const wsConnectTimeout = setTimeout(() => {
-        showError("Waiting to connect to server.... Your internet is fine, it's my server that's broken :(");
-    }, 2000);
-    api.wsConnect().then(async () => {
-        clearInterval(wsConnectTimeout);
-        hideError();
-        const search = new Search(state, $searchInput, $dropdownFilter);
-        await Promise.all([
-            search.load("AUS_SYD"),
-            loadRoutes(),
-        ]);
-    });
+    await api.wsConnect();
+    await loadRoutes();
+
+    const search = new Search(state, $searchInput, $dropdownFilter);
+    await search.load("AUS_SYD");
 
     /*
      * Add settings event listeners
      */
+
+    map.addListener("idle", () => state.save());
 
     settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
     settings.addChangeListener("showMenuToggle", v => setClass($navShow, "hide-0-899", !v));

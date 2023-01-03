@@ -8,16 +8,19 @@ import Route from "./Route";
 import { settings } from "./Settings";
 import type { MarkerType, SearchRoute } from "./types";
 
-const STATE_VERSION = 3;
+const STATE_VERSION = 4;
 
 interface ParsedState {
     version: number;
 
-    // routes: array of [routeId, active, color]
-    routes: [Id, boolean, string][];
+    /** routes: array of [routeId, active, color] */
+    routes: [routeId: Id, active: boolean, color: string][];
 
-    // map of <settingName, value>
+    /** map of <settingName, value> */
     settings: Record<string, any>;
+
+    /** map settings, array of [lat, lng, zoom] */
+    map: null | [lat: number, lng: number, zoom: number];
 }
 
 let instance: State | null = null;
@@ -59,6 +62,7 @@ class State {
                     ["NZL_AKL|70" as Id, true, "#E67C13"],
                 ],
                 settings: {},
+                map: null,
             };
         }
 
@@ -74,11 +78,17 @@ class State {
             data.settings = {};
         }
 
+        if (version < 4) {
+            // add map settings
+            data.map = null;
+        }
+
         return {
             isFirstVisit: false,
             version: STATE_VERSION,
             routes: data.routes,
             settings: data.settings,
+            map: data.map,
         };
     }
 
@@ -106,6 +116,7 @@ class State {
             version: STATE_VERSION,
             routes: routes.map(r => [r.id, r.active, r.color]),
             settings,
+            map: this.map && [this.map.getCenter().lat(), this.map.getCenter().lng(), this.map.getZoom()],
         };
     }
 
@@ -170,7 +181,7 @@ class State {
         });
     }
 
-    load(): () => Promise<void> {
+    load() {
         // trim leading # off location.hash
         const hash = window.location.hash.replace(/^#/, "");
 
@@ -188,7 +199,13 @@ class State {
         settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save(), false));
 
         // return function to load routes
-        return () => this.loadRoutes(parsed.routes);
+        return {
+            loadRoutes: () => this.loadRoutes(parsed.routes),
+            map: parsed.map && {
+                center: { lat: parsed.map[0], lng: parsed.map[1] },
+                zoom: parsed.map[2],
+            },
+        };
     }
 
     // eslint-disable-next-line class-methods-use-this
