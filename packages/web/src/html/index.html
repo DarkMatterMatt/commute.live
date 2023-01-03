@@ -20,9 +20,10 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/icon_maskable_rounded_32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/icon_maskable_rounded_16.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link rel="canonical" href="<%= process.env.PWA_BASE_URL %>" />
+    <link rel="preconnect" href="https://<%= process.env.API_URL.split('/')[2] %>">
     <script defer src="https://maps.googleapis.com/maps/api/js?key=<%= process.env.GMAPS_KEY %>"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GTAG_ID %>"></script>
-    <link rel="preconnect" href="https://<%= process.env.API_URL.split('/')[2] %>">
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date);gtag("config","<%= process.env.GTAG_ID %>")</script>
     <%= htmlWebpackPlugin.tags.headTags %>
 </head>
