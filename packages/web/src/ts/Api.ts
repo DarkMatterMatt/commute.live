@@ -1,4 +1,4 @@
-import { createPromise, type Id, type ListRouteResult, type ListRoutesResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RouteDataResult } from "@commutelive/common";
+import { createPromise, type Id, type IpRegionResult, type ListRouteResult, type ListRoutesResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionResult, type RouteDataResult } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -45,13 +45,36 @@ class Api {
         return instance;
     }
 
-    private async query<T>(path: string, params: Record<string, string>): Promise<T> {
-        const queryStr = `?${new URLSearchParams(params)}`;
+    private async query<T>(path: string, params?: Record<string, string>): Promise<T> {
+        const queryStr = params == null ? "" : `?${new URLSearchParams(params)}`;
         const response = await fetch(this.apiUrl + path + queryStr).then(r => r.json());
         if (response.status !== "success") {
             throw new Error(`Failed querying API: ${path}${queryStr}`);
         }
         return response;
+    }
+
+    /**
+     * Returns the closest region to the current IP address. Used when first visiting commute.live
+     */
+    public async queryRegionByIp(): Promise<null | IpRegionResult> {
+        try {
+            const response = await this.query<{ result: IpRegionResult }>("ipregion");
+            return response.result;
+        }
+        catch (err) {
+            if (err instanceof Error && err.message.includes("Failed querying API")) {
+                // this is raised when the IP address cannot be resolved,
+                // e.g. due to a private IP during development
+                return null;
+            }
+            throw err;
+        }
+    }
+
+    public async queryRegion(region: RegionCode): Promise<RegionResult> {
+        const response = await this.query<{ result: RegionResult }>("region", { region });
+        return response.result;
     }
 
     public async listRoutes(region: RegionCode): Promise<Map<string, ListRouteResult>> {
