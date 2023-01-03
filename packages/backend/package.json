@@ -97,6 +97,7 @@
         "envalid": "^7.3.1",
         "fast-safe-stringify": "^2.1.1",
         "gtfs": "^3.6.0",
+        "maxmind": "^4.3.8",
         "node-fetch": "3.2.8",
         "node-graceful": "^3.1.0",
         "ts-proto": "^1.135.0",

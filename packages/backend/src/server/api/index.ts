@@ -1,4 +1,7 @@
-import { GetRouteGenerator } from "./GetRoute.js";
+import { existsSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
+import { GetRouteGenerator, type GetRouteInitializeOpts } from "./GetRoute.js";
+import { ipRegionRoute } from "./ipregion.js";
 import { listRoute } from "./list.js";
 import { regionRoute } from "./region.js";
 import { routesRoute } from "./routes.js";
@@ -16,9 +19,24 @@ export const defaultRoute = new GetRouteGenerator({
 
 const routes = new Map([
     listRoute,
+    ipRegionRoute,
     regionRoute,
     routesRoute,
     statusRoute,
 ].map(r => [r.name, r]));
 
 export default routes;
+
+export async function initialize(opts: GetRouteInitializeOpts): Promise<void> {
+    const { cacheDir } = opts;
+    for (const route of routes.values()) {
+        const dir = join(cacheDir, route.name);
+        if (!existsSync(dir)){
+            mkdirSync(dir, { recursive: true });
+        }
+        await route.initialize({
+            ...opts,
+            cacheDir: dir,
+        });
+    }
+}

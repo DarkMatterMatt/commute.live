@@ -8,7 +8,7 @@ import { NZL_AKL } from "./nzl_akl/";
 
 const log = getLogger("datasources");
 
-const regions = new Map([
+export const regions = new Map([
     AUS_SYD,
     NZL_AKL,
 ].map(r => [r.code.toLowerCase(), r]));
@@ -77,16 +77,11 @@ export function parseRegionalId(regionOrId: Id | RegionCode, id?: Id): [RegionCo
 }
 
 export async function initialize(cacheDir: string): Promise<void> {
-    // create cache directory
-    if (!existsSync(cacheDir)){
-        mkdirSync(cacheDir, { recursive: true });
-    }
-
     // initialize each region
     const results = await mapRegions(async r => {
         const regionCache = path.join(cacheDir, r.code.toLowerCase());
         if (!existsSync(regionCache)){
-            mkdirSync(regionCache);
+            mkdirSync(regionCache, { recursive: true });
         }
         await r.initialize(regionCache);
     });

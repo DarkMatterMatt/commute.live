@@ -1,7 +1,8 @@
+import { join } from "node:path";
 import { clearInterval, setInterval } from "node:timers";
 import type { Id } from "@commutelive/common";
 import Graceful from "node-graceful";
-import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize, mapRegionsSync } from "~/datasources/";
+import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize as initializeRegions, mapRegionsSync, regions } from "~/datasources/";
 import env from "~/env.js";
 import { TimedMap } from "~/helpers/";
 import { getLogger } from "~/log.js";
@@ -67,7 +68,8 @@ async function getIdForTrip(
 
 (async () => {
     log.info("Initializing regions.");
-    await initialize(env.CACHE_DIR);
+    const cacheDir = env.CACHE_DIR;
+    await initializeRegions(join(cacheDir, "regions"));
 
     log.info("Looking for static updates.");
     await checkForStaticUpdates();
@@ -80,9 +82,19 @@ async function getIdForTrip(
     Graceful.on("exit", () => clearInterval(realtimeUpdateInterval));
 
     log.info("Starting web server.");
+    const regionsList = [...regions.values()];
     await startServer({
         availableRegions,
         getRegion,
+        regions: regionsList,
+        initializeWebSocketRouteOpts: {
+            cacheDir: join(cacheDir, "websockets"),
+            regions: regionsList,
+        },
+        initializeGetRouteOpts: {
+            cacheDir: join(cacheDir, "api"),
+            regions: regionsList,
+        },
     });
 
     log.info("Connecting realtime regional events to web server.");

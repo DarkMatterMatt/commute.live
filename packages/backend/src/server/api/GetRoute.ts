@@ -2,7 +2,7 @@ import type { PromiseOr, RegionCode } from "@commutelive/common";
 import type { HttpResponse, WebSocket } from "uWebSockets.js";
 import { md5 } from "~/helpers/";
 import type { DataSource } from "~/types";
-import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen } from "../Route.js";
+import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen, type RouteInitializeOpts } from "../Route.js";
 
 const DEFAULT_CACHE_MAX_AGE = 3600; // 1 hour
 
@@ -14,14 +14,19 @@ export interface GetRouteExecutorOpts<
     O extends readonly string[],
 > extends RouteExecuteOpts {
     getRegion: (region: string) => DataSource | null;
+    headers: Record<string, string>;
     params: ValidParams<R, O>;
     region: DataSource | null;
+    res: HttpResponse;
 }
+
+export type GetRouteInitializeOpts = RouteInitializeOpts;
 
 export interface GetRouteExecuteOpts {
     activeWebSockets: Set<WebSocket>;
     availableRegions: RegionCode[];
     getRegion: (region: string) => DataSource | null;
+    regions: DataSource[];
 }
 
 export interface GetRouteOpts<R extends readonly string[], O extends readonly string[]> {
@@ -73,7 +78,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
     }
 
     public async execute(opts: GetRouteExecuteOpts): Promise<void> {
-        const { activeWebSockets, getRegion } = opts;
+        const { activeWebSockets, getRegion, regions } = opts;
 
         const [params, errors] = this.validateParams(this.params, opts.availableRegions);
         if (errors != null) {
@@ -82,7 +87,15 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
 
         const regionName = this.params.region;
         const region = regionName == null ? null : getRegion(this.params.region);
-        await this.executor(this, { activeWebSockets, getRegion, params, region });
+        await this.executor(this, {
+            activeWebSockets,
+            getRegion,
+            headers: this.headers,
+            params,
+            region,
+            regions,
+            res: this.res,
+        });
     }
 
     private validateParams(params: Record<string, string>, availableRegions: string[]): [ValidParams<R, O>, null];
@@ -175,6 +188,7 @@ export interface CreateGetRouteData extends CreateRouteData {
 export interface GetRouteGeneratorOpts<R extends readonly string[], O extends readonly string[]> {
     name: string;
     executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    initialize?: (data: GetRouteInitializeOpts) => PromiseOr<void>;
     cacheMaxAge?: number;
     optionalParams: O;
     requiredParams: R;
@@ -184,6 +198,7 @@ export interface GetRouteGeneratorOpts<R extends readonly string[], O extends re
 export class GetRouteGenerator<R extends readonly string[], O extends readonly string[]> extends RouteGen {
     private readonly cacheMaxAge: number;
     private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    private readonly initialize_?: (data: GetRouteInitializeOpts) => PromiseOr<void>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
     private readonly requiresRegion: boolean;
@@ -192,6 +207,7 @@ export class GetRouteGenerator<R extends readonly string[], O extends readonly s
         super(opts.name);
         this.cacheMaxAge = opts.cacheMaxAge ?? DEFAULT_CACHE_MAX_AGE;
         this.executor = opts.executor;
+        this.initialize_ = opts.initialize;
         this.optionalParams = opts.optionalParams;
         this.requiredParams = opts.requiredParams;
         this.requiresRegion = opts.requiresRegion ?? false;
@@ -209,5 +225,9 @@ export class GetRouteGenerator<R extends readonly string[], O extends readonly s
             requiresRegion: this.requiresRegion,
             res,
         });
+    }
+
+    public async initialize(opts: GetRouteInitializeOpts): Promise<void> {
+        await this.initialize_?.(opts);
     }
 }

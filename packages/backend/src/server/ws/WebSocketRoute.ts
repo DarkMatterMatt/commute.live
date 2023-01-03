@@ -1,7 +1,7 @@
 import type { PromiseOr, RegionCode } from "@commutelive/common";
 import type { WebSocket } from "uWebSockets.js";
 import type { DataSource } from "~/types";
-import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen } from "../Route.js";
+import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen, type RouteInitializeOpts } from "../Route.js";
 
 export type ValidParams<R extends readonly string[], O extends readonly string[]> =
     { [K in R[number]]: string } & Partial<{ [K in O[number]]: string }>;
@@ -19,7 +19,10 @@ export interface WebSocketRouteExecuteOpts {
     activeWebSockets: Set<WebSocket>;
     availableRegions: RegionCode[];
     getRegion: (region: string) => DataSource | null;
+    regions: DataSource[];
 }
+
+export type WebSocketRouteInitializeOpts = RouteInitializeOpts;
 
 export interface WebSocketRouteOpts<R extends readonly string[], O extends readonly string[]> {
     executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
@@ -58,7 +61,7 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
     }
 
     public async execute(opts: WebSocketRouteExecuteOpts): Promise<void> {
-        const { activeWebSockets } = opts;
+        const { activeWebSockets, regions } = opts;
 
         const [params, errors] = this.validateParams(this.params, opts.availableRegions);
         if (errors != null) {
@@ -67,7 +70,7 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
 
         const regionName = this.params.region as string | undefined;
         const region = regionName == null ? null : opts.getRegion(regionName);
-        await this.executor(this, { activeWebSockets, params, ws: this.ws, region });
+        await this.executor(this, { activeWebSockets, params, ws: this.ws, region, regions });
     }
 
     private validateParams(params: Record<string, unknown>, availableRegions: string[]): [ValidParams<R, O>, null];
@@ -125,6 +128,7 @@ export interface CreateWebSocketRouteData extends CreateRouteData {
 export interface WebSocketRouteGeneratorOpts<R extends readonly string[], O extends readonly string[]> {
     name: string;
     executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    initialize?: (data: WebSocketRouteInitializeOpts) => PromiseOr<void>;
     optionalParams: O;
     requiredParams: R;
     requiresRegion?: boolean;
@@ -132,6 +136,7 @@ export interface WebSocketRouteGeneratorOpts<R extends readonly string[], O exte
 
 export class WebSocketRouteGenerator<R extends readonly string[], O extends readonly string[]> extends RouteGen {
     private readonly executor: (route: WebSocketRoute<R, O>, data: WebSocketRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    private readonly initialize_?: (data: WebSocketRouteInitializeOpts) => PromiseOr<void>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
     private readonly requiresRegion: boolean;
@@ -155,5 +160,9 @@ export class WebSocketRouteGenerator<R extends readonly string[], O extends read
             seq,
             ws,
         });
+    }
+
+    public async initialize(opts: WebSocketRouteInitializeOpts): Promise<void> {
+        await this.initialize_?.(opts);
     }
 }

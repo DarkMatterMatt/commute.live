@@ -6,9 +6,11 @@ import { getStatus as getDataSourcesStatus, getMQTTForTripUpdates, getMQTTForVeh
 import env from "~/env.js";
 import { getLogger } from "~/log.js";
 import type { DataSource, TripUpdate, VehiclePosition } from "~/types";
-import apiRoutes, { defaultRoute as defaultApiRoute } from "./api/";
+import apiRoutes, { defaultRoute as defaultApiRoute, initialize as initializeGetRoutes } from "./api/";
+import type { GetRouteInitializeOpts } from "./api/GetRoute";
 import { convertTripUpdate, convertVehiclePosition } from "./transmission";
-import wsRoutes, { defaultRoute as defaultWsRoute } from "./ws/";
+import wsRoutes, { defaultRoute as defaultWsRoute, initialize as initializeWsRoutes } from "./ws/";
+import type { WebSocketRouteInitializeOpts } from "./ws/WebSocketRoute";
 
 const WS_CODE_CLOSE_GOING_AWAY = 1001;
 
@@ -17,6 +19,9 @@ const log = getLogger("server");
 export interface StartOpts {
     availableRegions: RegionCode[];
     getRegion: (region: string) => DataSource | null;
+    regions: DataSource[];
+    initializeGetRouteOpts: GetRouteInitializeOpts;
+    initializeWebSocketRouteOpts: WebSocketRouteInitializeOpts;
 }
 
 const app = env.USE_SSL ? uWS.SSLApp({
@@ -24,7 +29,16 @@ const app = env.USE_SSL ? uWS.SSLApp({
     cert_file_name: env.SSL_CERT_FILE,
 }) : uWS.App();
 
-export async function startServer({ availableRegions, getRegion }: StartOpts): Promise<void> {
+export async function startServer({
+    availableRegions,
+    getRegion,
+    regions,
+    initializeGetRouteOpts,
+    initializeWebSocketRouteOpts,
+}: StartOpts): Promise<void> {
+    await initializeGetRoutes(initializeGetRouteOpts);
+    await initializeWsRoutes(initializeWebSocketRouteOpts);
+
     const activeWebSockets = new Set<WebSocket>();
     let listenSocket: us_listen_socket;
 
@@ -99,6 +113,7 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
                     activeWebSockets,
                     availableRegions,
                     getRegion,
+                    regions,
                 });
         },
     });
@@ -115,6 +130,7 @@ export async function startServer({ availableRegions, getRegion }: StartOpts): P
                 activeWebSockets,
                 availableRegions,
                 getRegion,
+                regions,
             });
     });
 
