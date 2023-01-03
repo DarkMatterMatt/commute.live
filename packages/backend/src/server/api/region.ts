@@ -13,13 +13,14 @@ export const regionRoute = new GetRouteGenerator({
 
         const result: RegionResult = {
             code: region.code,
+            location: region.location,
             country: region.country,
             region: region.region,
             attributionHTML: region.attributionHTML,
         };
 
         return route.finish("success", {
-            message: "See routes attached.",
+            message: "See region attached.",
             result,
         });
     },

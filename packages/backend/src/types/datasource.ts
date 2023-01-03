@@ -25,6 +25,11 @@ export interface DataSource {
     readonly code: RegionCode;
 
     /**
+     * Approximate center of the data source.
+     */
+    readonly location: LatLng;
+
+    /**
      * Human-readable version of the COUNTRY in the region code.
      */
     readonly country: string;

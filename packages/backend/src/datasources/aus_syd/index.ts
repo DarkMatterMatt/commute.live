@@ -22,6 +22,8 @@ const REALTIME_API_URLS: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessa
 export const AUS_SYD: DataSource = {
     code: regionCode,
 
+    location: { lat: -33.9049, lng: 151.0839 },
+
     country: "Australia",
 
     region: "New South Wales",

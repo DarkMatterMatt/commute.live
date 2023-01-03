@@ -17,6 +17,8 @@ const WS_URL = "wss://mobile.at.govt.nz/mobile/streaming/v1"
 export const NZL_AKL: DataSource = {
     code: regionCode,
 
+    location: { lat: -36.8484, lng: 174.7633 },
+
     country: "New Zealand",
 
     region: "Auckland",
