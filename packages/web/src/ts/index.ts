@@ -150,6 +150,8 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Pre-init
      */
 
+    const loadRoutes = state.load();
+
     settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
     if (!largeScreen()) {
         showNav();
@@ -188,16 +190,17 @@ function onGeolocationError(err: GeolocationPositionError) {
     const markerView = new HtmlMarkerView(map);
     state.setMarkerView(markerView);
 
-    state.load();
-
     const wsConnectTimeout = setTimeout(() => {
         showError("Waiting to connect to server.... Your internet is fine, it's my server that's broken :(");
     }, 2000);
-    api.wsConnect().then(() => {
+    api.wsConnect().then(async () => {
         clearInterval(wsConnectTimeout);
         hideError();
         const search = new Search(state, $searchInput, $dropdownFilter);
-        search.load("NZL_AKL");
+        await Promise.all([
+            search.load("AUS_SYD"),
+            loadRoutes(),
+        ]);
     });
 
     /*
@@ -308,7 +311,7 @@ function onGeolocationError(err: GeolocationPositionError) {
 
     api.onWebSocketReconnect(() => state.loadActiveRoutesVehicles());
 
-    // on a user's first visit, show the menu after $x settings if they have a large screen
+    // on a user's first visit, show the menu after 5 seconds if they have a large screen
     if (state.isFirstVisit() && largeScreen()) {
         const timeout = setTimeout(() => showNav(), OPEN_MENU_ON_FIRST_VISIT_TIMEOUT);
         $navShow.addEventListener("click", () => clearTimeout(timeout), { once: true });

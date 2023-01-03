@@ -170,7 +170,7 @@ class State {
         });
     }
 
-    load(): void {
+    load(): () => Promise<void> {
         // trim leading # off location.hash
         const hash = window.location.hash.replace(/^#/, "");
 
@@ -187,8 +187,8 @@ class State {
         settings.import(parsed.settings);
         settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save(), false));
 
-        // run async
-        this.loadRoutes(parsed.routes);
+        // return function to load routes
+        return () => this.loadRoutes(parsed.routes);
     }
 
     // eslint-disable-next-line class-methods-use-this
