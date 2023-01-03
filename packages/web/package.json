@@ -22,6 +22,15 @@
     },
     "nx": {
         "targets": {
+            "build": {
+                "dependsOn": [
+                    "^build",
+                    "typecheck"
+                ],
+                "outputs": [
+                    "{projectRoot}/dist"
+                ]
+            },
             "lint": {
                 "dependsOn": [
                     "^build"
