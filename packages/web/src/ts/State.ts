@@ -49,7 +49,6 @@ class State {
     }
 
     static migrate(data: Record<string, any>): (ParsedState & { isFirstVisit: false }) | { isFirstVisit: true } {
-        /* eslint-disable no-param-reassign */
         const version = data.version as number;
 
         // on first load, show route 25B and 70

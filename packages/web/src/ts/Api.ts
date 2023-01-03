@@ -11,7 +11,7 @@ class Api {
 
     private wsSeq = 0;
 
-    private wsResponseHandlers: [number, (...args: any[]) => void][] = [];
+    private wsResponseHandlers = new Map<number, (...args: any[]) => void>();
 
     private webSocketConnectedPreviously = false;
 
@@ -128,7 +128,7 @@ class Api {
         const seq = this.wsSeq++;
         this.ws.send(JSON.stringify({ ...data, seq }));
         return new Promise<T>(resolve => {
-            this.wsResponseHandlers.push([seq, resolve]);
+            this.wsResponseHandlers.set(seq, resolve);
         });
     }
 
@@ -165,8 +165,9 @@ class Api {
         ws.addEventListener("message", ev => {
             const data = JSON.parse(ev.data);
             if (data.seq) {
-                this.wsResponseHandlers.find(([seq]) => seq === data.seq)?.[1](data);
-                return;
+                // resolve promise
+                this.wsResponseHandlers.get(data.seq)?.();
+                this.wsResponseHandlers.delete(data.seq);
             }
             if (this._onMessage === null) return;
             if (!data.status || !data.route) return;
