@@ -3,7 +3,7 @@ import { unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import { type RegionResult } from "@commutelive/common";
+import { type IpRegionResult } from "@commutelive/common";
 import maxmind, { type CityResponse, type Reader } from "maxmind";
 import fetch from "node-fetch";
 import { defaultProjection, sleep } from "~/helpers/";
@@ -130,18 +130,20 @@ export const ipRegionRoute = new GetRouteGenerator({
         }
 
         const [region] = closestRegion;
-        const result: RegionResult = {
-            code: region.code,
-            location: region.location,
-            country: region.country,
-            region: region.region,
-            attributionHTML: region.attributionHTML,
+        const result: IpRegionResult = {
+            region: {
+                code: region.code,
+                location: region.location,
+                country: region.country,
+                region: region.region,
+                attributionHTML: region.attributionHTML,
+            },
+            userLocation,
         };
 
         return route.finish("success", {
             message: "See region found.",
             result,
-            userLocation,
         });
     },
 

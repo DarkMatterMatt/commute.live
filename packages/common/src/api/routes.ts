@@ -3,7 +3,7 @@ import type { LatLng } from "../geo";
 import type { Id, RegionCode } from "./id";
 import type { LiveVehicle } from "./websocket";
 
-export type RouteDataResult = {
+export interface RouteDataResult {
     id: Id;
     region: RegionCode;
     longNames: [StrOrNull, StrOrNull];
@@ -11,7 +11,7 @@ export type RouteDataResult = {
     shortName: string;
     type: number;
     vehicles: LiveVehicle[];
-};
+}
 
 export type RoutesDataResult = RouteDataResult[];
 
