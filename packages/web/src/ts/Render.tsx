@@ -39,26 +39,25 @@ interface TransitIconOptions {
 
 let instance: Render | null = null;
 
-const activeRouteCache = new Map<Id, HTMLDivElement>();
-const searchResultCache = new Map<Id, HTMLDivElement>();
-
 class Render {
-    locationCenter: google.maps.Marker | null = null;
+    private locationCenter: google.maps.Marker | null = null;
 
-    locationAccuracy: google.maps.Circle | null = null;
+    private locationAccuracy: google.maps.Circle | null = null;
+
+    private searchResultCache = new Map<Id, HTMLDivElement>();
 
     private constructor() {
         //
     }
 
-    static getInstance(): Render {
+    public static getInstance(): Render {
         if (instance == null) {
             instance = new Render();
         }
         return instance;
     }
 
-    showLocation(map: google.maps.Map | null, coords: GeolocationCoordinates | null): void {
+    public showLocation(map: google.maps.Map | null, coords: GeolocationCoordinates | null): void {
         if (map == null || coords == null) {
             if (this.locationCenter != null) {
                 this.locationCenter.setMap(null);
@@ -96,12 +95,12 @@ class Render {
      * Choose to use light/dark text based on the background color
      * @see https://stackoverflow.com/a/3943023/6595777
      */
-    static shouldUseLightText(backgroundHexStr: string): boolean {
+    private static shouldUseLightText(backgroundHexStr: string): boolean {
         const [red, green, blue] = (convert.hex as hex).rgb(backgroundHexStr);
         return (red * 0.299) + (green * 0.587) + (blue * 0.114) <= 186;
     }
 
-    static getNewColor(existingRoutes: { color: string }[]): string {
+    public static getNewColor(existingRoutes: { color: string }[]): string {
         // return the first SUGGESTED_COLOR that hasn't already been used
         return SUGGESTED_COLORS.find(c => !existingRoutes.find(r => r.color === c)) || SUGGESTED_COLORS[0];
     }
@@ -163,7 +162,7 @@ class Render {
         throw new Error(`Unknown transit type: ${transitType}`);
     }
 
-    static createLocationIcon(): google.maps.Icon {
+    private static createLocationIcon(): google.maps.Icon {
         /* eslint-disable max-len */
         const svg = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -179,7 +178,7 @@ class Render {
         };
     }
 
-    static createTransitIcon(options: TransitIconOptions): google.maps.Icon {
+    private static createTransitIcon(options: TransitIconOptions): google.maps.Icon {
         /* eslint-disable max-len */
         const defaults = {
             opacity: 1,
@@ -230,7 +229,7 @@ class Render {
         };
     }
 
-    static createMarkerSvg(opts: MarkerIconOptions): HTMLDivElement {
+    public static createMarkerSvg(opts: MarkerIconOptions): HTMLDivElement {
         /* eslint-disable max-len */
         switch (opts.type) {
             default:
@@ -283,18 +282,13 @@ class Render {
         }
     }
 
-    static createActiveRoute(
+    public static createActiveRoute(
         routeData: Pick<SearchRoute, "id" | "type" | "shortName" | "longName">,
         color: string,
         showPickr: boolean,
         onColorChange: (id: Id, color: string) => void,
         onRemove: (id: Id, $activeRoute: HTMLDivElement) => void,
     ): HTMLDivElement {
-        const cached = activeRouteCache.get(routeData.id);
-        if (cached != null) {
-            return cached;
-        }
-
         const icon = Render.createTransitIcon({
             type: routeData.type,
             fill: Render.shouldUseLightText(color) ? "#FFF" : "#000",
@@ -359,12 +353,11 @@ class Render {
             onRemove(routeData.id, $parent);
         });
 
-        activeRouteCache.set(routeData.id, $parent);
         return $parent;
     }
 
-    static createSearchResult(routeData: SearchRoute, onAdd: (routeData: SearchRoute) => void): HTMLDivElement {
-        const cached = searchResultCache.get(routeData.id);
+    private createSearchResult(routeData: SearchRoute, onAdd: (routeData: SearchRoute) => void): HTMLDivElement {
+        const cached = this.searchResultCache.get(routeData.id);
         if (cached != null) {
             return cached;
         }
@@ -405,11 +398,11 @@ class Render {
         $parent.addEventListener("click", () => onAdd(routeData));
 
         // eslint-disable-next-line no-param-reassign
-        searchResultCache.set(routeData.id, $parent);
+        this.searchResultCache.set(routeData.id, $parent);
         return $parent;
     }
 
-    static renderFilterDropdown($dropdown: HTMLElement, routes: SearchRoute[], onAdd: (routeData: SearchRoute) => void): void {
+    public renderFilterDropdown($dropdown: HTMLElement, routes: SearchRoute[], onAdd: (routeData: SearchRoute) => void): void {
         $dropdown.innerHTML = "";
 
         if (routes.length === 0) {
@@ -419,7 +412,7 @@ class Render {
 
         $dropdown.classList.add("show");
         routes.slice(0, MAX_FILTER_RESULTS).forEach(route => {
-            $dropdown.append(Render.createSearchResult(route, onAdd));
+            $dropdown.append(this.createSearchResult(route, onAdd));
         });
 
         if (largeScreen()) {

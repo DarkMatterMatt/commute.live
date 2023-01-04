@@ -1,6 +1,6 @@
 import type { RegionCode } from "@commutelive/common";
 import { api } from "./Api";
-import Render from "./Render";
+import { render } from "./Render";
 import Route from "./Route";
 import type State from "./State";
 import type { SearchRoute } from "./types";
@@ -99,7 +99,7 @@ class Search {
     }
 
     render(routes: SearchRoute[]): void {
-        Render.renderFilterDropdown(this.$dropdown, routes, routeData => {
+        render.renderFilterDropdown(this.$dropdown, routes, routeData => {
             this.clear();
             this.state.activateRoute(routeData);
         });
