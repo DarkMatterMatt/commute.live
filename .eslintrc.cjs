@@ -59,7 +59,7 @@ module.exports = {
         }],
         "no-mixed-operators": "error",
         "no-trailing-spaces": "warn",
-        "@typescript-eslint/no-unused-vars": ["error", {
+        "@typescript-eslint/no-unused-vars": ["warn", {
             argsIgnorePattern: "^_+",
             varsIgnorePattern: "^_+",
         }],
@@ -89,9 +89,9 @@ module.exports = {
         "@typescript-eslint/quotes": ["warn", "double", {
             avoidEscape: true,
         }],
-        "quote-props": ["error", "consistent-as-needed"],
-        "semi": ["error", "always"],
-        "sort-imports": ["error", {
+        "quote-props": ["warn", "consistent-as-needed"],
+        "semi": ["warn", "always"],
+        "sort-imports": ["warn", {
             "ignoreCase": true,
             "ignoreDeclarationSort": true,
         }]
