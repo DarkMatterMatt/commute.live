@@ -69,6 +69,7 @@ class Search {
             } while (m);
 
             return {
+                region,
                 id: r.id,
                 type: r.type,
                 shortName: r.shortName,

@@ -1,8 +1,9 @@
-import type { Id } from "@commutelive/common";
+import type { Id, RegionCode } from "@commutelive/common";
 
 type MarkerType = "marker" | "pointyCircle";
 
 interface SearchRoute {
+    region: RegionCode;
     id: Id;
     type: number;
     shortName: string;

@@ -1,9 +1,9 @@
-import type { Id, LiveVehicle } from "@commutelive/common";
+import type { Id, LiveVehicle, RegionCode } from "@commutelive/common";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { api } from "./Api";
 import { isEmptyObject, localStorageEnabled } from "./Helpers";
 import type HtmlMarkerView from "./HtmlMarkerView";
-import Render from "./Render";
+import Render, { render } from "./Render";
 import Route from "./Route";
 import { settings } from "./Settings";
 import type { MarkerType, SearchRoute } from "./types";
@@ -34,8 +34,6 @@ class State {
     private markerView: HtmlMarkerView | null = null;
 
     private routes = new Map<Id, Route>();
-
-    private $activeRoutes: HTMLElement = document.createElement("div");
 
     private constructor() {
         //
@@ -98,8 +96,7 @@ class State {
     }
 
     setActiveRoutesElem($new: HTMLElement): State {
-        $new.append(...this.$activeRoutes.childNodes);
-        this.$activeRoutes = $new;
+        render.setActiveRoutesElem($new);
         return this;
     }
 
@@ -138,9 +135,12 @@ class State {
         }
 
         const activeAndColorMap = new Map(routes.map(([id, active, color]) => [id, [active, color] as const]));
-        const foundRoutes = await api.queryRoutes(routes.map(r => r[0]), ["id", "shortName", "longNames", "type"]);
+        const foundRoutes = await api.queryRoutes(
+            routes.map(r => r[0]),
+            ["region", "id", "shortName", "longNames", "type"],
+        );
 
-        foundRoutes.forEach(({ id, shortName, longNames, type }) => {
+        foundRoutes.forEach(({ region, id, shortName, longNames, type }) => {
             const activeAndColor = activeAndColorMap.get(id);
             if (activeAndColor == null) {
                 // this should never happen
@@ -170,9 +170,9 @@ class State {
                     route.color,
                     false,
                     this.changeRouteColor.bind(this),
-                    this.deactivateRoute.bind(this),
+                    this.deactivateRoute.bind(this, region),
                 );
-                this.$activeRoutes.appendChild($activeRoute);
+                render.addActiveRoute($activeRoute, region);
                 route.activate();
             }
         });
@@ -261,16 +261,16 @@ class State {
         this.save();
     }
 
-    deactivateRoute(id: Id, $activeRoute: HTMLDivElement): void {
+    deactivateRoute(region: RegionCode, id: Id, $activeRoute: HTMLDivElement): void {
         const route = this.routes.get(id);
         if (route !== undefined) {
             route.deactivate();
         }
-        $activeRoute.remove();
+        render.removeActiveRoute($activeRoute, region);
         this.save();
     }
 
-    async activateRoute({ id, shortName, longName, type }: SearchRoute): Promise<void> {
+    async activateRoute({ region, id, shortName, longName, type }: SearchRoute): Promise<void> {
         const { map, markerView } = this;
         if (map == null || markerView == null) {
             throw new Error("Map or markerView is not set");
@@ -303,9 +303,9 @@ class State {
             route.color,
             showPickr,
             this.changeRouteColor.bind(this),
-            this.deactivateRoute.bind(this),
+            this.deactivateRoute.bind(this, region),
         );
-        this.$activeRoutes.appendChild($activeRoute);
+        render.addActiveRoute($activeRoute, region);
 
         await route.activate();
         this.save();

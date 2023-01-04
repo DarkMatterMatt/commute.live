@@ -1,5 +1,5 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
-import { type Id, type LiveVehicle, UnreachableError } from "@commutelive/common";
+import { type Id, type LiveVehicle, type RegionCode, UnreachableError } from "@commutelive/common";
 import Pickr from "@simonwep/pickr";
 import type { hex } from "color-convert/route";
 import { largeScreen } from "./Helpers";
@@ -46,6 +46,10 @@ class Render {
 
     private searchResultCache = new Map<Id, HTMLDivElement>();
 
+    private $activeRoutesContainer: HTMLElement = document.createElement("div");
+
+    private $activeRoutes = new Map<RegionCode, HTMLElement>();
+
     private constructor() {
         //
     }
@@ -55,6 +59,44 @@ class Render {
             instance = new Render();
         }
         return instance;
+    }
+
+    public setActiveRoutesElem($new: HTMLElement): void {
+        $new.append(...this.$activeRoutesContainer.childNodes);
+        this.$activeRoutesContainer = $new;
+    }
+
+    public createActiveRegionElem(region: RegionCode): HTMLElement {
+        return (
+            <div class="region">
+                <div class="region-title">{region}</div>
+            </div>
+        );
+    }
+
+    public addActiveRoute($activeRoute: HTMLDivElement, region: RegionCode) {
+        let $region = this.$activeRoutes.get(region);
+        if ($region == null) {
+            $region = this.createActiveRegionElem(region);
+            this.$activeRoutes.set(region, $region);
+            this.$activeRoutesContainer.append($region);
+            if (this.$activeRoutes.size > 1) {
+                this.$activeRoutesContainer.classList.add("show-active-region-headers");
+            }
+        }
+        $region.append($activeRoute);
+    }
+
+    public removeActiveRoute($activeRoute: HTMLDivElement, region: RegionCode) {
+        $activeRoute.remove();
+        const $region = this.$activeRoutes.get(region);
+        if ($region != null && $region.childElementCount <= 1) { // 1 because of the region header
+            $region.remove();
+            this.$activeRoutes.delete(region);
+            if (this.$activeRoutes.size <= 1) {
+                this.$activeRoutesContainer.classList.remove("show-active-region-headers");
+            }
+        }
     }
 
     public showLocation(map: google.maps.Map | null, coords: GeolocationCoordinates | null): void {

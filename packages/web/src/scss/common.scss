@@ -253,6 +253,26 @@ body.theme-dark .github {
         }
 
         #active {
+            .region {
+                border-top: 2px solid var(--primary);
+
+                &:first-child {
+                    border-top: none;
+                }
+            }
+
+            &.show-active-region-headers {
+                .region-title {
+                    display: block;
+                }
+            }
+
+            .region-title {
+                display: none;
+                padding: 8px 0 4px 0;
+                color: var(--primary-darker);
+            }
+
             .route {
                 --color: transparent;
                 border-bottom: 1px solid var(--primary);
