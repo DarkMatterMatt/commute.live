@@ -1,7 +1,7 @@
 import type { LatLng } from "../geo";
-import type { RegionResult } from "./region";
+import type { RegionDataResult } from "./regions";
 
 export interface IpRegionResult {
-    region: RegionResult;
+    region: RegionDataResult;
     userLocation: LatLng;
 }

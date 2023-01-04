@@ -1,4 +1,4 @@
-import { createPromise, type Id, type IpRegionResult, type ListRouteResult, type ListRoutesResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionResult, type RouteDataResult } from "@commutelive/common";
+import { createPromise, type Id, type IpRegionResult, type ListRouteResult, type ListRoutesResult, type PartialRegionDataResult, type PartialRegionsDataResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RouteDataResult } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -67,7 +67,10 @@ class Api {
                 // this is raised when the IP address cannot be resolved,
                 // e.g. due to a private IP during development
                 console.warn("Failed guessing region by IP address, using Auckland as default");
-                const region = await this.queryRegion("NZL_AKL");
+                const region = await this.queryRegion(
+                    "NZL_AKL",
+                    ["code", "location", "country", "region", "attributionHTML", "defaultZoom", "defaultRouteIds"],
+                );
                 return {
                     region,
                     userLocation: region.location,
@@ -77,9 +80,35 @@ class Api {
         }
     }
 
-    public async queryRegion(region: RegionCode): Promise<RegionResult> {
-        const response = await this.query<{ result: RegionResult }>("region", { region });
-        return response.result;
+    public async queryRegion<T extends keyof RegionDataResult>(
+        regionCode: RegionCode,
+        fields: T[],
+    ): Promise<PartialRegionDataResult<T>> {
+        const response = await this.query<{ regions: PartialRegionsDataResult<T> }>("regions", {
+            fields: fields.join(","),
+            regions: regionCode,
+        });
+        if (response.regions.length === 0) {
+            throw new Error(`Region not found: ${regionCode}`);
+        }
+        return response.regions[0];
+    }
+
+    public async queryRegions<T extends keyof RegionDataResult>(
+        regionCodes: RegionCode[],
+        fields: T[],
+    ): Promise<PartialRegionDataResult<T>> {
+        const response = await this.query<{
+            regions: PartialRegionDataResult<T>;
+            unknown?: RegionCode[];
+        }>("regions", {
+            fields: fields.join(","),
+            regions: regionCodes.join(","),
+        });
+        if (response.unknown?.length) {
+            console.warn("Some regions were not found", response.unknown);
+        }
+        return response.regions;
     }
 
     public async listRoutes(region: RegionCode): Promise<Map<string, ListRouteResult>> {
@@ -95,7 +124,6 @@ class Api {
             fields: fields.join(","),
             routeIds: id,
         };
-        if (fields) query.fields = fields.join(",");
         const response = await this.query<{ routes: PartialRoutesDataResult<T> }>("routes", query);
         if (response.routes.length === 0) {
             throw new Error(`Route not found: ${id}`);
@@ -107,14 +135,13 @@ class Api {
         ids: Id[],
         fields: T[],
     ): Promise<PartialRoutesDataResult<T>> {
-        const query: Record<string, string> = {
-            fields: fields.join(","),
-            routeIds: ids.join(","),
-        };
         const response = await this.query<{
             routes: PartialRoutesDataResult<T>;
             unknown?: Id[];
-        }>("routes", query);
+        }>("routes", {
+            fields: fields.join(","),
+            routeIds: ids.join(","),
+        });
         if (response.unknown?.length) {
             console.warn("Some routes were not found", response.unknown);
         }

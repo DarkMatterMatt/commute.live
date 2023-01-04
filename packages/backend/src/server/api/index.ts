@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { GetRouteGenerator, type GetRouteInitializeOpts } from "./GetRoute.js";
 import { ipRegionRoute } from "./ipregion.js";
 import { listRoute } from "./list.js";
-import { regionRoute } from "./region.js";
+import { regionsRoute } from "./regions.js";
 import { routesRoute } from "./routes.js";
 import { statusRoute } from "./status.js";
 
@@ -20,7 +20,7 @@ export const defaultRoute = new GetRouteGenerator({
 const routes = new Map([
     listRoute,
     ipRegionRoute,
-    regionRoute,
+    regionsRoute,
     routesRoute,
     statusRoute,
 ].map(r => [r.name, r]));
