@@ -8,8 +8,8 @@ const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
 // Load .env and ../../.env
-require('dotenv').config();
 require('dotenv').config({ path: '../../.env' });
+require('dotenv').config();
 
 if (!process.env.PWA_BASE_URL) {
     throw new Error("PWA_BASE_URL is not defined");
