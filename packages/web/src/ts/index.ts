@@ -146,17 +146,6 @@ function onGeolocationError(err: GeolocationPositionError) {
     }
 
     /*
-     * Pre-init
-     */
-
-    const { loadRoutes, map: { center, zoom } } = await state.load();
-
-    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
-    if (!largeScreen()) {
-        showNav();
-    }
-
-    /*
      * Offline
      */
 
@@ -169,6 +158,17 @@ function onGeolocationError(err: GeolocationPositionError) {
         }
         showError("Waiting for network connection...");
         return;
+    }
+
+    /*
+     * Pre-init
+     */
+
+    const { loadRoutes, map: { center, zoom } } = await state.load();
+
+    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
+    if (!largeScreen()) {
+        showNav();
     }
 
     /*
