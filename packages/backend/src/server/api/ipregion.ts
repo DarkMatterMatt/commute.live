@@ -3,10 +3,10 @@ import { unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import { type IpRegionResult } from "@commutelive/common";
+import { defaultProjection, type IpRegionResult } from "@commutelive/common";
 import maxmind, { type CityResponse, type Reader } from "maxmind";
 import fetch from "node-fetch";
-import { defaultProjection, sleep } from "~/helpers/";
+import { sleep } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import { GetRouteGenerator } from "./GetRoute.js";
 

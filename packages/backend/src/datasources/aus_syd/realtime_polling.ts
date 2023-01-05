@@ -1,5 +1,5 @@
-import type { JSONSerializable } from "@commutelive/common";
-import { parseEnum, RollingAverage, sum } from "~/helpers";
+import { type JSONSerializable, sum } from "@commutelive/common";
+import { parseEnum, RollingAverage } from "~/helpers";
 import { getLogger } from "~/log";
 import { CongestionLevel, OccupancyStatus, type Position, type StopTimeUpdate, type TripDescriptor, TripDescriptor$ScheduleRelationship, type TripUpdate, type TripUpdate$StopTimeEvent, TripUpdate$StopTimeUpdate$ScheduleRelationship, type VehicleDescriptor, type VehiclePosition, VehicleStopStatus } from "~/types";
 import { queryApi } from "./api.js";

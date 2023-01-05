@@ -1,5 +1,5 @@
-import type { LatLng, Point } from "@commutelive/common";
-import { clamp, degreesToRadians, radiansToDegrees } from "~/helpers/";
+import { clamp, degreesToRadians, radiansToDegrees } from "../number";
+import type { LatLng, Point } from "./types";
 
 const ALMOST_ONE = 1 - 1e-15;
 
