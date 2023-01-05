@@ -2,9 +2,9 @@ import "../scss/styles.scss";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-import type { LiveVehicle } from "@commutelive/common";
+import { createPromise, type LiveVehicle, sleep } from "@commutelive/common";
 import { api } from "./Api";
-import { isOnline, largeScreen } from "./Helpers";
+import { largeScreen } from "./Helpers";
 import HtmlMarkerView from "./HtmlMarkerView";
 import mapThemes from "./mapThemes";
 import { render } from "./Render";
@@ -59,20 +59,15 @@ function hideError() {
     setTimeout(() => $errorBtn.classList.remove("show"), 150);
 }
 
-function showError(msg: string, btnText?: string, btnCallback?: (() => void)) {
+let errorBtnCallback: null | (() => void) = null;
+function showError(msg: string, btnText?: string, btnCallback: null | (() => void) = null) {
     $errorMessage.textContent = msg;
 
     if (btnText != null) {
         $errorBtn.textContent = btnText;
         $errorBtn.classList.add("show");
+        errorBtnCallback = btnCallback;
     }
-
-    $errorBtn.addEventListener("click", () => {
-        hideError();
-        if (btnCallback != null) {
-            btnCallback();
-        }
-    }, { once: true });
 
     $error.classList.add("show");
 }
@@ -149,16 +144,29 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Offline
      */
 
-    if (google == null || !await isOnline()) {
-        if (window.navigator.onLine) {
-            setTimeout(() => window.location.reload(), 5000);
-        }
-        else {
-            window.addEventListener("online", () => window.location.reload());
-        }
+    // browser is offline
+    if (window.navigator.onLine === false) {
+        const [promise, resolve] = createPromise<void>();
+        window.addEventListener("online", () => resolve());
         showError("Waiting for network connection...");
+        await promise;
+        hideError();
+    }
+
+    // google failed to load
+    if (google == null) {
+        showError("Google Maps failed to load, retrying in 5 seconds...");
+        await sleep(5000);
+        window.location.reload();
         return;
     }
+
+    // server is offline
+    while (!await api.isOnline()) {
+        showError("Connecting to server failed, retrying automatically...");
+        await sleep(2000);
+    }
+    hideError();
 
     /*
      * Pre-init
@@ -252,6 +260,12 @@ function onGeolocationError(err: GeolocationPositionError) {
     /*
      * Event Listeners
      */
+
+    $errorBtn.addEventListener("click", () => {
+        hideError();
+        errorBtnCallback?.();
+        errorBtnCallback = null;
+    });
 
     $navShow.addEventListener("click", toggleNav);
     $navHide.addEventListener("click", hideNav);

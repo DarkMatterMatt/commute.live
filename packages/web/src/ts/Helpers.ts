@@ -61,17 +61,6 @@ export function onClickOutside($e: HTMLElement, cb: (ev: MouseEvent) => void): v
 }
 
 /**
- * Test if there is a working network connection.
- */
-export async function isOnline(): Promise<boolean> {
-    if (navigator.onLine == null) {
-        // doesn't support navigator.onLine, assume we're online and hope for the best
-        return true;
-    }
-    return navigator.onLine;
-}
-
-/**
  * Convert LatLngBoundsLiteral to LatLngBounds.
  */
 // eslint-disable-next-line max-len

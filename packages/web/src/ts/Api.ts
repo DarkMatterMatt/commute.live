@@ -55,6 +55,23 @@ class Api {
     }
 
     /**
+     * Test if there is a working connection to the API.
+     */
+    public async isOnline(): Promise<boolean> {
+        try {
+            const result = await fetch(`${this.apiUrl}generate204`);
+            if (result.status === 204) {
+                return true;
+            }
+            throw new Error(`Unexpected status code: ${result.status} ${result.statusText}`);
+        }
+        catch (err) {
+            console.warn("Failed querying API", err);
+            return false;
+        }
+    }
+
+    /**
      * Returns the closest region to the current IP address. Used when first visiting commute.live
      */
     public async queryIpLocation(): Promise<null | IpLocationResult> {
