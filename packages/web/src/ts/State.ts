@@ -1,4 +1,4 @@
-import type { Id, LiveVehicle, RegionCode } from "@commutelive/common";
+import { defaultProjection, type Id, type LatLng, type LiveVehicle, type RegionCode, type RegionDataResult, type RegionsDataResult } from "@commutelive/common";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { api } from "./Api";
 import { isEmptyObject, localStorageEnabled } from "./Helpers";
@@ -34,6 +34,8 @@ class State {
     private markerView: HtmlMarkerView | null = null;
 
     private routes = new Map<Id, Route>();
+
+    private regionsCache: null | RegionsDataResult = null;
 
     private constructor() {
         //
@@ -79,6 +81,17 @@ class State {
             settings: data.settings,
             map: data.map,
         };
+    }
+
+    private async getRegions(): Promise<RegionsDataResult> {
+        if (this.regionsCache != null) {
+            return this.regionsCache;
+        }
+        this.regionsCache = await api.queryRegions(
+            "all",
+            ["code", "location", "country", "region", "attributionHTML", "defaultZoom", "defaultRouteIds"],
+        );
+        return this.regionsCache;
     }
 
     setMap(map: google.maps.Map): State {
@@ -176,11 +189,20 @@ class State {
         });
     }
 
-    static async getFirstVisitState(): Promise<ParsedState> {
-        const result = await api.queryRegionByIp();
+    async getFirstVisitState(): Promise<ParsedState> {
+        // guesstimate where the user is based on their IP address
+        const [userLocation, regions] = await Promise.all([
+            api.queryIpLocation(),
+            this.getRegions(),
+        ]);
+
+        // find the closest region to the user, defaulting to NZ if unknown
+        const closestRegion = userLocation
+            ? await this.getClosestRegion(userLocation)
+            : regions.find(r => r.code === "NZL_AKL") ?? [...regions.values()][0];
 
         const defaultColors = ["#9400D3", "#E67C13", "#1DCE1D", "#5555FF"];
-        const routes = result.region.defaultRouteIds
+        const routes = closestRegion.defaultRouteIds
             .slice(0, defaultColors.length)
             .map((id, i) => [id, true, defaultColors[i]] as [Id, boolean, string]);
 
@@ -188,9 +210,9 @@ class State {
             version: STATE_VERSION,
             routes,
             settings: {
-                currentRegion: result.region.code,
+                currentRegion: closestRegion.code,
             },
-            map: [result.region.location.lat, result.region.location.lng, result.region.defaultZoom],
+            map: [closestRegion.location.lat, closestRegion.location.lng, closestRegion.defaultZoom],
         };
     }
 
@@ -208,7 +230,7 @@ class State {
         const parsed = State.migrate(data ? JSON.parse(data) : {});
         this.bIsFirstVisit = parsed.isFirstVisit;
 
-        const state = parsed.isFirstVisit ? await State.getFirstVisitState() : parsed;
+        const state = parsed.isFirstVisit ? await this.getFirstVisitState() : parsed;
 
         settings.import(state.settings);
         settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save(), false));
@@ -223,7 +245,6 @@ class State {
         };
     }
 
-    // eslint-disable-next-line class-methods-use-this
     getNewColor(): string {
         return Render.getNewColor([...this.routes.values()]);
     }
@@ -322,6 +343,22 @@ class State {
         await Promise.all([...this.routes.values()]
             .filter(r => r.isActive())
             .map(r => this.loadRouteVehicles(r.id)));
+    }
+
+    public async getClosestRegion(pos: LatLng): Promise<RegionDataResult> {
+        const regions = await this.getRegions();
+        if (regions.length === 0) {
+            throw new Error("No regions loaded");
+        }
+
+        let closest = [regions[0], Infinity] as const;
+        for (const region of regions) {
+            const dist = defaultProjection.getDistBetweenLatLngs(pos, region.location);
+            if (dist < closest[1]) {
+                closest = [region, dist];
+            }
+        }
+        return closest[0];
     }
 }
 

@@ -1,4 +1,4 @@
-import { createPromise, type Id, type IpLocationResult, type ListRouteResult, type ListRoutesResult, type PartialRegionDataResult, type PartialRegionsDataResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RouteDataResult } from "@commutelive/common";
+import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRoutesResult, type PartialRegionDataResult, type PartialRegionsDataResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RouteDataResult } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -74,16 +74,16 @@ class Api {
     /**
      * Returns the closest region to the current IP address. Used when first visiting commute.live
      */
-    public async queryIpLocation(): Promise<null | IpLocationResult> {
+    public async queryIpLocation(): Promise<null | LatLng> {
         try {
             const response = await this.query<{ result: IpLocationResult }>("iplocation");
-            return response.result;
+            return response.result.userLocation;
         }
         catch (err) {
             if (err instanceof Error && err.message.includes("Failed querying API")) {
                 // this is raised when the IP address cannot be resolved,
                 // e.g. due to a private IP during development
-                console.warn("Failed guessing region by IP address, using Auckland as default");
+                console.warn("Failed guessing region by IP address");
                 return null;
             }
             throw err;
@@ -105,15 +105,15 @@ class Api {
     }
 
     public async queryRegions<T extends keyof RegionDataResult>(
-        regionCodes: RegionCode[],
+        regionCodes: RegionCode[] | "all",
         fields: T[],
-    ): Promise<PartialRegionDataResult<T>> {
+    ): Promise<PartialRegionsDataResult<T>> {
         const response = await this.query<{
-            regions: PartialRegionDataResult<T>;
+            regions: PartialRegionsDataResult<T>;
             unknown?: RegionCode[];
         }>("regions", {
             fields: fields.join(","),
-            regions: regionCodes.join(","),
+            regions: regionCodes === "all" ? "" : regionCodes.join(","),
         });
         if (response.unknown?.length) {
             console.warn("Some regions were not found", response.unknown);
@@ -121,9 +121,9 @@ class Api {
         return response.regions;
     }
 
-    public async listRoutes(region: RegionCode): Promise<Map<string, ListRouteResult>> {
+    public async listRoutes(region: RegionCode): Promise<ListRoutesResult> {
         const response = await this.query<{ routes: ListRoutesResult }>("list", { region });
-        return new Map(Object.values(response.routes).map(r => [r.id, r]));
+        return response.routes;
     }
 
     public async queryRoute<T extends keyof RouteDataResult>(
