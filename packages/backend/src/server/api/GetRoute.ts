@@ -146,6 +146,10 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
             return;
         }
 
+        if (status === "error") {
+            this.res.writeStatus("400 Bad Request");
+        }
+
         const json = JSON.stringify({
             ...data,
             route: this.name,
