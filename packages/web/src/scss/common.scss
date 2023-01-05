@@ -101,6 +101,7 @@ body.theme-dark .github {
         padding: 16px;
         background-color: var(--background-03dp);
         box-shadow: 0 0.15em 1.5em 0 rgba(0, 0, 0, 0.1), 0 0 1em 0 rgba(0, 0, 0, 0.03);
+        border-radius: 4px;
 
         h2 {
             color: var(--error);
@@ -109,9 +110,9 @@ body.theme-dark .github {
         .btn {
             display: none;
             height: 36px;
-            min-width: 64px;
+            min-width: 84px;
             margin: 0 auto;
-            padding: 8px;
+            padding: 8px 12px;
             background-color: var(--error);
             border: none;
             border-radius: 4px;
