@@ -62,16 +62,14 @@ class State {
 
         if (version < 3) {
             // convert shortName to routeId
-            (data.routes as [string, boolean, string][]).map(r => [`NZL_AKL|${r[0]}` as Id, ...r.slice(1)]);
-            data.settings = {};
+            data.routes = (data.routes as [string, boolean, string][])
+                .map(r => [`NZL_AKL|${r[0]}` as Id, ...r.slice(1)]);
         }
 
         if (version < 4) {
             // add NZL_AKL map settings
-            data.map = {
-                center: { lat: -36.8484, lng: 174.7633 },
-                zoom: 13,
-            };
+            data.map = [-36.8484, 174.7633, 13];
+            data.settings.currentRegion = "NZL_AKL";
         }
 
         return {
