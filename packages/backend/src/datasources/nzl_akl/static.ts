@@ -2,11 +2,11 @@ import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
 import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
-import { defaultProjection, type Id, type JSONSerializable, type StrOrNull } from "@commutelive/common";
+import { defaultProjection, type Id, type JSONSerializable, sleep, type StrOrNull } from "@commutelive/common";
 import { closeDb, importGtfs, openDb, type SqlDatabase } from "gtfs";
 import fetch, { type Response } from "node-fetch";
 import Graceful from "node-graceful";
-import { sleep, SqlBatcher } from "~/helpers/";
+import { SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import { makeId } from "./id";
 

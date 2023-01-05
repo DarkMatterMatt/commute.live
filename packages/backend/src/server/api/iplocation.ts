@@ -3,10 +3,9 @@ import { unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import type { IpLocationResult } from "@commutelive/common";
+import { type IpLocationResult, sleep } from "@commutelive/common";
 import maxmind, { type CityResponse, type Reader } from "maxmind";
 import fetch from "node-fetch";
-import { sleep } from "~/helpers/";
 import { getLogger } from "~/log.js";
 import { GetRouteGenerator } from "./GetRoute.js";
 

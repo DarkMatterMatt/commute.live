@@ -4,4 +4,5 @@ export * from "./errors";
 export * from "./geo";
 export * from "./number";
 export * from "./promises";
+export * from "./time";
 export * from "./types";
