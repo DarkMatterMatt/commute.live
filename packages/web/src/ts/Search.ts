@@ -1,4 +1,4 @@
-import type { RegionCode } from "@commutelive/common";
+import { createPromise, type RegionCode } from "@commutelive/common";
 import { api } from "./Api";
 import { render } from "./Render";
 import Route from "./Route";
@@ -6,20 +6,29 @@ import type State from "./State";
 import type { SearchRoute } from "./types";
 
 class Search {
-    routes: SearchRoute[] = [];
+    private state: State;
 
-    state: State;
+    private $search: HTMLInputElement;
 
-    $search: HTMLInputElement;
+    private $dropdown: HTMLElement;
 
-    $dropdown: HTMLElement;
+    private currentRegion: RegionCode | null = null;
 
-    currentRegion: RegionCode | null = null;
+    private routesCache: null | Promise<SearchRoute[]> = null;
 
-    constructor(state: State, $search: HTMLInputElement, $dropdown: HTMLElement) {
+    public constructor(state: State, $search: HTMLInputElement, $dropdown: HTMLElement) {
         this.state = state;
         this.$search = $search;
         this.$dropdown = $dropdown;
+
+        $search.addEventListener("focus", () => {
+            // enable lazy loading of routes
+            this.load();
+        });
+
+        $search.addEventListener("blur", () => {
+            this.clear();
+        });
 
         $search.addEventListener("input", () => {
             this.search($search.value);
@@ -39,22 +48,33 @@ class Search {
         });
     }
 
-    async load(region: RegionCode): Promise<void> {
+    public setRegion(region: RegionCode, displayName: string): void {
         if (this.currentRegion === region) {
             return;
         }
         this.currentRegion = region;
+        this.routesCache = null;
+        this.$search.placeholder = `Searching routes in ${displayName}`;
+    }
 
-        const REGEX_WORD = /[a-z]+/g;
-        const REGEX_TWO_DIGITS = /^\d\d\D?$/;
-
-        const routes = await api.listRoutes(region);
-        if (this.currentRegion !== region) {
-            // another region was loaded while we were waiting for the API response
-            return;
+    private async load(): Promise<SearchRoute[]> {
+        const region = this.currentRegion;
+        if (region == null) {
+            throw new Error("Region must be set before loading routes");
         }
 
-        this.routes = [...routes.values()].map(r => {
+        if (this.routesCache != null) {
+            return this.routesCache;
+        }
+
+        // immediately set the cache to a promise so that if this function is called
+        // again while the routes are loading, it will return the same promise
+        const [promise, resolve] = createPromise<SearchRoute[]>();
+        this.routesCache = promise;
+
+
+        const REGEX_WORD = /[a-z]+/g;
+        const routes = (await api.listRoutes(region)).map(r => {
             const longName = Route.getLongName(r.longNames);
             const shortNameLower = r.shortName.toLowerCase();
             const longNameLower = longName.toLowerCase();
@@ -80,41 +100,34 @@ class Search {
             };
         });
 
-        this.routes.sort((a, b) => {
-            /*
-             * Sort by route number ascending (two digit number first)
-             * Then sort alphabetically, numbers first
-             */
+        routes.sort((a, b) => {
+            // sort by route number ascending, then alphabetically
             const aInt = Number.parseInt(a.shortName, 10);
             const bInt = Number.parseInt(b.shortName, 10);
-            if (aInt && bInt) {
-                const aTwoDigits = REGEX_TWO_DIGITS.test(a.shortName);
-                const bTwoDigits = REGEX_TWO_DIGITS.test(b.shortName);
-                if (aTwoDigits !== bTwoDigits) {
-                    return Number(bTwoDigits) - Number(aTwoDigits);
-                }
+            if (aInt !== bInt) {
                 return aInt - bInt;
             }
-            return a.shortName < b.shortName ? -1 : 1;
+            return a.shortName.localeCompare(b.shortName);
         });
 
-        this.$search.placeholder = `Searching routes in ${region}`;
+        resolve(routes);
+        return promise;
     }
 
-    render(routes: SearchRoute[]): void {
+    private render(routes: SearchRoute[]): void {
         render.renderFilterDropdown(this.$dropdown, routes, routeData => {
             this.clear();
             this.state.activateRoute(routeData);
         });
     }
 
-    clear(): void {
+    private clear(): void {
         this.render([]);
         this.$search.value = "";
         this.$search.blur();
     }
 
-    search(query_: string): void {
+    private async search(query_: string): Promise<void> {
         const query = query_.toLowerCase();
 
         if (query === "") {
@@ -122,7 +135,7 @@ class Search {
             return;
         }
 
-        const weighted = this.routes.map(r => {
+        const weighted = (await this.load()).map(r => {
             let filterWeight = 0;
             if (r.shortNameLower === query) {
                 filterWeight += 50;

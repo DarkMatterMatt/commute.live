@@ -209,7 +209,7 @@ function onGeolocationError(err: GeolocationPositionError) {
     map.addListener("idle", () => state.save());
 
     settings.addChangeListener("currentRegion", s => {
-        search.load(s);
+        search.setRegion(s, s);
     });
 
     settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
