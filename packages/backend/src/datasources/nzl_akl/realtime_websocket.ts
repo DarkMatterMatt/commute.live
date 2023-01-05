@@ -30,12 +30,16 @@ const recentVehiclePositionsAverageAge = new RollingAverage({
 
 export async function getStatus(): Promise<JSONSerializable> {
     return {
-        readyState: mpws.readyState,
+        readyState: getReadyState(),
         lastReceiveTime: mpws.getLastReceive(),
         consecutiveErrors,
         recentTripUpdatesAverageAge: recentTripUpdatesAverageAge.getAverage(),
         recentVehiclePositionsAverageAge: recentVehiclePositionsAverageAge.getAverage(),
     };
+}
+
+export function getReadyState(): number {
+    return mpws.readyState;
 }
 
 /**

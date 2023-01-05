@@ -1,10 +1,11 @@
 import type { JSONSerializable } from "@commutelive/common";
 import fetch from "node-fetch";
+import WebSocket from "ws";
 import env from "~/env.js";
 import { RollingAverage } from "~/helpers";
 import { getLogger } from "~/log";
 import type { FeedEntity, TripUpdate, VehiclePosition } from "~/types";
-import { fixTripUpdate, fixVehiclePosition } from "./realtime_websocket";
+import { fixTripUpdate, fixVehiclePosition, getReadyState } from "./realtime_websocket";
 
 const log = getLogger("NZLAKL/realtime/poll");
 
@@ -27,6 +28,10 @@ let updateInProgress = false;
 let lastSuccessfulUpdate = 0;
 
 function shouldPoll(): boolean {
+    if (getReadyState() !== WebSocket.OPEN) {
+        return true;
+    }
+
     // NZ time is +12 or +13
     // run between 7am and 7pm, ±30 minutes depending on daylight saving
     const tz = 12.5;
