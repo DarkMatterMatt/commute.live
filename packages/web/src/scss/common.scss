@@ -178,6 +178,11 @@ body.theme-dark .github {
             border-radius: 4px 4px 0 0;
             outline: none;
             color: var(--on-background);
+            
+            &::placeholder {
+                opacity: 0;
+                transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            }
         }
 
         label {
@@ -190,7 +195,6 @@ body.theme-dark .github {
             color: var(--on-background);
             pointer-events: none;
             transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            will-change: transform;
         }
 
         input:focus,
@@ -208,6 +212,10 @@ body.theme-dark .github {
 
             &~#active {
                 display: none;
+            }
+            
+            &::placeholder {
+                opacity: 1;
             }
         }
 

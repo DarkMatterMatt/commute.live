@@ -97,6 +97,8 @@ class Search {
             }
             return a.shortName < b.shortName ? -1 : 1;
         });
+
+        this.$search.placeholder = `Searching routes in ${region}`;
     }
 
     render(routes: SearchRoute[]): void {
