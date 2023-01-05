@@ -1,4 +1,4 @@
-import { createPromise, type Id, type IpRegionResult, type ListRouteResult, type ListRoutesResult, type PartialRegionDataResult, type PartialRegionsDataResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RouteDataResult } from "@commutelive/common";
+import { createPromise, type Id, type IpLocationResult, type ListRouteResult, type ListRoutesResult, type PartialRegionDataResult, type PartialRegionsDataResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RouteDataResult } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -57,9 +57,9 @@ class Api {
     /**
      * Returns the closest region to the current IP address. Used when first visiting commute.live
      */
-    public async queryRegionByIp(): Promise<IpRegionResult> {
+    public async queryIpLocation(): Promise<null | IpLocationResult> {
         try {
-            const response = await this.query<{ result: IpRegionResult }>("ipregion");
+            const response = await this.query<{ result: IpLocationResult }>("iplocation");
             return response.result;
         }
         catch (err) {
@@ -67,14 +67,7 @@ class Api {
                 // this is raised when the IP address cannot be resolved,
                 // e.g. due to a private IP during development
                 console.warn("Failed guessing region by IP address, using Auckland as default");
-                const region = await this.queryRegion(
-                    "NZL_AKL",
-                    ["code", "location", "country", "region", "attributionHTML", "defaultZoom", "defaultRouteIds"],
-                );
-                return {
-                    region,
-                    userLocation: region.location,
-                };
+                return null;
             }
             throw err;
         }

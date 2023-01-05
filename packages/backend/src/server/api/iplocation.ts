@@ -3,7 +3,7 @@ import { unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import { defaultProjection, type IpRegionResult } from "@commutelive/common";
+import type { IpLocationResult } from "@commutelive/common";
 import maxmind, { type CityResponse, type Reader } from "maxmind";
 import fetch from "node-fetch";
 import { sleep } from "~/helpers/";
@@ -12,7 +12,7 @@ import { GetRouteGenerator } from "./GetRoute.js";
 
 const URL = "https://download.db-ip.com/free/dbip-city-lite-{{YEAR}}-{{MONTH}}.mmdb.gz";
 
-const log = getLogger("server/api/ipregion");
+const log = getLogger("server/api/iplocation");
 
 let ipDb: null | Reader<CityResponse> = null;
 
@@ -105,37 +105,28 @@ async function downloadDatabaseIfNeeded(cacheDir: string) {
     await cleanUp(cacheDir, oldYear, oldMonth);
 }
 
-export const ipRegionRoute = new GetRouteGenerator({
-    name: "ipregion",
+export const ipLocationRoute = new GetRouteGenerator({
+    name: "ipLocation",
     requiredParams: [] as const,
     optionalParams: [] as const,
-    executor: async (route, { headers, res, regions }) => {
+    executor: async (route, { headers, res }) => {
         const ip = headers["x-forwarded-for"]?.split(",")?.[0]
             ?? Buffer.from(res.getRemoteAddressAsText()).toString();
 
         const coords = getDb().get(ip)?.location;
         if (coords == null) {
             return route.finish("error", {
-                message: "Failed to get IP region.",
+                message: "Failed to get IP location.",
             });
         }
         const userLocation = { lat: coords.latitude, lng: coords.longitude };
 
-        let closestRegion = [regions[0], Infinity] as const;
-        for (const region of regions) {
-            const dist = defaultProjection.getDistBetweenLatLngs(userLocation, region.location);
-            if (dist < closestRegion[1]) {
-                closestRegion = [region, dist];
-            }
-        }
-
-        const result: IpRegionResult = {
-            region: closestRegion[0],
+        const result: IpLocationResult = {
             userLocation,
         };
 
         return route.finish("success", {
-            message: "See region found.",
+            message: "See user location found.",
             result,
         });
     },
