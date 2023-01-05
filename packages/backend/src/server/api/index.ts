@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { generate204Route } from "./generate204.js";
 import { GetRouteGenerator, type GetRouteInitializeOpts } from "./GetRoute.js";
 import { ipRegionRoute } from "./ipregion.js";
 import { listRoute } from "./list.js";
@@ -18,6 +19,7 @@ export const defaultRoute = new GetRouteGenerator({
 });
 
 const routes = new Map([
+    generate204Route,
     listRoute,
     ipRegionRoute,
     regionsRoute,

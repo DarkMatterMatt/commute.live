@@ -134,10 +134,6 @@ export async function startServer({
             });
     });
 
-    app.any("/generate_204", res => {
-        res.writeStatus("204 No Content").end();
-    });
-
     app.any("/*", res => {
         res.writeStatus("404 Not Found");
         res.writeHeader("Content-Type", "application/json");
