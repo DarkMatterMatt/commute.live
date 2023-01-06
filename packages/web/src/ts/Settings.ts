@@ -7,17 +7,6 @@ function getInput(id: string): HTMLInputElement {
 
 const $currentRegion = getInput("s-current-region");
 
-// load regions from API
-$currentRegion.addEventListener("focus", async () => {
-    const regions = await api.queryRegions("all", ["code", "country", "region"]);
-    for (const region of regions) {
-        const option = document.createElement("option");
-        option.value = region.code;
-        option.textContent = `${region.country} - ${region.region}`;
-        $currentRegion.appendChild(option);
-    }
-}, { once: true });
-
 const SETTINGS = [
     new StringSetting("currentRegion", $currentRegion),
     new BooleanSetting("darkMode", getInput("sw-dark-mode")),
@@ -45,6 +34,17 @@ class Settings {
             instance = new Settings();
         }
         return instance;
+    }
+
+    async init() {
+        // load regions from API
+        const regions = await api.queryRegions();
+        for (const region of regions) {
+            const option = document.createElement("option");
+            option.value = region.code;
+            option.textContent = `${region.country} - ${region.region}`;
+            $currentRegion.appendChild(option);
+        }
     }
 
     import(newSettings: Record<string, any>): void {

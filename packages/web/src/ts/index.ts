@@ -172,6 +172,8 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Pre-init
      */
 
+    await settings.init();
+
     const { loadRoutes, map: { center, zoom } } = await state.load();
 
     settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
