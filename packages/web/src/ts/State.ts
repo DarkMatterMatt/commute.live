@@ -71,7 +71,7 @@ class State {
         if (version < 4) {
             // add NZL_AKL map settings
             data.map = [-36.8484, 174.7633, 13];
-            data.settings.currentRegion = "NZL_AKL";
+            data.settings.currentRegion = "SMART";
         }
 
         return {

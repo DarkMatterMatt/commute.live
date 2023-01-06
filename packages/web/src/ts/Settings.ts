@@ -1,11 +1,25 @@
+import { api } from "./Api";
 import { BooleanSetting, NumberSetting, type Setting, StringSetting } from "./Setting";
 
 function getInput(id: string): HTMLInputElement {
     return document.getElementById(id) as HTMLInputElement;
 }
 
+const $currentRegion = getInput("s-current-region");
+
+// load regions from API
+$currentRegion.addEventListener("focus", async () => {
+    const regions = await api.queryRegions("all", ["code", "country", "region"]);
+    for (const region of regions) {
+        const option = document.createElement("option");
+        option.value = region.code;
+        option.textContent = `${region.country} - ${region.region}`;
+        $currentRegion.appendChild(option);
+    }
+}, { once: true });
+
 const SETTINGS = [
-    new StringSetting("currentRegion", getInput("s-current-region")),
+    new StringSetting("currentRegion", $currentRegion),
     new BooleanSetting("darkMode", getInput("sw-dark-mode")),
     new BooleanSetting("hideAbout", getInput("sw-hide-about")),
     new BooleanSetting("showMenuToggle", getInput("sw-show-menu-toggle")),
