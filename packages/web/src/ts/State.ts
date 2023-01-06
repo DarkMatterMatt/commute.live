@@ -1,4 +1,4 @@
-import { defaultProjection, type Id, type LatLng, type LiveVehicle, type RegionCode, type RegionDataResult, type RegionsDataResult } from "@commutelive/common";
+import { defaultProjection, type Id, type LatLng, type LiveVehicle, type PartialRegionDataResult, type RegionDataResult } from "@commutelive/common";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { api } from "./Api";
 import { isEmptyObject, localStorageEnabled } from "./Helpers";
@@ -34,8 +34,6 @@ class State {
     private markerView: HtmlMarkerView | null = null;
 
     private routes = new Map<Id, Route>();
-
-    private regionsCache: null | Promise<RegionsDataResult> = null;
 
     private constructor() {
         //
@@ -81,17 +79,6 @@ class State {
             settings: data.settings,
             map: data.map,
         };
-    }
-
-    private async getRegions(): Promise<RegionsDataResult> {
-        if (this.regionsCache != null) {
-            return this.regionsCache;
-        }
-        this.regionsCache = api.queryRegions(
-            "all",
-            ["code", "location", "country", "region", "attributionHTML", "defaultZoom", "defaultRouteIds"],
-        );
-        return this.regionsCache;
     }
 
     setMap(map: google.maps.Map): State {
@@ -146,18 +133,30 @@ class State {
         }
 
         const activeAndColorMap = new Map(routes.map(([id, active, color]) => [id, [active, color] as const]));
-        const foundRoutes = await api.queryRoutes(
-            routes.map(r => r[0]),
-            ["region", "id", "shortName", "longNames", "type"],
-        );
+        const [regions, foundRoutes] = await Promise.all([
+            api.queryRegions(),
+            api.queryRoutes(
+                routes.map(r => r[0]),
+                ["region", "id", "shortName", "longNames", "type"],
+            ),
+        ]);
+        const regionsMap = new Map(regions.map(r => [r.code, r]));
 
-        foundRoutes.forEach(({ region, id, shortName, longNames, type }) => {
+        foundRoutes.forEach(({ region: regionCode, id, shortName, longNames, type }) => {
             const activeAndColor = activeAndColorMap.get(id);
             if (activeAndColor == null) {
                 // this should never happen
                 console.warn(`Route ${id} not found`);
                 return;
             }
+
+            const region = regionsMap.get(regionCode);
+            if (region == null) {
+                // this should never happen
+                console.warn(`Region ${regionCode} not found`);
+                return;
+            }
+
             const [active, color] = activeAndColor;
             const longName = Route.getLongName(longNames);
 
@@ -193,7 +192,7 @@ class State {
         // guesstimate where the user is based on their IP address
         const [userLocation, regions] = await Promise.all([
             api.queryIpLocation(),
-            this.getRegions(),
+            api.queryRegions(),
         ]);
 
         // find the closest region to the user, defaulting to NZ if unknown
@@ -280,7 +279,10 @@ class State {
         this.save();
     }
 
-    deactivateRoute(region: RegionCode, id: Id, $activeRoute: HTMLDivElement): void {
+    deactivateRoute(
+        region: PartialRegionDataResult<"code">,
+        id: Id, $activeRoute: HTMLDivElement,
+    ): void {
         const route = this.routes.get(id);
         if (route !== undefined) {
             route.deactivate();
@@ -289,11 +291,12 @@ class State {
         this.save();
     }
 
-    async activateRoute({ region, id, shortName, longName, type }: SearchRoute): Promise<void> {
+    async activateRoute({ region: regionCode, id, shortName, longName, type }: SearchRoute): Promise<void> {
         const { map, markerView } = this;
         if (map == null || markerView == null) {
             throw new Error("Map or markerView is not set");
         }
+        const region = await api.queryRegion(regionCode);
 
         let route = this.routes.get(id);
         let showPickr = false;
@@ -358,7 +361,7 @@ class State {
     }
 
     public async getClosestRegion(pos: LatLng): Promise<RegionDataResult> {
-        const regions = await this.getRegions();
+        const regions = await api.queryRegions();
         if (regions.length === 0) {
             throw new Error("No regions loaded");
         }

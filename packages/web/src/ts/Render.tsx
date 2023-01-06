@@ -1,5 +1,5 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
-import { type Id, type LiveVehicle, type RegionCode, UnreachableError } from "@commutelive/common";
+import { type Id, type LiveVehicle, type PartialRegionDataResult, type RegionCode, UnreachableError } from "@commutelive/common";
 import Pickr from "@simonwep/pickr";
 import type { hex } from "color-convert/route";
 import { largeScreen } from "./Helpers";
@@ -66,20 +66,24 @@ class Render {
         this.$activeRoutesContainer = $new;
     }
 
-    public createActiveRegionElem(region: RegionCode): HTMLElement {
+    public createActiveRegionElem(title: string): HTMLElement {
         return (
             <div class="region">
-                <div class="region-title">{region}</div>
+                <div class="region-title">{title}</div>
             </div>
         );
     }
 
-    public addActiveRoute($activeRoute: HTMLDivElement, region: RegionCode) {
-        let $region = this.$activeRoutes.get(region);
+    public addActiveRoute(
+        $activeRoute: HTMLDivElement,
+        region: PartialRegionDataResult<"code" | "country" | "region">,
+    ) {
+        let $region = this.$activeRoutes.get(region.code);
         if ($region == null) {
-            $region = this.createActiveRegionElem(region);
-            this.$activeRoutes.set(region, $region);
+            $region = this.createActiveRegionElem(`${region.country} - ${region.region}`);
+            this.$activeRoutes.set(region.code, $region);
             this.$activeRoutesContainer.append($region);
+
             if (this.$activeRoutes.size > 1) {
                 this.$activeRoutesContainer.classList.add("show-active-region-headers");
             }
@@ -87,12 +91,15 @@ class Render {
         $region.append($activeRoute);
     }
 
-    public removeActiveRoute($activeRoute: HTMLDivElement, region: RegionCode) {
+    public removeActiveRoute(
+        $activeRoute: HTMLDivElement,
+        region: PartialRegionDataResult<"code">,
+    ) {
         $activeRoute.remove();
-        const $region = this.$activeRoutes.get(region);
+        const $region = this.$activeRoutes.get(region.code);
         if ($region != null && $region.childElementCount <= 1) { // 1 because of the region header
             $region.remove();
-            this.$activeRoutes.delete(region);
+            this.$activeRoutes.delete(region.code);
             if (this.$activeRoutes.size <= 1) {
                 this.$activeRoutesContainer.classList.remove("show-active-region-headers");
             }
