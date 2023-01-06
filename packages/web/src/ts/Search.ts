@@ -2,6 +2,7 @@ import { createPromise, type RegionCode } from "@commutelive/common";
 import { api } from "./Api";
 import { render } from "./Render";
 import Route from "./Route";
+import { settings } from "./Settings";
 import type State from "./State";
 import type { SearchRoute } from "./types";
 
@@ -21,17 +22,17 @@ class Search {
         this.$search = $search;
         this.$dropdown = $dropdown;
 
-        $search.addEventListener("focus", () => {
+        $search.addEventListener("focus", async () => {
+            if (settings.getStr("currentRegion") === "SMART") {
+                const region = await state.getClosestRegion(state.getMapCenterAndZoom().center);
+                this.setRegion(region.code, region.region);
+            }
             // enable lazy loading of routes
-            this.load();
-        });
-
-        $search.addEventListener("blur", () => {
-            this.clear();
+            await this.load();
         });
 
         $search.addEventListener("input", () => {
-            this.search($search.value);
+            this.search();
         });
 
         $search.addEventListener("keyup", ev => {
@@ -71,7 +72,6 @@ class Search {
         // again while the routes are loading, it will return the same promise
         const [promise, resolve] = createPromise<SearchRoute[]>();
         this.routesCache = promise;
-
 
         const REGEX_WORD = /[a-z]+/g;
         const routes = (await api.listRoutes(region)).map(r => {
@@ -127,15 +127,22 @@ class Search {
         this.$search.blur();
     }
 
-    private async search(query_: string): Promise<void> {
-        const query = query_.toLowerCase();
-
-        if (query === "") {
+    private async search(): Promise<void> {
+        const rawQuery = this.$search.value;
+        if (rawQuery === "") {
             this.render([]);
             return;
         }
 
-        const weighted = (await this.load()).map(r => {
+        const routes = await this.load();
+        if (rawQuery !== this.$search.value) {
+            // the query has changed since we started loading the routes
+            return;
+        }
+
+        const query = rawQuery.toLowerCase();
+
+        const weighted = routes.map(r => {
             let filterWeight = 0;
             if (r.shortNameLower === query) {
                 filterWeight += 50;

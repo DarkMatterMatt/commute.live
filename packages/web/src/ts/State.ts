@@ -35,7 +35,7 @@ class State {
 
     private routes = new Map<Id, Route>();
 
-    private regionsCache: null | RegionsDataResult = null;
+    private regionsCache: null | Promise<RegionsDataResult> = null;
 
     private constructor() {
         //
@@ -87,7 +87,7 @@ class State {
         if (this.regionsCache != null) {
             return this.regionsCache;
         }
-        this.regionsCache = await api.queryRegions(
+        this.regionsCache = api.queryRegions(
             "all",
             ["code", "location", "country", "region", "attributionHTML", "defaultZoom", "defaultRouteIds"],
         );
@@ -343,6 +343,18 @@ class State {
         await Promise.all([...this.routes.values()]
             .filter(r => r.isActive())
             .map(r => this.loadRouteVehicles(r.id)));
+    }
+
+    public getMapCenterAndZoom(): { center: LatLng; zoom: number } {
+        if (this.map == null) {
+            throw new Error("Map is not set");
+        }
+
+        const center = this.map.getCenter();
+        return {
+            center: { lat: center.lat(), lng: center.lng() },
+            zoom: this.map.getZoom(),
+        };
     }
 
     public async getClosestRegion(pos: LatLng): Promise<RegionDataResult> {
