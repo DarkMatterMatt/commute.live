@@ -14,6 +14,8 @@ class HtmlMarkerView extends google.maps.OverlayView {
 
     private hasDrawn = false;
 
+    private hasAdded = false;
+
     constructor(map: google.maps.Map) {
         super();
         this.referencePoint = map.getCenter();
@@ -21,6 +23,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
     }
 
     onAdd(): void {
+        this.hasAdded = true;
         this.root.style.position = "absolute";
         this.root.style.height = "0";
         this.root.style.width = "0";
@@ -61,6 +64,10 @@ class HtmlMarkerView extends google.maps.OverlayView {
 
         this.root.appendChild(m.getRootElement());
         m.setProjection(this.shiftedProj);
+
+        if (this.hasAdded) {
+            m.onAdd();
+        }
         if (this.hasDrawn) {
             m.draw(false);
         }

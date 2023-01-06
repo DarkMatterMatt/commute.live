@@ -6,9 +6,10 @@ import type { MarkerType } from "./types";
 
 const ANIMATE_POSITION_DURATION = 1000;
 const FADE_OUT_EASING = "ease-in";
-const FADE_OUT_DELAY = 20 * 1000;
-const FADE_OUT_DURATION = (70 * 1000) / 0.8; // divide by 0.8 so we expire with 30% opacity
-const EXPIRES_AFTER = 90 * 1000;
+const FADE_OUT_DELAY = 30 * 1000; // 30 seconds at full opacity
+const FADE_OUT_DURATION = 90 * 1000; // fade out over 90 seconds
+const FADE_OUT_OPACITY = 0.3; // never go below 30% opacity
+const EXPIRES_AFTER = 150 * 1000; // expire after 150 seconds
 
 interface VehicleMarkerOptions {
     id: string;
@@ -88,7 +89,7 @@ class VehicleMarker extends HtmlMarker {
             elem.style.transitionDelay = `${FADE_OUT_DELAY - elapsed}ms`;
             elem.style.transitionDuration = `${FADE_OUT_DURATION}ms`;
             afterRepaint(() => {
-                elem.style.opacity = "0";
+                elem.style.opacity = `${FADE_OUT_OPACITY}`;
             });
         }
     }
