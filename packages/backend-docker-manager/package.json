@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/backend-docker-manager",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "description": "This is deployed on the server to automatically update the [Commute.live](https://commute.live) backend with zero downtime.",
     "main": "dist/index.js",
     "author": "Matt Moran",
