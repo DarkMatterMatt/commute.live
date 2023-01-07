@@ -1,5 +1,5 @@
-import type { SqlDatabase } from "gtfs";
 import { getLogger } from "~/log";
+import type { SqlDatabase } from "~/types";
 
 const log = getLogger("SQLBatcher");
 
@@ -55,7 +55,7 @@ export class SqlBatcher<T extends any[]>{
 
     private async findMaxVariables() {
         // Search for MAX_VARIABLE_NUMBER compile option.
-        const compileOptions = await this.db.all<{ compile_options: string }[]>("PRAGMA compile_options");
+        const compileOptions: { compile_options: string }[] = this.db.pragma("compile_options");
         const maxVariables = compileOptions
             .map(row => row.compile_options)
             .find(row => row.startsWith("MAX_VARIABLE_NUMBER="));
@@ -64,7 +64,7 @@ export class SqlBatcher<T extends any[]>{
         }
 
         // Default is 999 before v3.32.0 (2020-05-22), and 32766 from v3.32.0.
-        const sqliteVersion = await this.db.get("SELECT sqlite_version() AS version") as { version: string };
+        const sqliteVersion: { version: string } = this.db.prepare("SELECT sqlite_version() AS version").get();
         const parts = sqliteVersion.version
             .split(".")
             .map(part => Number.parseInt(part));
@@ -76,10 +76,10 @@ export class SqlBatcher<T extends any[]>{
 
     private async actionBatch() {
         if (this.values.length > 0) {
-            await this.db.run(`
+            this.db.prepare(`
                 INSERT INTO ${this.table} (${this.columns.join(", ")})
                 VALUES ${this.placeholders.join(",")}
-            `, this.values);
+            `).run(...this.values);
         }
 
         // clear arrays

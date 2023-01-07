@@ -1,8 +1,7 @@
 import type { Id, JSONSerializable } from "@commutelive/common";
-import type { SqlDatabase } from "gtfs";
 import { TimedMap } from "~/helpers/";
 import { getLogger } from "~/log.js";
-import type { TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
+import type { SqlDatabase, TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
 import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling } from "./realtime_polling.js";
 import { getStatus as getWebSocketStatus, initialize as initializeWebSocket } from "./realtime_websocket.js";
 import { getRouteIds, getTripIds } from "./static_queries.js";

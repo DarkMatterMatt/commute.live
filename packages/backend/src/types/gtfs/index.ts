@@ -1,3 +1,5 @@
+export type { Database as SqlDatabase } from "better-sqlite3";
+
 export * from "./gtfs-realtime.js";
 export * from "./gtfs-static.js";
 

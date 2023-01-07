@@ -3,11 +3,12 @@ import { readFile, unlink, writeFile } from "node:fs/promises";
 import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { defaultProjection, type Id, type JSONSerializable, sleep, type StrOrNull } from "@commutelive/common";
-import { closeDb, importGtfs, openDb, type SqlDatabase } from "gtfs";
+import { closeDb, importGtfs, openDb } from "gtfs";
 import fetch, { type Response } from "node-fetch";
 import Graceful from "node-graceful";
 import { SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
+import type { SqlDatabase } from "~/types";
 import { makeId } from "./id";
 
 const log = getLogger("NZLAKL/static");
@@ -22,7 +23,7 @@ Graceful.on("exit", () => db?.close());
 
 export async function getStatus(): Promise<JSONSerializable> {
     return {
-        dbFilename: basename(getDatabase().config.filename),
+        dbFilename: basename(getDatabase().name),
     };
 }
 
@@ -143,10 +144,10 @@ async function postImport(db: SqlDatabase): Promise<void> {
     log.info("Running post-import functions.");
 
     // add index for routes.route_short_name
-    await db.run(`
+    db.prepare(`
         CREATE INDEX idx_routes_route_short_name
         ON routes (route_short_name)
-    `);
+    `).run();
 
     // add missing shape_dist_traveled
     await addShapeDistances(db);
@@ -156,7 +157,7 @@ async function postImport(db: SqlDatabase): Promise<void> {
 
     // rebuilds the database file, repacking it into a minimal amount of disk space
     // disabled for now because we run out of memory on servers with 1GB RAM
-    //await db.run("VACUUM");
+    //db.prepare("VACUUM").run();
 }
 
 /**
@@ -166,22 +167,22 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
     log.debug("Adding missing shape distances.");
 
     // calculate our own shape_dist_traveled
-    const shapeIds = (await db.all(`
+    const shapeIds = (db.prepare(`
         SELECT DISTINCT shape_id
         FROM shapes
         WHERE shape_dist_traveled IS NULL
-    `) as { shape_id: string }[]).map(r => r.shape_id);
+    `).all() as { shape_id: string }[]).map(r => r.shape_id);
 
     if (shapeIds.length === 0) {
         return;
     }
 
-    await db.run(`
+    db.prepare(`
         CREATE TABLE tmp_shapes (
             id INTEGER PRIMARY KEY,
             shape_dist_traveled REAL
         )
-    `);
+    `).run();
 
     const batcher = new SqlBatcher<[number, number]>({
         db,
@@ -194,14 +195,12 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
             id: number,
             lat: number,
             lng: number,
-        }[] = await db.all(`
+        }[] = db.prepare(`
             SELECT id, shape_pt_lat AS lat, shape_pt_lon AS lng
             FROM shapes
             WHERE shape_id=$shapeId
             ORDER BY shape_pt_sequence ASC
-        `, {
-            $shapeId: shapeId,
-        });
+        `).all({ shapeId });
 
         let dist = 0;
         await batcher.queue(points[0].id, dist);
@@ -216,7 +215,7 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
     await batcher.flush();
 
     // update database with inserted values
-    await db.run(`
+    db.prepare(`
         UPDATE shapes
         SET shape_dist_traveled=(
             SELECT shape_dist_traveled
@@ -226,9 +225,9 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
             SELECT shape_dist_traveled
             FROM tmp_shapes
             WHERE id=shapes.id)
-    `);
+    `).run();
 
-    await db.run("DROP TABLE tmp_shapes");
+    db.prepare("DROP TABLE tmp_shapes").run();
 }
 
 /**
@@ -258,7 +257,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         shapeId: string;
         shortName: string;
         tripHeadsign: string;
-    }[] = await db.all(`
+    }[] = db.prepare(`
         SELECT
             direction_id AS directionId,
             route_long_name AS longName,
@@ -288,7 +287,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             FROM routes
         ) R ON R.route_id=T.route_id
         GROUP BY direction_id, route_long_name, trip_headsign
-    `);
+    `).all();
 
     // Auckland Transport no longer provides route_long_name, so we use the trip headsign instead.
     routes = routes.map(({ longName, shortName, tripHeadsign, ...rest }) => ({
@@ -298,7 +297,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         ...rest,
     }));
 
-    await db.run(`
+    db.prepare(`
         CREATE TABLE route_summaries (
             id VARCHAR(255) NOT NULL,
             route_long_name_0 VARCHAR(255),
@@ -309,7 +308,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             shape_id_1 VARCHAR(255),
             PRIMARY KEY (id)
         )
-    `);
+    `).run();
 
     const batcher = new SqlBatcher<[Id, StrOrNull, StrOrNull, string, number, StrOrNull, StrOrNull]>({
         db,
@@ -387,6 +386,6 @@ async function cleanUp(zipPath: string, oldDatabase: null | SqlDatabase): Promis
     await unlink(zipPath);
     if (oldDatabase != null) {
         await closeDb(oldDatabase);
-        await unlink(oldDatabase.config.filename);
+        await unlink(oldDatabase.name);
     }
 }

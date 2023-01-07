@@ -1,6 +1,5 @@
 import type { Id, LatLng, StrOrNull } from "@commutelive/common";
-import type { SqlDatabase } from "gtfs";
-import type { RouteSummary } from "~/types";
+import type { RouteSummary, SqlDatabase } from "~/types";
 import { parseId } from "./id";
 
 /**
@@ -17,7 +16,7 @@ export async function getRoutesSummary(
         routeType: number;
         shapeId0: StrOrNull;
         shapeId1: StrOrNull;
-    }[] = await db.all(`
+    }[] = db.prepare(`
         SELECT
             id,
             route_long_name_0 AS longName0,
@@ -27,7 +26,7 @@ export async function getRoutesSummary(
             shape_id_0 AS shapeId0,
             shape_id_1 AS shapeId1
         FROM route_summaries
-    `);
+    `).all();
 
     return result.map(r => ({
         id: r.id,
@@ -45,14 +44,14 @@ export async function getRouteSummary(
     db: SqlDatabase,
     id: Id,
 ): Promise<null | RouteSummary> {
-    const r = await db.get<{
+    const r: {
         longName0: StrOrNull;
         longName1: StrOrNull;
         shortName: string;
         routeType: number;
         shapeId0: StrOrNull;
         shapeId1: StrOrNull;
-    }>(`
+    } = db.prepare(`
         SELECT
             route_long_name_0 AS longName0,
             route_long_name_1 AS longName1,
@@ -62,7 +61,7 @@ export async function getRouteSummary(
             shape_id_1 AS shapeId1
         FROM route_summaries
         WHERE id=$id
-    `, { $id: id });
+    `).get({ id });
 
     if (r == null) {
         return null;
@@ -95,12 +94,12 @@ async function getShape(
         LIMIT 1
     `;
 
-    return db.all(`
+    return db.prepare(`
         SELECT shape_pt_lat AS lat, shape_pt_lon AS lng
         FROM shapes
         WHERE shape_id=(${shapeIdQuery})
         ORDER BY shape_pt_sequence ASC
-    `, { $shortName: shortName });
+    `).all({ shortName });
 }
 
 /**
@@ -126,13 +125,13 @@ export async function getIdByTripId(
     db: SqlDatabase,
     tripId: string,
 ): Promise<Id> {
-    const result = await db.get<{ id: Id }>(`
+    const result: { id: Id } = db.prepare(`
         SELECT id
         FROM trips T
         INNER JOIN routes R ON T.route_id=R.route_id
         INNER JOIN route_summaries S ON R.route_short_name=S.route_short_name AND R.route_type=S.route_type
         WHERE trip_id=$tripId
-    `,{ $tripId: tripId });
+    `).get({ tripId });
 
     if (result == null) {
         throw new Error(`Could not find trip ${tripId}`);
@@ -149,16 +148,16 @@ export async function getTripIdByTripDetails(
     directionId: number,
     startTime: string,
 ): Promise<string> {
-    const result = await db.get(`
-        SELECT trips.trip_id
+    const result: { tripId: string } = db.prepare(`
+        SELECT trips.trip_id AS tripId
         FROM trips
         INNER JOIN stop_times ON trips.trip_id=stop_times.trip_id
         WHERE route_id=$routeId AND direction_id=$directionId
             AND stop_sequence=1 AND (arrival_time=$startTime OR departure_time=$startTime)
-    `, {
-        $routeId: routeId,
-        $directionId: directionId,
-        $startTime: startTime,
+    `).get({
+        routeId,
+        directionId,
+        startTime,
     });
 
     if (result == null) {
@@ -166,7 +165,7 @@ export async function getTripIdByTripDetails(
             `Could not find trip matching route=${routeId}, direction=${directionId}, startTime=${startTime}`,
         );
     }
-    return result.trip_id;
+    return result.tripId;
 }
 
 /**
@@ -179,11 +178,11 @@ export async function getRouteIds(
     const { shortName } = parseId(id);
     const result: {
         routeId: string;
-    }[] = await db.all(`
+    }[] = db.prepare(`
         SELECT route_id AS routeId
         FROM routes
         WHERE route_short_name=$shortName
-    `, { $shortName: shortName });
+    `).all({ shortName });
 
     return result.map(r => r.routeId);
 }
@@ -198,12 +197,12 @@ export async function getTripIds(
     const { shortName } = parseId(id);
     const result: {
         tripId: string;
-    }[] = await db.all(`
+    }[] = db.prepare(`
         SELECT trip_id AS tripId
         FROM trips
         INNER JOIN routes ON trips.route_id=routes.route_id
         WHERE route_short_name=$shortName
-    `, { $shortName: shortName });
+    `).all({ shortName });
 
     return result.map(r => r.tripId);
 }
@@ -220,7 +219,7 @@ export async function getStopsByShapeId(
         lng: number;
         stopCode: string;
         stopId: string;
-    }[] = await db.all(`
+    }[] = db.prepare(`
         SELECT stop_lat AS lat, stop_lon AS lng, stop_code AS stopCode, S.stop_id AS stopId
         FROM stops S
         INNER JOIN stop_times ST ON S.stop_id=ST.stop_id
@@ -231,7 +230,7 @@ export async function getStopsByShapeId(
         )
         GROUP BY S.stop_id
         ORDER BY stop_sequence ASC
-    `, { $shapeId: shapeId });
+    `).all({ shapeId });
 
     return stops;
 }

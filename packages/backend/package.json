@@ -96,7 +96,7 @@
         "dotenv": "^16.0.3",
         "envalid": "^7.3.1",
         "fast-safe-stringify": "^2.1.1",
-        "gtfs": "^3.8.0",
+        "gtfs": "^4.0.1",
         "maxmind": "^4.3.8",
         "node-fetch": "3.3.0",
         "node-graceful": "^3.1.0",

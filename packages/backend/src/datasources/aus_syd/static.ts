@@ -3,11 +3,12 @@ import { readFile, unlink, writeFile } from "node:fs/promises";
 import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { type Id, type JSONSerializable, sleep, type StrOrNull } from "@commutelive/common";
-import { closeDb, importGtfs, openDb, type SqlDatabase } from "gtfs";
+import { closeDb, importGtfs, openDb } from "gtfs";
 import type { Response } from "node-fetch";
 import Graceful from "node-graceful";
 import { SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log.js";
+import type { SqlDatabase } from "~/types";
 import { queryApi } from "./api";
 import { makeId } from "./id";
 
@@ -23,7 +24,7 @@ Graceful.on("exit", () => db?.close());
 
 export async function getStatus(): Promise<JSONSerializable> {
     return {
-        dbFilename: basename(getDatabase().config.filename),
+        dbFilename: basename(getDatabase().name),
     };
 }
 
@@ -145,17 +146,17 @@ async function postImport(db: SqlDatabase): Promise<void> {
     log.info("Running post-import functions.");
 
     // add index for routes.route_short_name
-    await db.run(`
+    db.prepare(`
         CREATE INDEX idx_routes_route_short_name
         ON routes (route_short_name)
-    `);
+    `).run();
 
     // add table summarising routes
     await addRouteSummaries(db);
 
     // rebuilds the database file, repacking it into a minimal amount of disk space
     // disabled for now because we run out of memory on servers with 1GB RAM
-    //await db.run("VACUUM");
+    //db.prepare("VACUUM").run();
 }
 
 /**
@@ -178,7 +179,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         shapeId: string;
         shortName: string;
         tripHeadsign: string;
-    }[] = await db.all(`
+    }[] = db.prepare(`
         SELECT
             direction_id AS directionId,
             route_long_name AS longName,
@@ -208,10 +209,10 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             FROM routes
         ) R ON R.route_id=T.route_id
         GROUP BY direction_id, route_long_name, trip_headsign
-    `);
+    `).all();
     log.debug(`Found ${routes.length} routes.`);
 
-    await db.run(`
+    db.prepare(`
         CREATE TABLE route_summaries (
             id VARCHAR(255) NOT NULL,
             route_long_name_0 VARCHAR(255),
@@ -222,7 +223,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             shape_id_1 VARCHAR(255),
             PRIMARY KEY (id)
         )
-    `);
+    `).run();
 
     const batcher = new SqlBatcher<[string, StrOrNull, StrOrNull, string, number, StrOrNull, StrOrNull]>({
         db,
@@ -300,6 +301,6 @@ async function cleanUp(zipPath: string, oldDatabase: null | SqlDatabase): Promis
     await unlink(zipPath);
     if (oldDatabase != null) {
         await closeDb(oldDatabase);
-        await unlink(oldDatabase.config.filename);
+        await unlink(oldDatabase.name);
     }
 }
