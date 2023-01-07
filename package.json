@@ -27,7 +27,7 @@
     },
     "dependencies": {},
     "devDependencies": {
-        "lerna": "^6.0.3",
-        "nx": "^15.2.4"
+        "lerna": "^6.4.0",
+        "nx": "^15.4.5"
     }
 }
