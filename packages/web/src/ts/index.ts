@@ -212,9 +212,17 @@ function onGeolocationError(err: GeolocationPositionError) {
 
     map.addListener("idle", () => state.save());
 
-    settings.addChangeListener("currentRegion", s => {
-        search.setRegion(s, s);
+    settings.addChangeListener("currentRegion", async s => {
+        search.setRegion(s);
     });
+
+    settings.addChangeListener("currentRegion", async s => {
+        // when the region manually changes, pan to the new region
+        if (s !== "SMART") {
+            const region = await api.queryRegion(s);
+            map.panTo(region.location);
+        }
+    }, false);
 
     settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
     settings.addChangeListener("showMenuToggle", v => setClass($navShow, "hide-0-899", !v));

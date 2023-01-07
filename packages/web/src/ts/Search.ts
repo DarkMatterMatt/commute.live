@@ -2,7 +2,6 @@ import { createPromise, type RegionCode } from "@commutelive/common";
 import { api } from "./Api";
 import { render } from "./Render";
 import Route from "./Route";
-import { settings } from "./Settings";
 import type State from "./State";
 import type { SearchRoute } from "./types";
 
@@ -13,7 +12,9 @@ class Search {
 
     private $dropdown: HTMLElement;
 
-    private currentRegion: RegionCode | null = null;
+    private currentRegion: "SMART" | RegionCode | null = null;
+
+    private loadedRegion: RegionCode | null = null;
 
     private routesCache: null | Promise<SearchRoute[]> = null;
 
@@ -22,13 +23,9 @@ class Search {
         this.$search = $search;
         this.$dropdown = $dropdown;
 
-        $search.addEventListener("focus", async () => {
-            if (settings.getStr("currentRegion") === "SMART") {
-                const region = await state.getClosestRegion(state.getMapCenterAndZoom().center);
-                this.setRegion(region.code, region.region);
-            }
+        $search.addEventListener("focus", () => {
             // enable lazy loading of routes
-            await this.load();
+            this.load();
         });
 
         $search.addEventListener("input", () => {
@@ -49,32 +46,44 @@ class Search {
         });
     }
 
-    public setRegion(region: RegionCode, displayName: string): void {
+    public setRegion(region: "SMART" | RegionCode): void {
         if (this.currentRegion === region) {
             return;
         }
         this.currentRegion = region;
         this.routesCache = null;
-        this.$search.placeholder = `Searching routes in ${displayName}`;
     }
 
     private async load(): Promise<SearchRoute[]> {
-        const region = this.currentRegion;
-        if (region == null) {
+        let regionCode: RegionCode;
+        if (this.currentRegion == null) {
             throw new Error("Region must be set before loading routes");
         }
 
-        if (this.routesCache != null) {
+        if (this.currentRegion === "SMART") {
+            const mapCenter = this.state.getMapCenterAndZoom().center;
+            const region = await this.state.getClosestRegion(mapCenter);
+            this.$search.placeholder = `Searching routes in ${region.region}`;
+            regionCode = region.code;
+        }
+        else if (this.currentRegion === this.loadedRegion && this.routesCache != null) {
             return this.routesCache;
+        }
+        else {
+            regionCode = this.currentRegion;
         }
 
         // immediately set the cache to a promise so that if this function is called
         // again while the routes are loading, it will return the same promise
         const [promise, resolve] = createPromise<SearchRoute[]>();
         this.routesCache = promise;
+        this.loadedRegion = regionCode;
+
+        const region = await api.queryRegion(regionCode);
+        this.$search.placeholder = `Searching routes in ${region.region}`;
 
         const REGEX_WORD = /[a-z]+/g;
-        const routes = (await api.listRoutes(region)).map(r => {
+        const routes = (await api.listRoutes(regionCode)).map(r => {
             const longName = Route.getLongName(r.longNames);
             const shortNameLower = r.shortName.toLowerCase();
             const longNameLower = longName.toLowerCase();
@@ -89,7 +98,7 @@ class Search {
             } while (m);
 
             return {
-                region,
+                region: regionCode,
                 id: r.id,
                 type: r.type,
                 shortName: r.shortName,
