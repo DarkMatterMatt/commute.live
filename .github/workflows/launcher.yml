@@ -20,6 +20,7 @@ jobs:
     needs: check-backend
     if: needs.check-backend.outputs.changed
     uses: ./.github/workflows/publish-backend.yml
+    secrets: inherit
 
   # backend-docker-manager
   check-backend-docker-manager:
@@ -32,6 +33,7 @@ jobs:
     needs: check-backend-docker-manager
     if: needs.check-backend-docker-manager.outputs.changed
     uses: ./.github/workflows/publish-backend-docker-manager.yml
+    secrets: inherit
 
   # web
   check-web:
@@ -44,3 +46,4 @@ jobs:
     needs: check-web
     if: needs.check-web.outputs.changed
     uses: ./.github/workflows/deploy-web.yml
+    secrets: inherit
