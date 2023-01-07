@@ -18,4 +18,3 @@ See the [example `.env`](./example.env) file. A default value of ⭐ indicates t
 | `LINK_GITHUB`                 | Link to the main Commute.live GitHub repository.                                                      | string    | ⭐            |
 | `LINK_GITHUB_CLIENT`          | Link to the website section of Commute.live GitHub repository.                                        | string    | ⭐            |
 | `LINK_GITHUB_SERVER`          | Link to the backend section of Commute.live GitHub repository.                                        | string    | ⭐            |
-| `LINK_AT_API`                 | Link to the [Auckland Transport Developer Portal](https://dev-portal.at.govt.nz/).                    | string    | ⭐            |

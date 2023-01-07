@@ -24,7 +24,7 @@ export const NZL_AKL: DataSource = {
     region: "Auckland",
 
     // eslint-disable-next-line max-len
-    attributionHTML: '<a href="https://at.govt.nz/about-us/at-data-sources/">Transit information</a> from Auckland Transport / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
+    attributionHTML: 'Transit information from <a href="https://at.govt.nz/about-us/at-data-sources/">Auckland Transport</a> / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
 
     defaultZoom: 13,
 

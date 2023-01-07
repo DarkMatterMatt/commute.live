@@ -29,7 +29,7 @@ export const AUS_SYD: DataSource = {
     region: "New South Wales",
 
     // eslint-disable-next-line max-len
-    attributionHTML: '<a href="https://opendata.transport.nsw.gov.au/">Transit information</a> from Transport for NSW / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
+    attributionHTML: 'Transit information from <a href="https://opendata.transport.nsw.gov.au/">Transport for NSW</a> / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a>',
 
     defaultZoom: 13,
 
