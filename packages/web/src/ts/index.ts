@@ -201,9 +201,6 @@ function onGeolocationError(err: GeolocationPositionError) {
     const markerView = new HtmlMarkerView(map);
     state.setMarkerView(markerView);
 
-    await api.wsConnect();
-    await loadRoutes();
-
     const search = new Search(state, $searchInput, $dropdownFilter);
 
     /*
@@ -310,6 +307,29 @@ function onGeolocationError(err: GeolocationPositionError) {
         wasLargeScreen = largeScreen();
     });
 
+    /*
+     * PWA
+     */
+
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js", { scope: "." });
+    }
+
+    // PWA install to home screen, (event is Chrome only)
+    window.addEventListener("beforeinstallprompt", ev => {
+        // prevent Chrome 67 and earlier from automatically showing the prompt
+        ev.preventDefault();
+    });
+
+    /**
+     * Load routes & handle live data
+     */
+
+    await Promise.all([
+        api.wsConnect(),
+        loadRoutes(),
+    ]);
+
     // listen for messages
     api.onMessage((data: Record<string, any>) => {
         if (data.status !== "success") {
@@ -339,34 +359,4 @@ function onGeolocationError(err: GeolocationPositionError) {
         const timeout = setTimeout(() => showNav(), OPEN_MENU_ON_FIRST_VISIT_TIMEOUT);
         $navShow.addEventListener("click", () => clearTimeout(timeout), { once: true });
     }
-
-    /*
-     * PWA
-     */
-
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("service-worker.js", { scope: "." });
-    }
-
-    // PWA install to home screen, (event is Chrome only)
-    window.addEventListener("beforeinstallprompt", ev => {
-        // prevent Chrome 67 and earlier from automatically showing the prompt
-        ev.preventDefault();
-
-        /*
-        const deferredPrompt = ev;
-
-        btn.addEventListener("click", () => {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(choiceResult => {
-                if (choiceResult.outcome === "accepted") {
-                    console.log("User accepted the A2HS prompt");
-                }
-                else {
-                    console.log("User dismissed the A2HS prompt");
-                }
-            });
-        });
-        */
-    });
 })();
