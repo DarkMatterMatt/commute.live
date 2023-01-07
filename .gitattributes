@@ -4,6 +4,7 @@ LICENSE         text eol=lf
 .browserslistrc text eol=lf
 .gitattributes  text eol=lf
 .gitignore      text eol=lf
+.nxignore       text eol=lf
 
 *.css           text eol=lf
 *.env           text eol=lf

@@ -7,43 +7,60 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      force-all-changed:
+        type: boolean
+        default: false
 
 jobs:
-  # backend
-  check-backend:
-    uses: ./.github/workflows/check-if-package-changed.yml
-    with:
-      package: '@commutelive/backend'
-      workflow-id: publish-backend.yml
+  # Find which packages have changed
+  check-if-packages-changed:
+    runs-on: ubuntu-latest
 
-  process-backend:
-    needs: check-backend
-    if: needs.check-backend.outputs.changed
+    outputs:
+      backend: ${{ steps.check-changed.outputs.backend }}
+      backend-docker-manager: ${{ steps.check-changed.outputs.backend-docker-manager }}
+      web: ${{ steps.check-changed.outputs.web }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install local version of nx
+        run: npm ci --ignore-scripts
+
+      - name: Find which packages have changed
+        id: check-changed
+        if: '!inputs.force-all-changed'
+        run: >
+          node .github/scripts/checkIfPackagesChanged.js
+          ${{ github.token }}
+          launcher.yml
+          backend:@commutelive/backend
+          backend-docker-manager:@commutelive/backend-docker-manager
+          web:@commutelive/web
+
+  # backend
+  backend:
+    needs: check-if-packages-changed
+    if: inputs.force-all-changed || needs.check-if-packages-changed.outputs.backend
     uses: ./.github/workflows/publish-backend.yml
     secrets: inherit
 
   # backend-docker-manager
-  check-backend-docker-manager:
-    uses: ./.github/workflows/check-if-package-changed.yml
-    with:
-      package: '@commutelive/backend-docker-manager'
-      workflow-id: publish-backend-docker-manager.yml
-
-  process-backend-docker-manager:
-    needs: check-backend-docker-manager
-    if: needs.check-backend-docker-manager.outputs.changed
+  backend-docker-manager:
+    needs: check-if-packages-changed
+    if: inputs.force-all-changed || needs.check-if-packages-changed.outputs.backend-docker-manager
     uses: ./.github/workflows/publish-backend-docker-manager.yml
     secrets: inherit
 
   # web
-  check-web:
-    uses: ./.github/workflows/check-if-package-changed.yml
-    with:
-      package: '@commutelive/web'
-      workflow-id: deploy-web.yml
-
-  process-web:
-    needs: check-web
-    if: needs.check-web.outputs.changed
+  web:
+    needs: check-if-packages-changed
+    if: inputs.force-all-changed || needs.check-if-packages-changed.outputs.web
     uses: ./.github/workflows/deploy-web.yml
     secrets: inherit
