@@ -147,7 +147,7 @@ class State {
         ]);
         const regionsMap = new Map(regions.map(r => [r.code, r]));
 
-        foundRoutes.forEach(({ region: regionCode, id, shortName, longNames, type }) => {
+        await Promise.all(foundRoutes.map(async ({ region: regionCode, id, shortName, longNames, type }) => {
             const activeAndColor = activeAndColorMap.get(id);
             if (activeAndColor == null) {
                 // this should never happen
@@ -188,9 +188,9 @@ class State {
                     this.deactivateRoute.bind(this, region),
                 );
                 render.addActiveRoute($activeRoute, region);
-                route.activate();
+                await route.activate();
             }
-        });
+        }));
     }
 
     async getFirstVisitState(): Promise<ParsedState> {
