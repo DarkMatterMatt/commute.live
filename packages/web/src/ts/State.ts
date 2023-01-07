@@ -93,8 +93,13 @@ class State {
         return this;
     }
 
-    setActiveRoutesElem($new: HTMLElement): State {
-        render.setActiveRoutesElem($new);
+    setActiveRegionsElem($new: HTMLElement): State {
+        render.setActiveRegionsElem($new);
+        return this;
+    }
+
+    setActiveRegionAttributionsElem($new: HTMLElement): State {
+        render.setActiveRegionAttributionsElem($new);
         return this;
     }
 

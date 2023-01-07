@@ -46,9 +46,13 @@ class Render {
 
     private searchResultCache = new Map<Id, HTMLDivElement>();
 
-    private $activeRoutesContainer: HTMLElement = document.createElement("div");
+    private $activeRegionsContainer: HTMLElement = document.createElement("div");
 
-    private $activeRoutes = new Map<RegionCode, HTMLElement>();
+    private $activeRegions = new Map<RegionCode, HTMLElement>();
+
+    private $activeRegionAttributionsContainer: HTMLElement = document.createElement("div");
+
+    private $activeRegionAttributions = new Map<RegionCode, HTMLElement>();
 
     private constructor() {
         //
@@ -61,32 +65,70 @@ class Render {
         return instance;
     }
 
-    public setActiveRoutesElem($new: HTMLElement): void {
-        $new.append(...this.$activeRoutesContainer.childNodes);
-        this.$activeRoutesContainer = $new;
+    public setActiveRegionsElem($new: HTMLElement): void {
+        $new.append(...this.$activeRegionsContainer.childNodes);
+        this.$activeRegionsContainer = $new;
     }
 
-    public createActiveRegionElem(title: string): HTMLElement {
-        return (
+    public setActiveRegionAttributionsElem($new: HTMLElement): void {
+        $new.append(...this.$activeRegionAttributionsContainer.childNodes);
+        this.$activeRegionAttributionsContainer = $new;
+    }
+
+    public addActiveRegion(
+        region: PartialRegionDataResult<"code" | "country" | "region" | "attributionHTML">,
+    ): HTMLElement {
+        // add region header
+        const $region = (
             <div class="region">
-                <div class="region-title">{title}</div>
+                <div class="region-title">{`${region.country} - ${region.region}`}</div>
             </div>
         );
+        this.$activeRegions.set(region.code, $region);
+        this.$activeRegionsContainer.append($region);
+
+        // show region headers if there are multiple regions
+        if (this.$activeRegions.size > 1) {
+            this.$activeRegionsContainer.classList.add("show-active-region-headers");
+        }
+
+        // add region attribution
+        const $attribution = document.createElement("li");
+        $attribution.innerHTML = region.attributionHTML;
+        this.$activeRegionAttributions.set(region.code, $attribution);
+        this.$activeRegionAttributionsContainer.append($attribution);
+
+        return $region;
+    }
+
+    public removeActiveRegion(region: PartialRegionDataResult<"code">): void {
+        // remove region header
+        const $region = this.$activeRegions.get(region.code);
+        if ($region != null) {
+            $region.remove();
+            this.$activeRegions.delete(region.code);
+        }
+
+        // hide region headers if there is only one region
+        if (this.$activeRegions.size <= 1) {
+            this.$activeRegionsContainer.classList.remove("show-active-region-headers");
+        }
+
+        // remove region attribution
+        const $attribution = this.$activeRegionAttributions.get(region.code);
+        if ($attribution != null) {
+            $attribution.remove();
+            this.$activeRegionAttributions.delete(region.code);
+        }
     }
 
     public addActiveRoute(
         $activeRoute: HTMLDivElement,
-        region: PartialRegionDataResult<"code" | "country" | "region">,
+        region: PartialRegionDataResult<"code" | "country" | "region" | "attributionHTML">,
     ) {
-        let $region = this.$activeRoutes.get(region.code);
+        let $region = this.$activeRegions.get(region.code);
         if ($region == null) {
-            $region = this.createActiveRegionElem(`${region.country} - ${region.region}`);
-            this.$activeRoutes.set(region.code, $region);
-            this.$activeRoutesContainer.append($region);
-
-            if (this.$activeRoutes.size > 1) {
-                this.$activeRoutesContainer.classList.add("show-active-region-headers");
-            }
+            $region = this.addActiveRegion(region);
         }
         $region.append($activeRoute);
     }
@@ -96,13 +138,9 @@ class Render {
         region: PartialRegionDataResult<"code">,
     ) {
         $activeRoute.remove();
-        const $region = this.$activeRoutes.get(region.code);
+        const $region = this.$activeRegions.get(region.code);
         if ($region != null && $region.childElementCount <= 1) { // 1 because of the region header
-            $region.remove();
-            this.$activeRoutes.delete(region.code);
-            if (this.$activeRoutes.size <= 1) {
-                this.$activeRoutesContainer.classList.remove("show-active-region-headers");
-            }
+            this.removeActiveRegion(region);
         }
     }
 

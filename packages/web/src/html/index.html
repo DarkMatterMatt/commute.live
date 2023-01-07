@@ -150,10 +150,15 @@
                     </p>
                 </section>
                 <section>
-                    <h2>Transit Data</h2>
+                    <h2>Acknowledgements</h2>
                     <p>
-                        Route and real-time vehicle data is sourced from the
-                        <a href="<%= process.env.LINK_AT_API %>" target="_blank" rel="noopener">Auckland Transport API</a>.
+                        Commute.live is grateful for the data provided by the following organisations:
+                        <ul>
+                            <div id="region-attributions">
+                                <!-- List of active region attributions -->
+                            </div>
+                            <li>IP geolocation by <a href="https://db-ip.com">DB-IP</a> / <a href="https://creativecommons.org/licenses/by/4.0/">CC BY</a></li>
+                        </ul>
                     </p>
                 </section>
                 <section>
@@ -165,7 +170,7 @@
                     </p>
                 </section>
                 <section class="footer">
-                    <span>&copy; Matt Moran (2021)</span>
+                    <span>&copy; Matt Moran (<%= new Date().getUTCFullYear() %>)</span>
                     <span class="float-right">v<%= require('../../package.json').version %></span>
                 </section>
             </div>

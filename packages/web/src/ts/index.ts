@@ -30,6 +30,7 @@ const $map = getElementById("map");
 const $searchInput = getElementById("search") as HTMLInputElement;
 const $dropdownFilter = getElementById("results");
 const $activeRoutes = getElementById("active");
+const $activeRouteAttributions = getElementById("region-attributions");
 const $main = getElementById("main");
 const $navShow = getElementById("nav-show");
 const $navHide = getElementById("nav-hide");
@@ -194,7 +195,8 @@ function onGeolocationError(err: GeolocationPositionError) {
         backgroundColor: settings.getBool("darkMode") ? "#17263c" : undefined,
     });
     state.setMap(map);
-    state.setActiveRoutesElem($activeRoutes);
+    state.setActiveRegionsElem($activeRoutes);
+    state.setActiveRegionAttributionsElem($activeRouteAttributions);
 
     const markerView = new HtmlMarkerView(map);
     state.setMarkerView(markerView);

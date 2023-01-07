@@ -412,6 +412,11 @@ body.theme-dark .github {
             display: flex;
         }
 
+        ul {
+            padding: 0;
+            list-style-position: inside;
+        }
+
         .footer {
             margin-top: auto;
             padding: 1em 0;
