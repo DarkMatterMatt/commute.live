@@ -36,11 +36,11 @@ class Route {
 
     public readonly id: Id;
 
-    private readonly longName: string;
+    public readonly longName: string;
 
     private markerType: MarkerType;
 
-    public shortName: string;
+    public readonly shortName: string;
 
     private polylines: google.maps.Polyline[] = [];
 
@@ -64,7 +64,7 @@ class Route {
         throw new Error("No longNames provided");
     }
 
-    constructor(o: RouteOptions) {
+    public constructor(o: RouteOptions) {
         this.map = o.map;
         this.type = o.type;
         this.color = o.color;
@@ -77,7 +77,7 @@ class Route {
         this.showTransitRoutes = o.showTransitRoutes;
     }
 
-    removeVehicle(markerOrId: VehicleMarker | string): void {
+    public removeVehicle(markerOrId: VehicleMarker | string): void {
         const marker = typeof markerOrId === "string" ? this.vehicleMarkers.get(markerOrId) : markerOrId;
         if (marker == null) {
             return;
@@ -89,7 +89,11 @@ class Route {
         marker.destroy();
     }
 
-    showVehicle(v: LiveVehicle): void {
+    public showVehicle(v: LiveVehicle): void {
+        if (!this.active) {
+            console.warn("Route is not active", this.id, v);
+            return;
+        }
         const { vehicleId: id } = v;
         if (id == null) {
             console.warn("Vehicle is missing identifier", v);
@@ -121,8 +125,12 @@ class Route {
         });
     }
 
-    setColor(color: string): void {
+    public setColor(color: string): void {
+        if (color === this.color) {
+            return;
+        }
         this.color = color;
+
         if (this.polylines) {
             this.polylines[2].setOptions({ strokeColor: color });
             this.polylines[3].setOptions({ strokeColor: color });
@@ -134,32 +142,48 @@ class Route {
         this.vehicleMarkers.forEach(m => m.setMarkerIconType(type));
     }
 
-    setAnimatePosition(animate: boolean): void {
+    public setAnimatePosition(animate: boolean): void {
+        if (animate === this.animateMarkerPosition) {
+            return;
+        }
         this.animateMarkerPosition = animate;
+
         this.vehicleMarkers.forEach(m => m.setAnimatePosition(animate));
     }
 
-    setMap(map: google.maps.Map): void {
+    public setMap(map: google.maps.Map): void {
+        if (map === this.map) {
+            return;
+        }
         this.map = map;
+
         this.polylines.forEach(p => p.setMap(map));
         if (this.markerView != null) {
             this.markerView.setMap(map);
         }
     }
 
-    setMarkerView(markerView: HtmlMarkerView): void {
+    public setMarkerView(markerView: HtmlMarkerView): void {
+        if (markerView === this.markerView) {
+            return;
+        }
         const oldMarkerView = this.markerView;
+        this.markerView = markerView;
+
         if (oldMarkerView != null) {
             this.vehicleMarkers.forEach(m => oldMarkerView.removeMarker(m));
         }
-        this.markerView = markerView;
         this.vehicleMarkers.forEach(m => markerView.addMarker(m));
     }
 
-    async setShowTransitRoutes(show: boolean): Promise<void> {
+    public async setShowTransitRoutes(show: boolean): Promise<void> {
+        if (!this.active || show === this.showTransitRoutes) {
+            return;
+        }
         this.showTransitRoutes = show;
-        if (show && this.active) {
-            this.loadPolylines();
+
+        if (show) {
+            await this.loadPolylines();
         }
         else {
             this.polylines.forEach(p => p.setMap(null));
@@ -167,19 +191,24 @@ class Route {
         }
     }
 
-    async loadVehicles(): Promise<void> {
+    public async loadVehicles(): Promise<void> {
         api.subscribe(this.id);
         const { vehicles } = await api.queryRoute(this.id, ["vehicles"]);
         if (vehicles == null) {
             throw new Error(`No vehicles found for route ${this.id}`);
         }
-        Object.values(vehicles).map(v => this.showVehicle(v));
+        vehicles.map(v => this.showVehicle(v));
     }
 
-    async loadPolylines(): Promise<void> {
+    public async loadPolylines(): Promise<void> {
         if (!this.showTransitRoutes) {
             return;
         }
+        if (this.polylines.length > 0) {
+            console.warn("Polylines already loaded", this.id);
+            return;
+        }
+
         const strokeOpacity = 0.7;
         const { map, color } = this;
 
@@ -198,7 +227,7 @@ class Route {
         ];
     }
 
-    async activate(): Promise<void> {
+    public async activate(): Promise<void> {
         if (this.active) {
             return;
         }
@@ -209,7 +238,7 @@ class Route {
         ]);
     }
 
-    deactivate(): void {
+    public deactivate(): void {
         if (!this.active) {
             return;
         }
@@ -222,7 +251,7 @@ class Route {
         this.vehicleMarkers.forEach(m => this.removeVehicle(m));
     }
 
-    isActive(): boolean {
+    public isActive(): boolean {
         return this.active;
     }
 }
