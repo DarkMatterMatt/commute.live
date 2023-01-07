@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/backend",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "description": "The main backend of [Commute.live](https://commute.live), which aggregates static and realtime data from multiple sources and exposes it via an API.",
     "main": "dist/index.js",
     "author": "Matt Moran",
@@ -91,7 +91,7 @@
         "node": ">=18"
     },
     "dependencies": {
-        "@commutelive/common": "^2.4.0",
+        "@commutelive/common": "^2.4.1",
         "chalk": "^4.1.2",
         "dotenv": "^16.0.3",
         "envalid": "^7.3.1",
