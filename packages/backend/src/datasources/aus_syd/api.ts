@@ -2,7 +2,7 @@ import fetch, { type Response } from "node-fetch";
 import env from "~/env";
 import { QueueingRateLimiter } from "~/helpers";
 
-const limiter = new QueueingRateLimiter({ triggerThreshold: 5, requestsPerSecond: 4.9 });
+const limiter = new QueueingRateLimiter({ triggerThreshold: 2, requestsPerSecond: 2.4 });
 
 export async function queryApi(url: string, headers?: Record<string, string>): Promise<Response> {
     // wait for our turn
