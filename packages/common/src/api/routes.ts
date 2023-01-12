@@ -7,7 +7,7 @@ export interface RouteDataResult {
     id: Id;
     region: RegionCode;
     longNames: [StrOrNull, StrOrNull];
-    polylines: [LatLng[], LatLng[]];
+    polylines: [LatLng[] | null, LatLng[] | null];
     shortName: string;
     type: number;
     vehicles: LiveVehicle[];

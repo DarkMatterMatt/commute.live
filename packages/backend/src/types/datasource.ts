@@ -83,9 +83,9 @@ export interface DataSource {
      * Returns two polyline shapes, one for each direction.
      *
      * Selects the longest shape (by distance), breaks ties by version number.
-     * Returns an empty shape if there is no shape for the specified direction/identifier.
+     * Returns null if there is no shape for the specified direction.
      */
-    getShapes: (id: Id) => Promise<[LatLng[], LatLng[]]>;
+    getShapes: (id: Id) => Promise<[LatLng[] | null, LatLng[] | null]>;
 
     /**
      * Return datasource status in a JSON-serializable format.

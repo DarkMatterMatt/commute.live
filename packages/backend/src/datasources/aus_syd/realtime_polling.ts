@@ -147,7 +147,7 @@ function fixPosition(p: PositionV1 | PositionV2): Position {
         latitude,
         longitude,
     };
-    if (bearing != null && bearing !== 0) output.bearing = bearing;
+    if (bearing != null && bearing !== 0) output.bearing = (bearing + 360) % 360;
     if (odometer != null) output.odometer = odometer;
     if (speed != null) output.speed = speed;
     return output;

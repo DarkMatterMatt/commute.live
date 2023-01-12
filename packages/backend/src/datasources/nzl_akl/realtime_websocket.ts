@@ -143,7 +143,7 @@ function fixPosition(p: Position & Record<string, any>): Position {
         latitude,
         longitude,
     };
-    if (bearing != null) output.bearing = ensureNumber(bearing);
+    if (bearing != null) output.bearing = (ensureNumber(bearing) + 360) % 360;
     if (odometer != null) output.odometer = ensureNumber(odometer);
     if (speed != null) output.speed = ensureNumber(speed);
     return output;

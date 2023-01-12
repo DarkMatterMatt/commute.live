@@ -85,24 +85,22 @@ async function getShape(
     db: SqlDatabase,
     id: Id,
     directionId: 0 | 1,
-): Promise<LatLng[]> {
-    const { shortName, type } = parseId(id);
+): Promise<LatLng[] | null> {
     const shapeIdQuery = `
         SELECT shape_id_${directionId}
         FROM route_summaries
-        WHERE route_short_name=$shortName AND route_type=$routeType
+        WHERE id=$id
         LIMIT 1
     `;
 
-    return db.prepare(`
+    const result: LatLng[] = db.prepare(`
         SELECT shape_pt_lat AS lat, shape_pt_lon AS lng
         FROM shapes
         WHERE shape_id=(${shapeIdQuery})
         ORDER BY shape_pt_sequence ASC
-    `).all({
-        shortName,
-        routeType: type,
-    });
+    `).all({ id });
+
+    return result.length > 0 ? result : null;
 }
 
 /**
@@ -114,7 +112,7 @@ async function getShape(
 export async function getShapes(
     db: SqlDatabase,
     id: Id,
-): Promise<[LatLng[], LatLng[]]> {
+): Promise<[LatLng[] | null, LatLng[] | null]> {
     return Promise.all([
         getShape(db, id, 0),
         getShape(db, id, 1),
