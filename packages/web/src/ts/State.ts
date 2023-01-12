@@ -130,6 +130,7 @@ class State {
     async loadRoutes(routes: ParsedState["routes"]): Promise<void> {
         const animateMarkerPosition = settings.getBool("animateMarkerPosition");
         const showTransitRoutes = settings.getBool("showTransitRoutes");
+        const snapToRoute = settings.getBool("snapToRoute");
         const markerType = settings.getStr("markerType") as MarkerType;
 
         const { map, markerView } = this;
@@ -176,6 +177,7 @@ class State {
                 map,
                 markerView,
                 markerType,
+                snapToRoute,
             });
             this.routes.set(id, route);
 
@@ -308,6 +310,7 @@ class State {
         if (route === undefined) {
             const animateMarkerPosition = settings.getBool("animateMarkerPosition");
             const showTransitRoutes = settings.getBool("showTransitRoutes");
+            const snapToRoute = settings.getBool("snapToRoute");
             const markerType = settings.getStr("markerType") as MarkerType;
             showPickr = true;
             route = new Route({
@@ -321,6 +324,7 @@ class State {
                 map,
                 markerView,
                 markerType,
+                snapToRoute,
             });
             this.routes.set(id, route);
         }

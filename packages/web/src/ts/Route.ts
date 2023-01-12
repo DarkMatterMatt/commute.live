@@ -1,4 +1,4 @@
-import type { Id, LiveVehicle, StrOrNull } from "@commutelive/common";
+import { binarySearch, defaultProjection, getClosestLatLngOnPolyline, type Id, type LatLng, type LatLngPoint, type LiveVehicle, type StrOrNull } from "@commutelive/common";
 import { api } from "./Api";
 import type HtmlMarkerView from "./HtmlMarkerView";
 import type { MarkerType } from "./types";
@@ -6,8 +6,9 @@ import VehicleMarker from "./VehicleMarker";
 
 /** Snap location to route if within this many meters */
 const VEHICLE_SNAP_THRESHOLD = 50;
+
 /** Snap bearing to route if within this many degrees */
-// const VEHICLE_SNAP_BEARING_THRESHOLD = 30;
+const VEHICLE_SNAP_BEARING_THRESHOLD = 30;
 
 interface RouteOptions {
     map: google.maps.Map;
@@ -21,7 +22,14 @@ interface RouteOptions {
     shortName: Route["shortName"];
     animateMarkerPosition: boolean;
     showTransitRoutes: boolean;
+    snapToRoute: boolean;
 }
+
+interface ShapePoint extends LatLngPoint {
+    dist: number
+}
+
+type PolylineOrNull = google.maps.Polyline | null;
 
 class Route {
     private map: google.maps.Map;
@@ -42,11 +50,15 @@ class Route {
 
     public readonly shortName: string;
 
-    private polylines: google.maps.Polyline[] = [];
+    private polylines: [PolylineOrNull, PolylineOrNull, PolylineOrNull, PolylineOrNull] | null = null;
 
     private animateMarkerPosition: boolean;
 
     private showTransitRoutes: boolean;
+
+    private snapPolylines: [ShapePoint[] | null, ShapePoint[] | null] | null = null;
+
+    private snapToRoute: boolean;
 
     private readonly vehicleMarkers = new Map<string, VehicleMarker>();
 
@@ -64,6 +76,39 @@ class Route {
         throw new Error("No longNames provided");
     }
 
+    private static findLatLngAtDist(snapPolyline: ShapePoint[], targetDist: number): LatLng {
+        if (targetDist < snapPolyline[0].dist) {
+            const [{ lat, lng }] = snapPolyline;
+            return { lat, lng };
+        }
+        if (targetDist > snapPolyline[snapPolyline.length - 1].dist) {
+            const { lat, lng } = snapPolyline[snapPolyline.length - 1];
+            return { lat, lng };
+        }
+
+        // search the shape for the target distance
+        const result = binarySearch(snapPolyline.map(p => p.dist), targetDist);
+        if (result.found !== -1) {
+            const { lat, lng } = snapPolyline[result.found];
+            return { lat, lng };
+        }
+
+        const below = snapPolyline[result.below];
+        const above = snapPolyline[result.above];
+        const fTo = (targetDist - below.dist) / (above.dist - below.dist);
+
+        // lat/lng can be linearly interpolated for small distances
+        return {
+            lat: below.lat + ((above.lat - below.lat) * fTo),
+            lng: below.lng + ((above.lng - below.lng) * fTo),
+        };
+    }
+
+    private static absDegreesBetweenBearings(b1: number, b2: number): number {
+        const diff = Math.abs(b1 - b2);
+        return Math.min(diff, 360 - diff);
+    }
+
     public constructor(o: RouteOptions) {
         this.map = o.map;
         this.type = o.type;
@@ -75,6 +120,44 @@ class Route {
         this.shortName = o.shortName;
         this.animateMarkerPosition = o.animateMarkerPosition;
         this.showTransitRoutes = o.showTransitRoutes;
+        this.snapToRoute = o.snapToRoute;
+    }
+
+    private snapPositionAndBearing(
+        position: LatLng,
+        bearing: null | number,
+        directionId: null | number,
+    ): { position: LatLng, bearing: null | number } {
+        if (!this.snapToRoute || directionId == null) {
+            return { position, bearing };
+        }
+
+        const snapPolyline = this.snapPolylines?.[directionId];
+        if (snapPolyline == null) {
+            console.warn("No snap polyline for direction", this.id, directionId);
+            return { position, bearing };
+        }
+
+        // snap position to route
+        const snapPosition = getClosestLatLngOnPolyline(snapPolyline, position);
+        const distance = defaultProjection.getDistBetweenLatLngs(position, snapPosition);
+        if (distance <= VEHICLE_SNAP_THRESHOLD) {
+            position = snapPosition;
+
+            const lastPointDist = snapPolyline[snapPosition.i - 1].dist;
+            const nextPointDist = snapPolyline[snapPosition.i].dist;
+            const dist = lastPointDist + ((nextPointDist - lastPointDist) * snapPosition.fTo);
+
+            // calculate bearing along route
+            const behind = Route.findLatLngAtDist(snapPolyline, dist - 10);
+            const ahead = Route.findLatLngAtDist(snapPolyline, dist + 20);
+            const snapBearing = defaultProjection.getBearingBetweenLatLngs(behind, ahead);
+            if (bearing == null
+                    || Route.absDegreesBetweenBearings(snapBearing, bearing) < VEHICLE_SNAP_BEARING_THRESHOLD) {
+                bearing = snapBearing;
+            }
+        }
+        return { position, bearing };
     }
 
     public removeVehicle(markerOrId: VehicleMarker | string): void {
@@ -99,6 +182,10 @@ class Route {
             console.warn("Vehicle is missing identifier", v);
             return;
         }
+        if (v.position == null) {
+            console.warn("Vehicle update does not contain a position", v);
+            return;
+        }
 
         let marker = this.vehicleMarkers.get(id);
         if (marker == null) {
@@ -116,12 +203,12 @@ class Route {
             }
         }
 
-        const shouldSnap = v.snapDeviation && v.snapDeviation < VEHICLE_SNAP_THRESHOLD;
+        const { position, bearing } = this.snapPositionAndBearing(v.position, v.bearing ?? null, v.directionId ?? null);
 
         marker.updateLiveData({
             lastUpdated: v.lastUpdated ?? Date.now(),
-            position: shouldSnap ? v.snapPosition : v.position,
-            bearing: v.bearing ?? -1,
+            position,
+            bearing,
         });
     }
 
@@ -131,10 +218,8 @@ class Route {
         }
         this.color = color;
 
-        if (this.polylines) {
-            this.polylines[2].setOptions({ strokeColor: color });
-            this.polylines[3].setOptions({ strokeColor: color });
-        }
+        this.polylines?.[2]?.setOptions({ strokeColor: color });
+        this.polylines?.[3]?.setOptions({ strokeColor: color });
         this.vehicleMarkers.forEach(m => m.setColor(color));
     }
 
@@ -157,7 +242,7 @@ class Route {
         }
         this.map = map;
 
-        this.polylines.forEach(p => p.setMap(map));
+        this.polylines?.forEach(p => p?.setMap(map));
         if (this.markerView != null) {
             this.markerView.setMap(map);
         }
@@ -186,9 +271,22 @@ class Route {
             await this.loadPolylines();
         }
         else {
-            this.polylines.forEach(p => p.setMap(null));
-            this.polylines = [];
+            this.polylines?.forEach(p => p?.setMap(null));
+            this.polylines = null;
         }
+    }
+
+    public async setSnapToRoute(shouldSnap: boolean): Promise<void> {
+        if (shouldSnap === this.snapToRoute) {
+            return;
+        }
+        this.snapToRoute = shouldSnap;
+
+        if (shouldSnap && this.snapPolylines == null) {
+            await this.loadPolylines();
+        }
+
+        // TODO: snap/un-snap existing positions, rather than waiting for new data
     }
 
     public async loadVehicles(): Promise<void> {
@@ -201,30 +299,54 @@ class Route {
     }
 
     public async loadPolylines(): Promise<void> {
-        if (!this.showTransitRoutes) {
-            return;
-        }
-        if (this.polylines.length > 0) {
-            console.warn("Polylines already loaded", this.id);
+        if (!this.showTransitRoutes && !this.snapToRoute) {
             return;
         }
 
-        const strokeOpacity = 0.7;
-        const { map, color } = this;
+        if (this.snapPolylines == null) {
+            const { polylines } = await api.queryRoute(this.id, ["polylines"]);
+            if (polylines == null) {
+                throw new Error(`No polylines found for route ${this.shortName}`);
+            }
+            this.snapPolylines = [null, null];
 
-        const { polylines } = await api.queryRoute(this.id, ["polylines"]);
-        if (polylines == null) {
-            throw new Error(`No polylines found for route ${this.shortName}`);
+            for (const directionId of [0, 1] as const) {
+                const polyline = polylines[directionId];
+                if (polyline == null) {
+                    continue;
+                }
+
+                const snapPolyline: ShapePoint[] = [];
+                let dist = 0;
+                for (let i = 1; i < polyline.length; i++) {
+                    const p1 = polyline[i - 1];
+                    const p2 = polyline[i];
+                    dist += defaultProjection.getDistBetweenLatLngs(p1, p2);
+                    snapPolyline.push({
+                        ...p1,
+                        ...defaultProjection.fromLatLngToPoint(p1),
+                        dist,
+                    });
+                }
+                this.snapPolylines[directionId] = snapPolyline;
+            }
         }
-        this.polylines = [
-            // background line, so the path isn't affected by the map colour
-            new google.maps.Polyline({ map, path: polylines[0], strokeColor: "black" }),
-            new google.maps.Polyline({ map, path: polylines[1], strokeColor: "white" }),
 
-            // route line, semi-transparent so it's obvious when they overlap
-            new google.maps.Polyline({ map, path: polylines[0], strokeColor: color, strokeOpacity, zIndex: 11 }),
-            new google.maps.Polyline({ map, path: polylines[1], strokeColor: color, strokeOpacity, zIndex: 12 }),
-        ];
+        if (this.showTransitRoutes && this.polylines == null) {
+            const strokeOpacity = 0.7;
+            const { map, color } = this;
+            const [p0, p1] = this.snapPolylines;
+
+            this.polylines = [
+                // background line, so the path isn't affected by the map colour
+                p0 && new google.maps.Polyline({ map, path: p0, strokeColor: "black" }),
+                p1 && new google.maps.Polyline({ map, path: p1, strokeColor: "white" }),
+
+                // route line, semi-transparent so it's obvious when they overlap
+                p0 && new google.maps.Polyline({ map, path: p0, strokeColor: color, strokeOpacity, zIndex: 11 }),
+                p1 && new google.maps.Polyline({ map, path: p1, strokeColor: color, strokeOpacity, zIndex: 12 }),
+            ];
+        }
     }
 
     public async activate(): Promise<void> {
@@ -232,10 +354,9 @@ class Route {
             return;
         }
         this.active = true;
-        await Promise.all([
-            this.loadVehicles(),
-            this.loadPolylines(),
-        ]);
+
+        await this.loadPolylines();
+        await this.loadVehicles();
     }
 
     public deactivate(): void {
@@ -245,8 +366,8 @@ class Route {
         this.active = false;
         api.unsubscribe(this.id);
 
-        this.polylines.forEach(p => p.setMap(null));
-        this.polylines = [];
+        this.polylines?.forEach(p => p?.setMap(null));
+        this.polylines = null;
 
         this.vehicleMarkers.forEach(m => this.removeVehicle(m));
     }

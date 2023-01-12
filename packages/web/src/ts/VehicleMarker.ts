@@ -23,11 +23,11 @@ interface VehicleMarkerOptions {
 interface UpdateLiveDataOpts {
     position: google.maps.LatLng | google.maps.LatLngLiteral;
     lastUpdated: number;
-    bearing: number;
+    bearing: null | number;
 }
 
 class VehicleMarker extends HtmlMarker {
-    private bearing = -1;
+    private bearing: null | number = null;
 
     private color: string;
 
