@@ -1,5 +1,4 @@
-import type { Id, JSONSerializable } from "@commutelive/common";
-import { TimedMap } from "~/helpers/";
+import { type Id, type JSONSerializable, TimedMap } from "@commutelive/common";
 import { getLogger } from "~/log.js";
 import type { SqlDatabase, TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
 import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling } from "./realtime_polling.js";

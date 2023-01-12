@@ -1,4 +1,5 @@
-import { clearTimeout, setTimeout } from "node:timers";
+// Reference the DOM lib to get the setTimeout type
+/// <reference lib="DOM" />
 
 interface IteratorResult<T> {
     value: T;
