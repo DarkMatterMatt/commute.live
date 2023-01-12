@@ -1,2 +1,3 @@
+export * from "./line";
 export * from "./MercatorProjection";
-export * from "./types";
+export * from "./point";

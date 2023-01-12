@@ -1,5 +1,5 @@
 import { clamp, degreesToRadians, radiansToDegrees } from "../number";
-import type { LatLng, Point } from "./types";
+import type { LatLng, Point } from "./point";
 
 const ALMOST_ONE = 1 - 1e-15;
 
@@ -92,6 +92,26 @@ export class MercatorProjection {
         const p1 = this.fromLatLngToPoint(l1);
         const p2 = this.fromLatLngToPoint(l2);
         return this.getDistBetweenPoints(p1, p2, avgLat);
+    }
+
+    /**
+     * Get bearing between pixel points.
+     * @returns bearing, degrees clockwise from North.
+     */
+    public getBearingBetweenPoints(p1: Point, p2: Point): number {
+        const deltaX = p2.x - p1.x;
+        const deltaY = p2.y - p1.y;
+        return (radiansToDegrees(Math.atan2(deltaX, -deltaY)) + 360) % 360;
+    }
+
+    /**
+     * Get bearing between coordinate points.
+     * @returns bearing, degrees clockwise from North.
+     */
+    public getBearingBetweenLatLngs(l1: LatLng, l2: LatLng): number {
+        const p1 = this.fromLatLngToPoint(l1);
+        const p2 = this.fromLatLngToPoint(l2);
+        return this.getBearingBetweenPoints(p1, p2);
     }
 }
 

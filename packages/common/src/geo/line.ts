@@ -1,4 +1,5 @@
-import type { Point } from "@commutelive/common";
+import { defaultProjection } from "./MercatorProjection";
+import type { LatLng, Point } from "./point";
 
 /* Magic from https://stackoverflow.com/a/30269960 */
 
@@ -88,4 +89,21 @@ export function getClosestPointOnLine(line: Point[], p: Point) {
     const y = line[i - 1].y - (dy * fTo);
 
     return { x, y, i, fTo, fFrom };
+}
+
+/**
+ * Finds closest point on a line to the provided point. Used to 'snap' a point to its polyline.
+ * @returns `lat`, `lng`: A point on the line that is closest to `p`.
+ * @returns `i`: The next index on the line. The previous index is `i - 1`.
+ * @returns `fTo`: Fraction of distance along line from `i - 1` towards `i`. `0 <= fTo <= 1`.
+ * @returns `fFrom`: Fraction of distance along line from `i` towards `i - 1`. `0 <= fFrom <= 1`.
+ */
+export function getClosestLatLngOnPolyline(line: Point[], latLng: LatLng) {
+    const p = defaultProjection.fromLatLngToPoint(latLng);
+    const { x, y, ...rest } = getClosestPointOnLine(line, p);
+
+    return {
+        ...defaultProjection.fromPointToLatLng({ x, y }),
+        ...rest,
+    };
 }

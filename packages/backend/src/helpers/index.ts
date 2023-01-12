@@ -1,6 +1,5 @@
 export * from "./crypto.js";
 export * from "./enum.js";
-export * from "./line.js";
 export * from "./MultiPersistentWebSocket.js";
 export * from "./PersistentWebSocket.js";
 export * from "./Queue.js";
