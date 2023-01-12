@@ -13,7 +13,6 @@ export function convertVehiclePosition(id: Id, vp: VehiclePosition): LiveVehicle
         route: "live/vehicle",
         id,
         directionId,
-        lastUpdatedUnix: timestamp,
         lastUpdated: timestamp && timestamp * 1000,
         position: (lat != null && lng != null) ? { lat, lng } : undefined,
         bearing,

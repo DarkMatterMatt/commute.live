@@ -8,7 +8,6 @@ export interface LiveVehicle {
 
     id: Id;
     directionId?: number;
-    lastUpdatedUnix?: number;
     /** JavaScript timestamp (milliseconds since Epoch) */
     lastUpdated?: number;
     /** Unprocessed reported GPS location */
@@ -17,11 +16,4 @@ export interface LiveVehicle {
     bearing?: number;
     vehicleId?: string;
     occupancyStatus?: number;
-
-    /** Closest position on route to reported position */
-    snapPosition?: LatLng;
-    /** Distance (meters) between reported position and calculated position */
-    snapDeviation?: number;
-    /** Direction of route at snapPosition. 0 to 360 degrees, clockwise from North */
-    snapBearing?: number;
 }
