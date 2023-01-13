@@ -141,6 +141,25 @@ export async function getIdByTripId(
 }
 
 /**
+ * Return direction id for specified trip id.
+ */
+export function getDirectionIdByTripId(
+    db: SqlDatabase,
+    tripId: string,
+): 0 | 1 {
+    const result: { directionId: 0 | 1 } = db.prepare(`
+        SELECT direction_id AS directionId
+        FROM trips
+        WHERE trip_id=$tripId
+    `).get({ tripId });
+
+    if (result == null) {
+        throw new Error(`Could not find trip ${tripId}`);
+    }
+    return result.directionId;
+}
+
+/**
  * Return trip id for specified route, direction, and start time.
  */
 export async function getTripIdByTripDetails(

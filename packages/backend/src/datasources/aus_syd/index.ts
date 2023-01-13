@@ -3,20 +3,32 @@ import { FeedMessage as FeedMessageV1 } from "./gtfs-realtime.proto.js";
 import { FeedMessage as FeedMessageV2 } from "./gtfs-realtime_v2.proto.js";
 import { makeId, regionCode } from "./id.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
+import type { NSWSource, NSWSourceOpts } from "./realtime_polling.js";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
 import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries.js";
 
-const GTFS_URL = "https://api.transport.nsw.gov.au/v1/publictransport/timetables/complete/gtfs";
+const BASE_URL = "https://api.transport.nsw.gov.au";
+const GTFS_URL = `${BASE_URL}/v1/publictransport/timetables/complete/gtfs`;
 
-const REALTIME_API_URLS: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessageV2][] = [
-    ["https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/buses", FeedMessageV1.decode],
-    ["https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/ferries/sydneyferries", FeedMessageV1.decode],
-    ["https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/lightrail/innerwest", FeedMessageV1.decode],
-    ["https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/lightrail/newcastle", FeedMessageV1.decode],
-    ["https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/lightrail/cbdandsoutheast", FeedMessageV1.decode],
-    ["https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/nswtrains", FeedMessageV1.decode],
-    ["https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/metro", FeedMessageV1.decode],
-    ["https://api.transport.nsw.gov.au/v2/gtfs/vehiclepos/sydneytrains", FeedMessageV2.decode],
+const decodeV1 = FeedMessageV1.decode;
+const decodeV2 = FeedMessageV2.decode;
+
+function makeOpts(hasBearing: boolean, hasDirectionId: boolean): NSWSourceOpts {
+    return {
+        hasBearing,
+        hasDirectionId,
+    };
+}
+
+const REALTIME_API_URLS: NSWSource[] = [
+    [`${BASE_URL}/v1/gtfs/vehiclepos/buses`, decodeV1, makeOpts(true, false)],
+    [`${BASE_URL}/v1/gtfs/vehiclepos/ferries/sydneyferries`, decodeV1, makeOpts(true, false)],
+    [`${BASE_URL}/v1/gtfs/vehiclepos/lightrail/innerwest`, decodeV1, makeOpts(true, false)],
+    [`${BASE_URL}/v1/gtfs/vehiclepos/lightrail/newcastle`, decodeV1, makeOpts(true, false)],
+    [`${BASE_URL}/v1/gtfs/vehiclepos/lightrail/cbdandsoutheast`, decodeV1, makeOpts(true, true)],
+    [`${BASE_URL}/v1/gtfs/vehiclepos/nswtrains`, decodeV1, makeOpts(true, false)],
+    [`${BASE_URL}/v1/gtfs/vehiclepos/metro`, decodeV1, makeOpts(true, false)],
+    [`${BASE_URL}/v2/gtfs/vehiclepos/sydneytrains`, decodeV2, makeOpts(false, false)],
 ];
 
 export const AUS_SYD: DataSource = {

@@ -1,12 +1,21 @@
-import { type JSONSerializable, sum } from "@commutelive/common";
-import { parseEnum, RollingAverage } from "~/helpers";
+import { type JSONSerializable, sum, timedMemo } from "@commutelive/common";
+import { parseEnum, RateLimiter, RollingAverage } from "~/helpers";
 import { getLogger } from "~/log";
 import { CongestionLevel, OccupancyStatus, type Position, type StopTimeUpdate, type TripDescriptor, TripDescriptor$ScheduleRelationship, type TripUpdate, type TripUpdate$StopTimeEvent, TripUpdate$StopTimeUpdate$ScheduleRelationship, type VehicleDescriptor, type VehiclePosition, VehicleStopStatus } from "~/types";
 import { queryApi } from "./api.js";
 import type { FeedEntity as FeedEntityV1, FeedMessage as FeedMessageV1, Position as PositionV1, TripDescriptor as TripDescriptorV1, TripUpdate_StopTimeEvent as TripUpdate_StopTimeEventV1, TripUpdate_StopTimeUpdate as TripUpdate_StopTimeUpdateV1, TripUpdate as TripUpdateV1, VehicleDescriptor as VehicleDescriptorV1, VehiclePosition as VehiclePositionV1 } from "./gtfs-realtime.proto.js";
 import type { FeedEntity as FeedEntityV2, FeedMessage as FeedMessageV2, Position as PositionV2, TripDescriptor as TripDescriptorV2, TripUpdate_StopTimeEvent as TripUpdate_StopTimeEventV2, TripUpdate_StopTimeUpdate as TripUpdate_StopTimeUpdateV2, TripUpdate as TripUpdateV2, VehicleDescriptor as VehicleDescriptorV2, VehiclePosition as VehiclePositionV2 } from "./gtfs-realtime_v2.proto.js";
+import { getDatabase } from "./static.js";
+import { getDirectionIdByTripId } from "./static_queries.js";
 
 const log = getLogger("AUSSYD/realtime/poll");
+
+export interface NSWSourceOpts {
+    hasBearing: boolean;
+    hasDirectionId: boolean;
+}
+
+export type NSWSource = [url: string, decode: (buf: Uint8Array) => FeedMessageV1 | FeedMessageV2, opts: NSWSourceOpts]
 
 let addTripUpdate: (tripUpdate: TripUpdate) => boolean;
 
@@ -22,7 +31,7 @@ const recentVehiclePositionsAverageAge = new RollingAverage({
     windowSize: 2 * 60 * 1000,
 });
 
-let realtimeApiUrls: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessageV2][];
+let realtimeApiUrls: NSWSource[];
 let updateInProgress = false;
 let lastSuccessfulUpdate = 0;
 
@@ -39,6 +48,18 @@ export async function getStatus(): Promise<JSONSerializable> {
     };
 }
 
+const memoGetDirectionIdByTripId = timedMemo((tripId: string) => {
+    try {
+        return getDirectionIdByTripId(getDatabase(), tripId);
+    }
+    catch (err) {
+        if (err instanceof Error && err.message.startsWith("Could not find trip")) {
+            return null;
+        }
+        throw err;
+    }
+}, 24 * 60 * 1000);
+
 async function queryApiAndDecode(
     url: string,
     decode: (buf: Uint8Array) => FeedMessageV1 | FeedMessageV2,
@@ -53,10 +74,11 @@ async function queryApiAndDecode(
 async function processUrl(
     url: string,
     decode: (buf: Uint8Array) => FeedMessageV1 | FeedMessageV2,
+    opts: NSWSourceOpts,
 ): Promise<number> {
     try {
         const updates = await queryApiAndDecode(url, decode);
-        return sum(updates.map(u => onMessage(u) ? 1 : 0));
+        return sum(updates.map(u => onMessage(u, opts) ? 1 : 0));
     }
     catch (err) {
         if (err instanceof Error && err.message.startsWith("Got status 503")) {
@@ -84,7 +106,7 @@ export async function checkForRealtimeUpdate(): Promise<boolean> {
     updateInProgress = true;
 
     try {
-        const updated = sum(await Promise.all(realtimeApiUrls.map(([url, decode]) => processUrl(url, decode))));
+        const updated = sum(await Promise.all(realtimeApiUrls.map(args => processUrl(...args))));
         if (updated === 0) {
             return false;
         }
@@ -99,7 +121,7 @@ export async function checkForRealtimeUpdate(): Promise<boolean> {
 }
 
 export async function initialize(
-    realtimeApiUrls_: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessageV2][],
+    realtimeApiUrls_: NSWSource[],
     addTripUpdate_: (tripUpdate: TripUpdate) => boolean,
     addVehicleUpdate_: (vehicleUpdate: VehiclePosition) => boolean,
 ): Promise<void> {
@@ -111,13 +133,13 @@ export async function initialize(
 /**
  * Received a message.
  */
-function onMessage(data: FeedEntityV1 | FeedEntityV2): boolean {
-    // NOTE: AT sometimes incorrectly uses camelCase keys, string timestamps, and string enums
+function onMessage(data: FeedEntityV1 | FeedEntityV2, opts: NSWSourceOpts): boolean {
+    // NOTE: NSW sometimes provides incorrect bearing & directionIds
 
     const { id: _id, trip_update, vehicle, alert: _alert } = data;
 
     if (trip_update != null) {
-        const tu = fixTripUpdate(trip_update); // result is null if tu.trip is null.
+        const tu = fixTripUpdate(trip_update, opts); // result is null if tu.trip is null.
         if (tu == null) {
             return false;
         }
@@ -129,7 +151,7 @@ function onMessage(data: FeedEntityV1 | FeedEntityV2): boolean {
     }
 
     if (vehicle != null) {
-        const vp = fixVehiclePosition(vehicle);
+        const vp = fixVehiclePosition(vehicle, opts);
         const added = addVehicleUpdate(vp);
         if (added && vehicle.timestamp != null) {
             recentVehiclePositionsAverageAge.add(Date.now() - (vehicle.timestamp * 1000));
@@ -140,14 +162,14 @@ function onMessage(data: FeedEntityV1 | FeedEntityV2): boolean {
     return false;
 }
 
-function fixPosition(p: PositionV1 | PositionV2): Position {
+function fixPosition(p: PositionV1 | PositionV2, { hasBearing }: NSWSourceOpts): Position {
     const { bearing, latitude, longitude, odometer, speed } = p;
 
     const output: Position = {
         latitude,
         longitude,
     };
-    if (bearing != null && bearing !== 0) output.bearing = (bearing + 360) % 360;
+    if (hasBearing && bearing != null) output.bearing = (bearing + 360) % 360;
     if (odometer != null) output.odometer = odometer;
     if (speed != null) output.speed = speed;
     return output;
@@ -178,11 +200,17 @@ function fixStopTimeUpdate(stu: TripUpdate_StopTimeUpdateV1 | TripUpdate_StopTim
     return output;
 }
 
-function fixTrip(t: TripDescriptorV1 | TripDescriptorV2): TripDescriptor {
+function fixTrip(t: TripDescriptorV1 | TripDescriptorV2, { hasDirectionId }: NSWSourceOpts): TripDescriptor {
     const { direction_id, route_id, schedule_relationship, start_date, start_time, trip_id } = t;
 
     const output: TripDescriptor = {};
-    if (direction_id != null) output.direction_id = direction_id;
+    if (hasDirectionId && direction_id != null) {
+        output.direction_id = direction_id;
+    }
+    else if (trip_id != null) {
+        const result = memoGetDirectionIdByTripId(trip_id);
+        if (result != null) output.direction_id = result;
+    }
     if (route_id != null) output.route_id = route_id;
     if (schedule_relationship != null) {
         try {
@@ -196,7 +224,7 @@ function fixTrip(t: TripDescriptorV1 | TripDescriptorV2): TripDescriptor {
     return output;
 }
 
-export function fixTripUpdate(tu: TripUpdateV1 | TripUpdateV2): null | TripUpdate {
+export function fixTripUpdate(tu: TripUpdateV1 | TripUpdateV2, opts: NSWSourceOpts): null | TripUpdate {
     const { delay, stop_time_update, timestamp, trip, vehicle } = tu;
 
     if (trip == null) {
@@ -205,7 +233,7 @@ export function fixTripUpdate(tu: TripUpdateV1 | TripUpdateV2): null | TripUpdat
 
     const output: TripUpdate = {
         stop_time_update: stop_time_update.map(fixStopTimeUpdate),
-        trip: fixTrip(trip),
+        trip: fixTrip(trip, opts),
     };
     if (delay != null) output.delay = delay;
     if (timestamp != null) output.timestamp = timestamp;
@@ -223,7 +251,10 @@ function fixVehicleDescriptor(vd: VehicleDescriptorV1 | VehicleDescriptorV2): Ve
     return output;
 }
 
-export function fixVehiclePosition(vp: VehiclePositionV1 | VehiclePositionV2): VehiclePosition {
+export function fixVehiclePosition(
+    vp: VehiclePositionV1 | VehiclePositionV2,
+    opts: NSWSourceOpts,
+): VehiclePosition {
     const {
         congestion_level,
         current_status,
@@ -241,10 +272,10 @@ export function fixVehiclePosition(vp: VehiclePositionV1 | VehiclePositionV2): V
     if (current_status != null) output.current_status = parseEnum(VehicleStopStatus, current_status);
     if (current_stop_sequence != null) output.current_stop_sequence = current_stop_sequence;
     if (occupancy_status != null) output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
-    if (position != null) output.position = fixPosition(position);
+    if (position != null) output.position = fixPosition(position, opts);
     if (stop_id != null) output.stop_id = stop_id;
     if (timestamp != null) output.timestamp = timestamp;
-    if (trip != null) output.trip = fixTrip(trip);
+    if (trip != null) output.trip = fixTrip(trip, opts);
     if (vehicle != null) output.vehicle = fixVehicleDescriptor(vehicle);
     return output;
 }

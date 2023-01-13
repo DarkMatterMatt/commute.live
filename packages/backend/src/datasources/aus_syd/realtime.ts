@@ -1,9 +1,7 @@
 import { type Id, type JSONSerializable, TimedMap } from "@commutelive/common";
 import { getLogger } from "~/log.js";
 import type { SqlDatabase, TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
-import type { FeedMessage as FeedMessageV1 } from "./gtfs-realtime.proto.js";
-import type { FeedMessage as FeedMessageV2 } from "./gtfs-realtime_v2.proto.js";
-import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling } from "./realtime_polling.js";
+import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling, type NSWSource } from "./realtime_polling.js";
 import { getRouteIds, getTripIds } from "./static_queries.js";
 
 const MINUTE = 60 * 1000;
@@ -182,7 +180,7 @@ export function registerVehicleUpdateListener(listener: VehicleUpdateListener): 
 
 export async function initializeRealtime(
     _cacheDir: string,
-    realtimeApiUrls: [string, (buf: Uint8Array) => FeedMessageV1 | FeedMessageV2][],
+    realtimeApiUrls: NSWSource[],
 ) {
     await initializePolling(realtimeApiUrls, addTripUpdate, addVehicleUpdate);
 }
