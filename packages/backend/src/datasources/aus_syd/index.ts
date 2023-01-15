@@ -1,34 +1,22 @@
 import type { DataSource } from "~/types";
-import { FeedMessage as FeedMessageV1 } from "./gtfs-realtime.proto.js";
-import { FeedMessage as FeedMessageV2 } from "./gtfs-realtime_v2.proto.js";
 import { makeId, regionCode } from "./id.js";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
-import type { NSWSource, NSWSourceOpts } from "./realtime_polling.js";
+import type { NSWSource } from "./realtime_polling.js";
+import { buses, ferries_sydneyferries, lightrail_cbdandsoutheast, lightrail_innerwest, lightrail_newcastle, metro, nswtrains, sydneytrains } from "./sources/";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
 import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries.js";
 
-const BASE_URL = "https://api.transport.nsw.gov.au";
-const GTFS_URL = `${BASE_URL}/v1/publictransport/timetables/complete/gtfs`;
-
-const decodeV1 = FeedMessageV1.decode;
-const decodeV2 = FeedMessageV2.decode;
-
-function makeOpts(hasBearing: boolean, hasDirectionId: boolean): NSWSourceOpts {
-    return {
-        hasBearing,
-        hasDirectionId,
-    };
-}
+const GTFS_URL = "https://api.transport.nsw.gov.au/v1/publictransport/timetables/complete/gtfs";
 
 const REALTIME_API_URLS: NSWSource[] = [
-    [`${BASE_URL}/v1/gtfs/vehiclepos/buses`, decodeV1, makeOpts(true, false)],
-    [`${BASE_URL}/v1/gtfs/vehiclepos/ferries/sydneyferries`, decodeV1, makeOpts(true, false)],
-    [`${BASE_URL}/v1/gtfs/vehiclepos/lightrail/innerwest`, decodeV1, makeOpts(true, false)],
-    [`${BASE_URL}/v1/gtfs/vehiclepos/lightrail/newcastle`, decodeV1, makeOpts(true, false)],
-    [`${BASE_URL}/v1/gtfs/vehiclepos/lightrail/cbdandsoutheast`, decodeV1, makeOpts(true, true)],
-    [`${BASE_URL}/v1/gtfs/vehiclepos/nswtrains`, decodeV1, makeOpts(true, false)],
-    [`${BASE_URL}/v1/gtfs/vehiclepos/metro`, decodeV1, makeOpts(true, false)],
-    [`${BASE_URL}/v2/gtfs/vehiclepos/sydneytrains`, decodeV2, makeOpts(false, false)],
+    buses,
+    ferries_sydneyferries,
+    lightrail_cbdandsoutheast,
+    lightrail_innerwest,
+    lightrail_newcastle,
+    metro,
+    nswtrains,
+    sydneytrains,
 ];
 
 export const AUS_SYD: DataSource = {
