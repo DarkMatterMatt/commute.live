@@ -187,9 +187,9 @@ class Render {
         return (red * 0.299) + (green * 0.587) + (blue * 0.114) <= 186;
     }
 
-    public static getNewColor(existingRoutes: { color: string }[]): string {
+    public static getNewColor(existingColors: string[]): string {
         // return the first SUGGESTED_COLOR that hasn't already been used
-        return SUGGESTED_COLORS.find(c => !existingRoutes.find(r => r.color === c)) || SUGGESTED_COLORS[0];
+        return SUGGESTED_COLORS.find(c => !existingColors.includes(c)) || SUGGESTED_COLORS[0];
     }
 
     private static toSimpleType(transitType: number): 2 | 3 | 4 {

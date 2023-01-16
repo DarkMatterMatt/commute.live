@@ -41,7 +41,7 @@ class State {
         //
     }
 
-    static getInstance(): State {
+    public static getInstance(): State {
         if (instance == null) {
             instance = new State();
         }
@@ -86,24 +86,24 @@ class State {
         };
     }
 
-    setMap(map: google.maps.Map): State {
+    public setMap(map: google.maps.Map): State {
         this.map = map;
         this.routes.forEach(r => r.setMap(map));
         return this;
     }
 
-    setMarkerView(markerView: HtmlMarkerView): State {
+    public setMarkerView(markerView: HtmlMarkerView): State {
         this.markerView = markerView;
         this.routes.forEach(r => r.setMarkerView(markerView));
         return this;
     }
 
-    setActiveRegionsElem($new: HTMLElement): State {
+    public setActiveRegionsElem($new: HTMLElement): State {
         render.setActiveRegionsElem($new);
         return this;
     }
 
-    setActiveRegionAttributionsElem($new: HTMLElement): State {
+    public setActiveRegionAttributionsElem($new: HTMLElement): State {
         render.setActiveRegionAttributionsElem($new);
         return this;
     }
@@ -147,7 +147,7 @@ class State {
         }
     }
 
-    async loadRoutes(): Promise<void> {
+    public async loadRoutes(): Promise<void> {
         if (this.persistentState == null) {
             throw new Error("State is not initialized");
         }
@@ -209,7 +209,7 @@ class State {
             if (active) {
                 const $activeRoute = Render.createActiveRoute(
                     { id, type, shortName, longName },
-                    route.color,
+                    color,
                     false,
                     this.changeRouteColor.bind(this),
                     this.deactivateRoute.bind(this, region),
@@ -220,7 +220,7 @@ class State {
         }));
     }
 
-    async getFirstVisitState(): Promise<ParsedState> {
+    private async getFirstVisitState(): Promise<ParsedState> {
         // guesstimate where the user is based on their IP address
         const [userLocation, regions] = await Promise.all([
             api.queryIpLocation(),
@@ -247,7 +247,7 @@ class State {
         };
     }
 
-    async load() {
+    public async load() {
         // trim leading # off location.hash
         const hash = window.location.hash.replace(/^#/, "");
 
@@ -277,25 +277,25 @@ class State {
         };
     }
 
-    getNewColor(): string {
-        return Render.getNewColor([...this.routes.values()]);
+    public getNewColor(): string {
+        return Render.getNewColor([...this.routes.values()].map(r => r.getColor()));
     }
 
-    getRoutesByShortName(): Map<string, Route> {
+    public getRoutesByShortName(): Map<string, Route> {
         return this.routes;
     }
 
-    isActive({ id }: SearchRoute): boolean {
+    public isActive({ id }: SearchRoute): boolean {
         const route = this.routes.get(id);
-        return route ? route.active : false;
+        return route ? route.isActive() : false;
     }
 
     /** Is the user's first visit (i.e. user has never modified the default routes & settings). */
-    isFirstVisit(): boolean {
+    public isFirstVisit(): boolean {
         return this.bIsFirstVisit;
     }
 
-    showVehicle(data: LiveVehicle): void {
+    public showVehicle(data: LiveVehicle): void {
         const route = this.routes.get(data.id);
         if (route === undefined) {
             console.log("Skipping vehicle update because the route does not exist", data);
@@ -305,10 +305,10 @@ class State {
     }
 
     private saveRoutes(): void {
-        this.save("routes", [...this.routes.values()].map(r => [r.id, r.active, r.color]));
+        this.save("routes", [...this.routes.values()].map(r => [r.id, r.isActive(), r.getColor()]));
     }
 
-    changeRouteColor(id: Id, color: string): void {
+    private changeRouteColor(id: Id, color: string): void {
         const route = this.routes.get(id);
         if (route) {
             route.setColor(color);
@@ -316,7 +316,7 @@ class State {
         this.saveRoutes();
     }
 
-    deactivateRoute(
+    private deactivateRoute(
         region: PartialRegionDataResult<"code">,
         id: Id, $activeRoute: HTMLDivElement,
     ): void {
@@ -328,7 +328,7 @@ class State {
         this.saveRoutes();
     }
 
-    async activateRoute({ region: regionCode, id, shortName, longName, type }: SearchRoute): Promise<void> {
+    public async activateRoute({ region: regionCode, id, shortName, longName, type }: SearchRoute): Promise<void> {
         const { map, markerView } = this;
         if (map == null || markerView == null) {
             throw new Error("Map or markerView is not set");
@@ -361,7 +361,7 @@ class State {
 
         const $activeRoute = Render.createActiveRoute(
             { id, shortName, longName, type },
-            route.color,
+            route.getColor(),
             showPickr,
             this.changeRouteColor.bind(this),
             this.deactivateRoute.bind(this, region),
@@ -372,7 +372,7 @@ class State {
         this.saveRoutes();
     }
 
-    async loadRouteVehicles(id: Id): Promise<void> {
+    private async loadRouteVehicles(id: Id): Promise<void> {
         const route = this.routes.get(id);
         if (route === undefined) {
             console.error(`Could not reload vehicles for route: ${id}.`);
@@ -381,7 +381,7 @@ class State {
         await route.loadVehicles();
     }
 
-    async loadActiveRoutesVehicles(): Promise<void> {
+    public async loadActiveRoutesVehicles(): Promise<void> {
         await Promise.all([...this.routes.values()]
             .filter(r => r.isActive())
             .map(r => this.loadRouteVehicles(r.id)));

@@ -38,9 +38,9 @@ class Route {
 
     private readonly type: number;
 
-    public color: string;
+    private color: string;
 
-    public active = false;
+    private active = false;
 
     public readonly id: Id;
 
@@ -374,6 +374,10 @@ class Route {
 
     public isActive(): boolean {
         return this.active;
+    }
+
+    public getColor(): string {
+        return this.color;
     }
 }
 
