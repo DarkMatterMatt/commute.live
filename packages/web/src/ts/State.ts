@@ -259,7 +259,7 @@ class State {
             data = localStorage.getItem("state");
         }
         const parsedState = State.migrate(data ? JSON.parse(data) : {});
-        this.bIsFirstVisit = parsedState != null;
+        this.bIsFirstVisit = parsedState == null;
 
         const state = parsedState == null ? await this.getFirstVisitState() : parsedState;
         this.persistentState = state;
