@@ -172,11 +172,24 @@ function nxPrintAffected(baseSha) {
         return nxPrintAffectedCache[baseSha];
     }
 
-    gitFetchSha(baseSha);
+    const result = () => {
+        console.log("Finding affected projects at commit:", baseSha);
+        const stdout = execSync(`npx nx print-affected --base=${baseSha}`);
+        return nxPrintAffectedCache[baseSha] = JSON.parse(stdout).projects;
+    }
 
-    console.log("Finding affected projects at commit:", baseSha);
-    const stdout = execSync(`npx nx print-affected --base=${baseSha}`);
-    return nxPrintAffectedCache[baseSha] = JSON.parse(stdout).projects;
+    try {
+        gitFetchSha(baseSha);
+        return result();
+    }
+    catch (err) {
+        if (err instanceof Error && (err.message.includes("No such ref") || err.message.includes("error processing shallow info: 4"))) {
+            // If the base SHA is not found, try again after unshallowing.
+            gitUnshallow();
+            return result();
+        }
+        throw err;
+    }
 }
 const nxPrintAffectedCache = {};
 
@@ -186,11 +199,19 @@ const nxPrintAffectedCache = {};
  */
 function gitFetchSha(sha) {
     console.log("Fetching since commit:", sha);
-    execSync(`git fetch --quiet origin ${sha}`);
+    execSync(`git fetch origin ${sha}`);
 
     const shaUnixTimeStr = execSync(`git show -s --format=%ct ${sha}`);
     const shallowSince = Number.parseInt(shaUnixTimeStr, 10) - 1;
-    execSync(`git fetch --quiet --update-shallow --shallow-since=${shallowSince} origin`);
+    execSync(`git fetch --update-shallow --shallow-since=${shallowSince} origin`);
+}
+
+/**
+ * Fetch all history for the given branch.
+ */
+function gitUnshallow() {
+    console.log("Unshallowing repository");
+    execSync(`git fetch --unshallow`);
 }
 
 cli();
