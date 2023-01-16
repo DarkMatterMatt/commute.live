@@ -1,12 +1,12 @@
-import { defaultProjection, type Id, type LatLng, type LiveVehicle, type PartialRegionDataResult, type RegionDataResult } from "@commutelive/common";
+import { defaultProjection, type Id, type LatLng, type LiveVehicle, type PartialRegionDataResult, type Path, type PathValue, type RegionDataResult } from "@commutelive/common";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { api } from "./Api";
 import { isEmptyObject, localStorageEnabled } from "./Helpers";
 import type HtmlMarkerView from "./HtmlMarkerView";
 import Render, { render } from "./Render";
 import Route from "./Route";
-import { settings } from "./Settings";
-import type { MarkerType, SearchRoute } from "./types";
+import { settings, type SettingsType } from "./Settings";
+import type { SearchRoute } from "./types";
 
 const STATE_VERSION = 4;
 
@@ -17,7 +17,7 @@ interface ParsedState {
     routes: [routeId: Id, active: boolean, color: string][];
 
     /** map of <settingName, value> */
-    settings: Record<string, any>;
+    settings: SettingsType;
 
     /** map settings, array of [lat, lng, zoom] */
     map: [lat: number, lng: number, zoom: number];
@@ -35,6 +35,8 @@ class State {
 
     private routes = new Map<Id, Route>();
 
+    private persistentState: ParsedState | null = null;
+
     private constructor() {
         //
     }
@@ -46,12 +48,16 @@ class State {
         return instance;
     }
 
-    static migrate(data: Record<string, any>): (ParsedState & { isFirstVisit: false }) | { isFirstVisit: true } {
+    private static migrate(data: Record<string, any>): ParsedState | null {
         const version = data.version as number;
+
+        if (version === STATE_VERSION) {
+            return data as ParsedState;
+        }
 
         // on first load, show route 25B and 70
         if (isEmptyObject(data)) {
-            return { isFirstVisit: true };
+            return null;
         }
 
         if (version < 2) {
@@ -73,7 +79,6 @@ class State {
         }
 
         return {
-            isFirstVisit: false,
             version: STATE_VERSION,
             routes: data.routes,
             settings: data.settings,
@@ -103,35 +108,55 @@ class State {
         return this;
     }
 
-    toJSON(onlyActive = false): ParsedState {
-        if (!this.map) {
-            throw new Error("Map is not set");
+    public save<K extends Path<ParsedState, false>>(key: K, val: undefined | PathValue<ParsedState, K>): void {
+        if (this.persistentState == null) {
+            throw new Error("State is not initialized");
         }
 
-        const routes = [...this.routes.values()].filter(r => !onlyActive || r.active);
-        return {
-            version: STATE_VERSION,
-            routes: routes.map(r => [r.id, r.active, r.color]),
-            settings,
-            map: [this.map.getCenter().lat(), this.map.getCenter().lng(), this.map.getZoom()],
-        };
-    }
+        // get path describing what part of the state to update
+        const path = key.split(".");
+        const last = path.pop();
+        if (last == null) {
+            throw new Error(`Invalid key: ${key}`);
+        }
 
-    save(): void {
+        // update state
+        let cursor: any = this.persistentState;
+        for (const part of path) {
+            cursor = cursor[part];
+        }
+        if (val === undefined) {
+            delete cursor[last];
+        }
+        else {
+            cursor[last] = val;
+        }
+
+        // save to local storage
         if (localStorageEnabled()) {
-            localStorage.setItem("state", JSON.stringify(this));
+            localStorage.setItem("state", JSON.stringify(this.persistentState));
             window.location.hash = "";
         }
         else {
-            window.location.hash = compressToEncodedURIComponent(JSON.stringify(this.toJSON(true)));
+            // only keep active routes
+            const state: ParsedState = {
+                ...this.persistentState,
+                routes: this.persistentState.routes.filter(r => r[1] === true),
+            };
+            window.location.hash = compressToEncodedURIComponent(JSON.stringify(state));
         }
     }
 
-    async loadRoutes(routes: ParsedState["routes"]): Promise<void> {
-        const animateMarkerPosition = settings.getBool("animateMarkerPosition");
-        const showTransitRoutes = settings.getBool("showTransitRoutes");
-        const snapToRoute = settings.getBool("snapToRoute");
-        const markerType = settings.getStr("markerType") as MarkerType;
+    async loadRoutes(): Promise<void> {
+        if (this.persistentState == null) {
+            throw new Error("State is not initialized");
+        }
+
+        const { routes } = this.persistentState;
+        const animateMarkerPosition = settings.getVal("animateMarkerPosition");
+        const showTransitRoutes = settings.getVal("showTransitRoutes");
+        const snapToRoute = settings.getVal("snapToRoute");
+        const markerType = settings.getVal("markerType");
 
         const { map, markerView } = this;
         if (map == null || markerView == null) {
@@ -233,17 +258,18 @@ class State {
         if (!data && localStorageEnabled()) {
             data = localStorage.getItem("state");
         }
-        const parsed = State.migrate(data ? JSON.parse(data) : {});
-        this.bIsFirstVisit = parsed.isFirstVisit;
+        const parsedState = State.migrate(data ? JSON.parse(data) : {});
+        this.bIsFirstVisit = parsedState != null;
 
-        const state = parsed.isFirstVisit ? await this.getFirstVisitState() : parsed;
+        const state = parsedState == null ? await this.getFirstVisitState() : parsedState;
+        this.persistentState = state;
 
         settings.import(state.settings);
-        settings.getNames().forEach(n => settings.addChangeListener(n, () => this.save(), false));
+        for (const [name, setting] of settings.getAll()) {
+            setting.addChangeListener(val => this.save(`settings.${name}`, val), false);
+        }
 
-        // return function to load routes
         return {
-            loadRoutes: () => this.loadRoutes(state.routes),
             map: {
                 center: { lat: state.map[0], lng: state.map[1] },
                 zoom: state.map[2],
@@ -278,12 +304,16 @@ class State {
         route.showVehicle(data);
     }
 
+    private saveRoutes(): void {
+        this.save("routes", [...this.routes.values()].map(r => [r.id, r.active, r.color]));
+    }
+
     changeRouteColor(id: Id, color: string): void {
         const route = this.routes.get(id);
         if (route) {
             route.setColor(color);
         }
-        this.save();
+        this.saveRoutes();
     }
 
     deactivateRoute(
@@ -295,7 +325,7 @@ class State {
             route.deactivate();
         }
         render.removeActiveRoute($activeRoute, region);
-        this.save();
+        this.saveRoutes();
     }
 
     async activateRoute({ region: regionCode, id, shortName, longName, type }: SearchRoute): Promise<void> {
@@ -308,10 +338,10 @@ class State {
         let route = this.routes.get(id);
         let showPickr = false;
         if (route === undefined) {
-            const animateMarkerPosition = settings.getBool("animateMarkerPosition");
-            const showTransitRoutes = settings.getBool("showTransitRoutes");
-            const snapToRoute = settings.getBool("snapToRoute");
-            const markerType = settings.getStr("markerType") as MarkerType;
+            const animateMarkerPosition = settings.getVal("animateMarkerPosition");
+            const showTransitRoutes = settings.getVal("showTransitRoutes");
+            const snapToRoute = settings.getVal("snapToRoute");
+            const markerType = settings.getVal("markerType");
             showPickr = true;
             route = new Route({
                 id,
@@ -339,7 +369,7 @@ class State {
         render.addActiveRoute($activeRoute, region);
 
         await route.activate();
-        this.save();
+        this.saveRoutes();
     }
 
     async loadRouteVehicles(id: Id): Promise<void> {

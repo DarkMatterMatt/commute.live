@@ -1,5 +1,7 @@
+import type { RegionCode } from "@commutelive/common";
 import { api } from "./Api";
-import { BooleanSetting, NumberSetting, type Setting, StringSetting } from "./Setting";
+import { BooleanSetting, StringSetting } from "./Setting";
+import type { MarkerType } from "./types";
 
 function getInput(id: string): HTMLInputElement {
     return document.getElementById(id) as HTMLInputElement;
@@ -8,7 +10,7 @@ function getInput(id: string): HTMLInputElement {
 const $currentRegion = getInput("s-current-region");
 
 const SETTINGS = [
-    new StringSetting("currentRegion", $currentRegion),
+    new StringSetting<"currentRegion", "SMART" | RegionCode>("currentRegion", $currentRegion),
     new BooleanSetting("darkMode", getInput("sw-dark-mode")),
     new BooleanSetting("hideAbout", getInput("sw-hide-about")),
     new BooleanSetting("showMenuToggle", getInput("sw-show-menu-toggle")),
@@ -18,26 +20,34 @@ const SETTINGS = [
     new BooleanSetting("animateMarkerPosition", getInput("sw-animate-marker-position")),
     new BooleanSetting("snapToRoute", getInput("sw-snap-to-route")),
     new BooleanSetting("showTransitRoutes", getInput("sw-show-transit-routes")),
-    new StringSetting("markerType", getInput("s-marker-type")),
-];
+    new StringSetting<"markerType", MarkerType>("markerType", getInput("s-marker-type")),
+] as const;
+
+type SettingsUnion = typeof SETTINGS[number];
+
+type SettingNames = SettingsUnion["name"];
+
+type SettingByName<Name> = Extract<SettingsUnion, { name: Name }>;
+
+export type SettingsType = { [Name in SettingNames]?: SettingByName<Name>["value"] };
 
 let instance: Settings | null = null;
 
-class Settings {
-    private settings = new Map<string, Setting>();
+export class Settings {
+    private settings = new Map(SETTINGS.map(s => [s.name, s]));
 
     private constructor() {
-        SETTINGS.forEach(s => this.settings.set(s.name, s));
+        //
     }
 
-    static getInstance(): Settings {
+    public static getInstance(): Settings {
         if (instance == null) {
             instance = new Settings();
         }
         return instance;
     }
 
-    async init() {
+    public async init() {
         // load regions from API
         const regions = await api.queryRegions();
         for (const region of regions) {
@@ -48,98 +58,36 @@ class Settings {
         }
     }
 
-    import(newSettings: Record<string, any>): void {
+    public import(newSettings: SettingsType): void {
         Object.entries(newSettings).forEach(([k, v]) => {
-            const s = this.settings.get(k);
-            if (s != null) {
-                s.value = v;
+            const s = this.settings.get(k as SettingNames);
+            if (s == null) {
+                console.warn(`Could not find setting with name: ${k}`);
+                return;
             }
+            s.value = v;
         });
     }
 
-    toJSON(): Record<string, any> {
-        return Object.fromEntries(
-            [...this.settings.values()]
-                .filter(s => s.value !== s.defaultValue)
-                .map(s => [s.name, s.value]),
-        );
+    public getVal<N extends SettingNames, S extends SettingByName<N>>(name: N): S["value"] {
+        return this.getSetting(name).value;
     }
 
-    getBool(name: string): boolean {
-        const setting = this.settings.get(name);
-        if (!(setting instanceof BooleanSetting)) {
-            throw Error(`Cannot call getBool on a setting of type ${setting?.constructor?.name}`);
-        }
-        return setting && setting.value;
+    public setVal<N extends SettingNames, S extends SettingByName<N>>(name: N, val: S["value"]): void {
+        this.getSetting(name).value = val;
     }
 
-    getStr(name: string): string {
-        const setting = this.settings.get(name);
-        if (!(setting instanceof StringSetting)) {
-            throw Error(`Cannot call getStr on a setting of type ${setting?.constructor?.name}`);
-        }
-        return setting && setting.value;
-    }
-
-    getNum(name: string): number {
-        const setting = this.settings.get(name);
-        if (!(setting instanceof NumberSetting)) {
-            throw Error(`Cannot call getNum on a setting of type ${setting?.constructor?.name}`);
-        }
-        return setting && setting.value;
-    }
-
-    setBool(name: string, val: boolean): void {
-        const setting = this.settings.get(name);
-        if (!(setting instanceof BooleanSetting)) {
-            throw Error(`Cannot call setBool on a setting of type ${setting?.constructor?.name}`);
-        }
-        setting.value = val;
-    }
-
-    setStr(name: string, val: string): void {
-        const setting = this.settings.get(name);
-        if (!(setting instanceof StringSetting)) {
-            throw Error(`Cannot call setStr on a setting of type ${setting?.constructor?.name}`);
-        }
-        setting.value = val;
-    }
-
-    setNum(name: string, val: number): void {
-        const setting = this.settings.get(name);
-        if (!(setting instanceof NumberSetting)) {
-            throw Error(`Cannot call setNum on a setting of type ${setting?.constructor?.name}`);
-        }
-        setting.value = val;
-    }
-
-    getSetting(name: string): Setting {
-        const result = this.settings.get(name);
+    public getSetting<N extends SettingNames, S extends SettingByName<N>>(name: N): S {
+        const result = this.settings.get(name) as S;
         if (result == null) {
-            throw Error(`No setting with name ${name}`);
+            throw Error(`Could not find setting with name: ${name}`);
         }
         return result;
     }
 
-    getNames(): string[] {
-        return [...this.settings.keys()];
-    }
-
-    addChangeListener(name: string, l: (value: any, name: string) => void, triggerNow = true): void {
-        const setting = this.settings.get(name);
-        if (setting != null) {
-            setting.addChangeListener(l, triggerNow);
-        }
-    }
-
-    removeChangeListener(name: string, l: (value: any, name: string) => void): void {
-        const setting = this.settings.get(name);
-        if (setting != null) {
-            setting.removeChangeListener(l);
-        }
+    public getAll() {
+        return new Map(this.settings);
     }
 }
-
-export default Settings;
 
 export const settings = Settings.getInstance();

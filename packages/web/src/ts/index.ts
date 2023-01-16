@@ -122,8 +122,8 @@ function setClass($elem: HTMLElement, name: string, enabled: boolean) {
 function onGeolocationError(err: GeolocationPositionError) {
     if (err.code === err.PERMISSION_DENIED) {
         // disable settings that require the location
-        settings.setBool("showLocation", false);
-        settings.setBool("centerOnLocation", false);
+        settings.setVal("showLocation", false);
+        settings.setVal("centerOnLocation", false);
 
         showError("You've denied access to your location, so I can't enable this setting.", "Ok");
     }
@@ -175,9 +175,9 @@ function onGeolocationError(err: GeolocationPositionError) {
 
     await settings.init();
 
-    const { loadRoutes, map: { center, zoom } } = await state.load();
+    const { map: { center, zoom } } = await state.load();
 
-    settings.addChangeListener("darkMode", v => setClass(document.body, "theme-dark", v));
+    settings.getSetting("darkMode").addChangeListener(v => setClass(document.body, "theme-dark", v));
     if (!largeScreen()) {
         showNav();
     }
@@ -192,7 +192,7 @@ function onGeolocationError(err: GeolocationPositionError) {
         streetViewControl: false,
         mapTypeControl: false,
         fullscreenControl: false,
-        backgroundColor: settings.getBool("darkMode") ? "#17263c" : undefined,
+        backgroundColor: settings.getVal("darkMode") ? "#17263c" : undefined,
     });
     state.setMap(map);
     state.setActiveRegionsElem($activeRoutes);
@@ -207,13 +207,13 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Add settings event listeners
      */
 
-    map.addListener("idle", () => state.save());
+    map.addListener("idle", () => state.save("map", [map.getCenter().lat(), map.getCenter().lng(), map.getZoom()]));
 
-    settings.addChangeListener("currentRegion", async s => {
+    settings.getSetting("currentRegion").addChangeListener(async s => {
         search.setRegion(s);
     });
 
-    settings.addChangeListener("currentRegion", async s => {
+    settings.getSetting("currentRegion").addChangeListener(async s => {
         // when the region manually changes, pan to the new region
         if (s !== "SMART") {
             const region = await api.queryRegion(s);
@@ -221,13 +221,15 @@ function onGeolocationError(err: GeolocationPositionError) {
         }
     }, false);
 
-    settings.addChangeListener("hideAbout", v => setClass($navAbout, "hide", v));
-    settings.addChangeListener("showMenuToggle", v => setClass($navShow, "hide-0-899", !v));
+    settings.getSetting("hideAbout").addChangeListener(v => setClass($navAbout, "hide", v));
+    settings.getSetting("showMenuToggle").addChangeListener(v => setClass($navShow, "hide-0-899", !v));
 
-    settings.addChangeListener("darkMode", v => map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light }));
-    settings.addChangeListener("showZoom", b => map.setOptions({ zoomControl: b }));
+    settings.getSetting("darkMode").addChangeListener(v => {
+        map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light });
+    });
+    settings.getSetting("showZoom").addChangeListener(b => map.setOptions({ zoomControl: b }));
 
-    settings.addChangeListener("centerOnLocation", centerOnLocation => {
+    settings.getSetting("centerOnLocation").addChangeListener(centerOnLocation => {
         if (centerOnLocation) {
             navigator.geolocation.getCurrentPosition(
                 pos => map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -238,7 +240,7 @@ function onGeolocationError(err: GeolocationPositionError) {
     });
 
     let geoWatch: number | null = null;
-    settings.addChangeListener("showLocation", showLocation => {
+    settings.getSetting("showLocation").addChangeListener(showLocation => {
         if (showLocation) {
             geoWatch = navigator.geolocation.watchPosition(
                 pos => render.showLocation(map, pos.coords),
@@ -254,19 +256,19 @@ function onGeolocationError(err: GeolocationPositionError) {
         }
     });
 
-    settings.addChangeListener("animateMarkerPosition", b => {
+    settings.getSetting("animateMarkerPosition").addChangeListener(b => {
         state.getRoutesByShortName().forEach(r => r.setAnimatePosition(b));
     });
 
-    settings.addChangeListener("snapToRoute", b => {
+    settings.getSetting("snapToRoute").addChangeListener(b => {
         state.getRoutesByShortName().forEach(r => r.setSnapToRoute(b));
     });
 
-    settings.addChangeListener("markerType", s => {
+    settings.getSetting("markerType").addChangeListener(s => {
         state.getRoutesByShortName().forEach(r => r.setMarkerIconType(s));
     });
 
-    settings.addChangeListener("showTransitRoutes", b => {
+    settings.getSetting("showTransitRoutes").addChangeListener(b => {
         state.getRoutesByShortName().forEach(r => r.setShowTransitRoutes(b));
     });
 
@@ -331,7 +333,7 @@ function onGeolocationError(err: GeolocationPositionError) {
 
     await Promise.all([
         api.wsConnect(),
-        loadRoutes(),
+        state.loadRoutes(),
     ]);
 
     // listen for messages

@@ -1,27 +1,17 @@
-/* eslint-disable max-classes-per-file */
+export abstract class Setting<Name extends string, V> {
+    private changeListeners: ((value: V, name: Name) => void)[] = [];
 
-export abstract class Setting {
-    private changeListeners: ((value: any, name: string) => void)[] = [];
+    public abstract readonly defaultValue: V;
 
-    protected $elem: HTMLInputElement;
-
-    name: string;
-
-    defaultValue: any;
-
-    constructor(name: string, $elem: HTMLInputElement) {
-        this.name = name;
-        this.$elem = $elem;
-
+    public constructor(public readonly name: Name, protected readonly $elem: HTMLInputElement) {
         this.$elem.addEventListener("change", () => this.triggerChange());
     }
 
-    abstract get value(): any;
+    public abstract get value(): V;
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    abstract set value(x: any);
+    public abstract set value(x: V);
 
-    addChangeListener(l: (value: any, name: string) => void, triggerNow = true): void {
+    public addChangeListener(l: (value: V, name: Name) => void, triggerNow = true): void {
         this.changeListeners.push(l);
 
         if (triggerNow) {
@@ -30,81 +20,57 @@ export abstract class Setting {
         }
     }
 
-    removeChangeListener(l: (value: any, name: string) => void): void {
+    public removeChangeListener(l: (value: V, name: Name) => void): void {
         this.changeListeners = this.changeListeners.filter(x => x !== l);
     }
 
-    triggerChange(): void {
+    protected triggerChange(): void {
         this.changeListeners.forEach(l => l(this.value, this.name));
     }
 }
 
-export class BooleanSetting extends Setting {
-    defaultValue = this.value;
+export class BooleanSetting<Name extends string, V extends boolean> extends Setting<Name, V> {
+    public readonly defaultValue = this.value;
 
-    get value(): boolean {
-        return this.$elem.checked;
+    public get value() {
+        return this.$elem.checked as V;
     }
 
-    set value(x: boolean) {
+    public set value(x) {
         if (this.value !== x) {
             this.$elem.checked = x;
             this.triggerChange();
         }
     }
-
-    addChangeListener(l: (value: boolean, name: string) => void, triggerNow = true): void {
-        super.addChangeListener(l, triggerNow);
-    }
-
-    removeChangeListener(l: (value: boolean, name: string) => void): void {
-        super.removeChangeListener(l);
-    }
 }
 
-export class StringSetting extends Setting {
-    defaultValue = this.value;
+export class StringSetting<Name extends string, V extends string> extends Setting<Name, V> {
+    public readonly defaultValue = this.value;
 
-    get value(): string {
-        return this.$elem.value;
+    public get value() {
+        return this.$elem.value as V;
     }
 
-    set value(x: string) {
+    public set value(x) {
         if (this.value !== x) {
             this.$elem.value = x;
             this.triggerChange();
         }
     }
-
-    addChangeListener(l: (value: string, name: string) => void, triggerNow = true): void {
-        super.addChangeListener(l, triggerNow);
-    }
-
-    removeChangeListener(l: (value: string, name: string) => void): void {
-        super.removeChangeListener(l);
-    }
 }
 
-export class NumberSetting extends Setting {
-    defaultValue = this.value;
+export class NumberSetting<Name extends string, V extends number> extends Setting<Name, V> {
+    public readonly defaultValue = this.value;
 
-    get value(): number {
-        return Number.parseFloat(this.$elem.value);
+    public get value() {
+        return Number.parseFloat(this.$elem.value) as V;
     }
 
-    set value(x: number) {
+    public set value(x) {
         const s = x.toString();
         if (this.$elem.value !== s) {
             this.$elem.value = s;
             this.triggerChange();
         }
-    }
-
-    addChangeListener(l: (value: number, name: string) => void, triggerNow = true): void {
-        super.addChangeListener(l, triggerNow);
-    }
-
-    removeChangeListener(l: (value: number, name: string) => void): void {
-        super.removeChangeListener(l);
     }
 }
