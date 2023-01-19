@@ -18,6 +18,7 @@ This monorepo consists of:
 Commute.live is grateful for the data and services provided by the following organisations:
 
 - VCS & CI/CD powered by [GitHub](https://github.com/)
+- Cross-platform browser testing powered by [BrowserStack](https://www.browserstack.com/)
 - Transit information from [Transport for NSW](https://opendata.transport.nsw.gov.au/) / [CC BY](https://creativecommons.org/licenses/by/4.0/)
 - Transit information from [Auckland Transport](https://at.govt.nz/about-us/at-data-sources/) / [CC BY](https://creativecommons.org/licenses/by/4.0/)
 - IP geolocation by [DB-IP](https://db-ip.com) / [CC BY](https://creativecommons.org/licenses/by/4.0/)
