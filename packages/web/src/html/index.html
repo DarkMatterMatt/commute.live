@@ -22,7 +22,16 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     <link rel="canonical" href="<%= process.env.PWA_BASE_URL %>" />
     <link rel="preconnect" href="https://<%= process.env.API_URL.split('/')[2] %>">
-    <script defer src="https://maps.googleapis.com/maps/api/js?key=<%= process.env.GMAPS_KEY %>"></script>
+    <script>
+        // Callback for the Google Maps API.
+        window.gmapsLoaded = new Promise(function (resolve) {
+            window.gmapsLoadedResolve = function () {
+                resolve(google != null);
+                delete window.gmapsLoadedResolve;
+            };
+        });
+    </script>
+    <script defer src="https://maps.googleapis.com/maps/api/js?callback=gmapsLoadedResolve&key=<%= process.env.GMAPS_KEY %>"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GTAG_ID %>"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date);gtag("config","<%= process.env.GTAG_ID %>")</script>
     <%= htmlWebpackPlugin.tags.headTags %>

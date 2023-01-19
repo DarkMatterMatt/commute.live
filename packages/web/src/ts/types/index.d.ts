@@ -12,3 +12,9 @@ interface SearchRoute {
     longNameLower: string;
     longNameWords: string[];
 }
+
+declare global {
+    interface Window {
+        gmapsLoaded: Promise<boolean>;
+    }
+}

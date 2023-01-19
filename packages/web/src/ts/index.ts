@@ -155,7 +155,7 @@ function onGeolocationError(err: GeolocationPositionError) {
     }
 
     // google failed to load
-    if (google == null) {
+    if (!await window.gmapsLoaded) {
         showError("Google Maps failed to load, retrying in 5 seconds...");
         await sleep(5000);
         window.location.reload();
