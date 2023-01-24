@@ -28,7 +28,9 @@ export const regionsRoute = new GetRouteGenerator({
             }
         }
         const fields = rawFields as ValidField[];
-        const regionsToFetch = params.regions ? (params.regions.split(",") as RegionCode[]) : regions.map(r => r.code);
+        const regionsToFetch = params.regions
+            ? (params.regions.split(",") as RegionCode[])
+            : regions.filter(r => !r.hidden).map(r => r.code);
 
         const results: Partial<RegionDataResult>[] = [];
         const unknown: RegionCode[] = [];

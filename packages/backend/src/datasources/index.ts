@@ -4,11 +4,13 @@ import type { Id, JSONSerializable, Primitive, PromiseOr, RegionCode } from "@co
 import { getLogger } from "~/log";
 import type { DataSource } from "~/types";
 import { AUS_SYD } from "./aus_syd/";
+import { DEMO_NZL_AKL } from "./demo_nzl_akl/";
 import { NZL_AKL } from "./nzl_akl/";
 
 const log = getLogger("datasources");
 
 export const regions = new Map([
+    DEMO_NZL_AKL,
     AUS_SYD,
     NZL_AKL,
 ].map(r => [r.code.toLowerCase(), r]));

@@ -18,6 +18,12 @@ export interface RouteSummary {
  */
 export interface DataSource {
     /**
+     * Hidden from frontend (unless specified, these regions are not returned from the GET /regions
+     * endpoint). Used for fake/demo data sources.
+     */
+    readonly hidden?: true;
+
+    /**
      * Globally unique region code.
      *
      * Format is COUNTRY_REGION. COUNTRY is an ISO 3166-1 alpha-3 code; REGION is a string.
@@ -47,12 +53,12 @@ export interface DataSource {
     /**
      * Default map zoom level when centered on this data source.
      */
-    defaultZoom: number;
+    readonly defaultZoom: number;
 
     /**
      * Default routes to show to new users.
      */
-    defaultRouteIds: Id[];
+    readonly defaultRouteIds: Id[];
 
     /**
      * Returns true if an update was processed. Should be called regularly.
