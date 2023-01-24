@@ -6,7 +6,7 @@ import { createPromise, type LiveVehicle, sleep } from "@commutelive/common";
 import { api } from "./Api";
 import { largeScreen } from "./Helpers";
 import HtmlMarkerView from "./HtmlMarkerView";
-import mapThemes from "./mapThemes";
+import { getTheme } from "./mapThemes";
 import { render } from "./Render";
 import Search from "./Search";
 import { settings } from "./Settings";
@@ -135,7 +135,6 @@ function onGeolocationError(err: GeolocationPositionError) {
     if (process.env.NODE_ENV === "development") {
         Object.assign(window, {
             api,
-            mapThemes,
             settings,
             state,
         });
@@ -225,8 +224,12 @@ function onGeolocationError(err: GeolocationPositionError) {
     settings.getSetting("showMenuToggle").addChangeListener(v => setClass($navShow, "hide-0-899", !v));
 
     settings.getSetting("darkMode").addChangeListener(v => {
-        map.setOptions({ styles: v ? mapThemes.dark : mapThemes.light });
+        map.setOptions({ styles: getTheme(v, settings.getVal("simpleMapFeatures")) });
     });
+    settings.getSetting("simpleMapFeatures").addChangeListener(v => {
+        map.setOptions({ styles: getTheme(settings.getVal("darkMode"), v) });
+    });
+
     settings.getSetting("showZoom").addChangeListener(b => map.setOptions({ zoomControl: b }));
 
     settings.getSetting("centerOnLocation").addChangeListener(centerOnLocation => {

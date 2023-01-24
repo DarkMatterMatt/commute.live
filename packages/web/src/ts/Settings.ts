@@ -12,6 +12,7 @@ const $currentRegion = getInput("s-current-region");
 const SETTINGS = [
     new StringSetting<"currentRegion", "SMART" | RegionCode>("currentRegion", $currentRegion),
     new BooleanSetting("darkMode", getInput("sw-dark-mode")),
+    new BooleanSetting("simpleMapFeatures", getInput("sw-simple-map-features")),
     new BooleanSetting("hideAbout", getInput("sw-hide-about")),
     new BooleanSetting("showMenuToggle", getInput("sw-show-menu-toggle")),
     new BooleanSetting("showLocation", getInput("sw-show-location")),
