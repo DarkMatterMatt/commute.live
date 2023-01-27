@@ -8,6 +8,7 @@ const file = makeValidator(x => (accessSync(x, constants.R_OK), x));
 dotenv.config();
 
 const env = cleanEnv(process.env, {
+    ENABLED_REGIONS: makeValidator(x => x ? x.split(",") : "all")({ default: "all" }),
     AUCKLAND_TRANSPORT_KEY: str(),
     NSW_KEY: str(),
     CACHE_DIR: dir({ default: "cache" }),

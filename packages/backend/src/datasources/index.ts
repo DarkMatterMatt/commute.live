@@ -9,13 +9,16 @@ import { NZL_AKL } from "./nzl_akl/";
 
 const log = getLogger("datasources");
 
-export const regions = new Map([
+export const ALL_REGIONS = new Map([
     DEMO_NZL_AKL,
     AUS_SYD,
     NZL_AKL,
 ].map(r => [r.code.toLowerCase(), r]));
 
-export const availableRegions = [...regions.keys()] as RegionCode[];
+/**
+ * Active regions are those that are enabled in the environment.
+ */
+export const regions = new Map<RegionCode, DataSource>();
 
 export async function mapRegions<T>(
     callbackfn: (value: DataSource) => PromiseOr<T>,
@@ -45,7 +48,7 @@ export async function mapRegionsSync<T>(
 }
 
 export function getRegion(region: RegionCode | string) {
-    return regions.get(region.toLowerCase()) ?? null;
+    return regions.get(region.toLowerCase() as RegionCode) ?? null;
 }
 
 export function getMQTTForVehicleUpdates(id: Id) {
@@ -78,7 +81,26 @@ export function parseRegionalId(regionOrId: Id | RegionCode, id?: Id): [RegionCo
     return idComponents;
 }
 
-export async function initialize(cacheDir: string): Promise<void> {
+export async function initialize(cacheDir: string, selectRegions: "all" | string[]): Promise<void> {
+    // select the regions to initialize
+    const lowercaseSelectRegions = selectRegions === "all" ? "all" : selectRegions.map(r => r.toLowerCase());
+    if (lowercaseSelectRegions === "all") {
+        log.info("Initializing default regions.");
+        for (const [regionCode, region] of ALL_REGIONS) {
+            regions.set(regionCode as RegionCode, region);
+        }
+    }
+    else {
+        log.info("Initializing selected regions:", lowercaseSelectRegions);
+        for (const r of lowercaseSelectRegions) {
+            const region = ALL_REGIONS.get(r);
+            if (region == null) {
+                throw new Error(`Unknown region ${r}`);
+            }
+            regions.set(r as RegionCode, region);
+        }
+    }
+
     // initialize each region
     const results = await mapRegions(async r => {
         const regionCache = path.join(cacheDir, r.code.toLowerCase());

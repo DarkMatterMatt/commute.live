@@ -3,7 +3,7 @@ import { clearInterval, setInterval } from "node:timers";
 import { type Id, TimedMap } from "@commutelive/common";
 import fetch from "node-fetch";
 import Graceful from "node-graceful";
-import { availableRegions, checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize as initializeRegions, mapRegionsSync, regions } from "~/datasources/";
+import { checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize as initializeRegions, mapRegionsSync, regions } from "~/datasources/";
 import env from "~/env.js";
 import { getLogger } from "~/log.js";
 import { publishTripUpdate, publishVehiclePosition, startServer } from "~/server/";
@@ -69,7 +69,7 @@ async function getIdForTrip(
 (async () => {
     log.info("Initializing regions.");
     const cacheDir = env.CACHE_DIR;
-    await initializeRegions(join(cacheDir, "regions"));
+    await initializeRegions(join(cacheDir, "regions"), env.ENABLED_REGIONS);
 
     log.info("Looking for static updates.");
     await checkForStaticUpdates();
@@ -84,7 +84,7 @@ async function getIdForTrip(
     log.info("Starting web server.");
     const regionsList = [...regions.values()];
     await startServer({
-        availableRegions,
+        availableRegions: [...regions.keys()],
         getRegion,
         regions: regionsList,
         initializeWebSocketRouteOpts: {
