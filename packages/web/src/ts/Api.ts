@@ -104,7 +104,6 @@ class Api {
     public async queryRegions(regionCodes?: RegionCode[]): Promise<RegionsDataResult> {
         const response = await this.query<{
             regions: RegionsDataResult;
-            unknown?: RegionCode[];
         }>("regions", {
             fields: "", // all fields
             regions: "", // all regions
@@ -115,10 +114,25 @@ class Api {
         }
 
         const result = response.regions.filter(r => regionCodes.includes(r.code));
-        if (result.length !== regionCodes.length) {
-            console.warn("Some regions were not found", regionCodes.filter(c => !result.some(r => r.code === c)));
+        if (result.length === regionCodes.length) {
+            return result;
         }
-        return result;
+
+        // try to fetch the missing regions (usually hidden regions, or might be old region codes)
+        const missingRegions = regionCodes.filter(c => !result.some(r => r.code === c));
+        const newResponse = await this.query<{
+            regions: RegionsDataResult;
+            unknown: RegionCode[];
+        }>("regions", {
+            fields: "", // all fields
+            regions: missingRegions.join(","),
+        });
+
+        if (newResponse.unknown.length > 0) {
+            console.warn("Some regions were not found", newResponse.unknown);
+        }
+
+        return [...result, ...newResponse.regions];
     }
 
     public async listRoutes(region: RegionCode): Promise<ListRoutesResult> {

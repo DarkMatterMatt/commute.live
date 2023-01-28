@@ -164,13 +164,11 @@ class State {
         }
 
         const activeAndColorMap = new Map(routes.map(([id, active, color]) => [id, [active, color] as const]));
-        const [regions, foundRoutes] = await Promise.all([
-            api.queryRegions(),
-            api.queryRoutes(
-                routes.map(r => r[0]),
-                ["region", "id", "shortName", "longNames", "type"],
-            ),
-        ]);
+        const foundRoutes = await api.queryRoutes(
+            routes.map(r => r[0]),
+            ["region", "id", "shortName", "longNames", "type"],
+        );
+        const regions = await api.queryRegions(foundRoutes.map(r => r.region));
         const regionsMap = new Map(regions.map(r => [r.code, r]));
 
         await Promise.all(foundRoutes.map(async ({ region: regionCode, id, shortName, longNames, type }) => {
