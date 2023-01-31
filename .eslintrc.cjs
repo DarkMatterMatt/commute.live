@@ -40,12 +40,15 @@ module.exports = {
         "@typescript-eslint/camelcase": "off",
         "comma-dangle": "off",
         "@typescript-eslint/comma-dangle": ["warn", "always-multiline"],
+        "comma-spacing": "off",
+        "@typescript-eslint/comma-spacing": "warn",
         "@typescript-eslint/consistent-type-exports": ["warn"],
         "@typescript-eslint/consistent-type-imports": ["warn"],
         "eqeqeq": ["error", "smart"],
         "@typescript-eslint/indent": ["warn", 4, {
             SwitchCase: 1,
         }],
+        "key-spacing": "warn",
         "keyword-spacing": "warn",
         "max-len": ["warn", {
             code: 120,

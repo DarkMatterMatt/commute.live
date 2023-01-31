@@ -67,7 +67,7 @@ export async function startServer({
         message: (ws, message) => {
             if (!message.byteLength) {
                 ws.send(JSON.stringify({
-                    status:  "error",
+                    status: "error",
                     message: "No data received. Expected data in a JSON format.",
                 }));
                 return;
@@ -81,7 +81,7 @@ export async function startServer({
             }
             catch {
                 ws.send(JSON.stringify({
-                    status:  "error",
+                    status: "error",
                     message: "Invalid JSON data received.",
                 }));
                 return;
@@ -93,7 +93,7 @@ export async function startServer({
 
             if (typeof routeName !== "string" || routeName === "") {
                 ws.send(JSON.stringify({
-                    status:  "error",
+                    status: "error",
                     message: "Missing required field: route.",
                 }));
                 return;
@@ -101,7 +101,7 @@ export async function startServer({
 
             if (typeof seq !== "number") {
                 ws.send(JSON.stringify({
-                    status:  "error",
+                    status: "error",
                     message: "Missing required field: seq.",
                 }));
                 return;
@@ -138,7 +138,7 @@ export async function startServer({
         res.writeStatus("404 Not Found");
         res.writeHeader("Content-Type", "application/json");
         res.end(JSON.stringify({
-            status:  "error",
+            status: "error",
             message: "404 Not Found.",
         }));
     });
