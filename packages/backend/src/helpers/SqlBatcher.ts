@@ -34,6 +34,10 @@ export class SqlBatcher<T extends any[]>{
         this.table = table;
         this.columns = columns;
 
+        if (db.readonly) {
+            throw new Error("Cannot use SqlBatcher with a readonly database");
+        }
+
         if (SQLITE_MAX_VARIABLE_NUMBER != null) {
             this.maxVariables = SQLITE_MAX_VARIABLE_NUMBER;
         }

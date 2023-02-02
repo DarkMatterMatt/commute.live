@@ -3,6 +3,7 @@ import { readFile, unlink, writeFile } from "node:fs/promises";
 import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { defaultProjection, type Id, type JSONSerializable, sleep, type StrOrNull } from "@commutelive/common";
+import Database from "better-sqlite3";
 import { closeDb, importGtfs, openDb } from "gtfs";
 import fetch, { type Response } from "node-fetch";
 import Graceful from "node-graceful";
@@ -73,7 +74,7 @@ export async function initializeStatic(cacheDir_: string, gtfsUrl_: string): Pro
     }
     else {
         const dbPath = getDbPath(lastUpdate);
-        db = await openDb({ sqlitePath: dbPath });
+        db = new Database(dbPath, { readonly: true });
     }
 }
 
@@ -129,12 +130,16 @@ async function performUpdate(res: Response): Promise<void> {
         verbose: false,
     });
 
-    const newDb = await openDb({ sqlitePath: dbPath });
+    // open writeable database, run post-import functions, and then close it
+    const newDb = openDb({ sqlitePath: dbPath });
     await postImport(newDb);
+    closeDb(newDb);
 
     // clean up in background
     cleanUp(zipPath, db);
-    db = newDb;
+
+    // open the new database in read-only mode
+    db = new Database(dbPath, { readonly: true });
 }
 
 /**
@@ -385,7 +390,7 @@ async function cleanUp(zipPath: string, oldDatabase: null | SqlDatabase): Promis
 
     await unlink(zipPath);
     if (oldDatabase != null) {
-        await closeDb(oldDatabase);
+        oldDatabase.close();
         await unlink(oldDatabase.name);
     }
 }
