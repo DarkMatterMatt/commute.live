@@ -48,12 +48,35 @@ interface ExtraData {
     moreObjects: any[];
 }
 
-const extractData = (info: TransformableInfo) => ({
-    ...info[EXTRA_DATA as any] as ExtraData,
-    message: info.message,
-    level: info.level as LogLevel,
-    timestamp: info.timestamp as string,
-});
+const extractData = (info: TransformableInfo) => {
+    const {
+        message,
+        level,
+        timestamp,
+        [EXTRA_DATA]: { label, moreObjects, ...extraRest },
+        ...rest
+    } = info as {
+        [EXTRA_DATA]: ExtraData;
+        message: string;
+        level: LogLevel;
+        timestamp: string;
+    };
+
+    if (Object.keys(rest).length > 0) {
+        console.warn(`Unexpected rest: ${Object.keys(rest)}`);
+    }
+    if (Object.keys(extraRest).length > 0) {
+        console.warn(`Unexpected extraRest: ${Object.keys(extraRest)}`);
+    }
+
+    return {
+        timestamp,
+        label,
+        level,
+        message,
+        moreObjects,
+    };
+};
 
 const log = createLogger({
     transports: [
