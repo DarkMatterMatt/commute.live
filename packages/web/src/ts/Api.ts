@@ -2,7 +2,9 @@ import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRo
 
 let instance: Api | null = null;
 
-const fetchJson = memo((...args: Parameters<typeof fetch>) => fetch(...args).then(r => r.json()));
+const fetchJson = (...args: Parameters<typeof fetch>) => fetch(...args).then(r => r.json());
+
+const fetchJsonMemo = memo(fetchJson);
 
 class Api {
     private ws: WebSocket | null = null;
@@ -47,9 +49,9 @@ class Api {
         return instance;
     }
 
-    private async query<T>(path: string, params?: Record<string, string>): Promise<T> {
+    private async query<T>(path: string, params?: Record<string, string>, cache = true): Promise<T> {
         const queryStr = params == null ? "" : `?${new URLSearchParams(params)}`;
-        const response = await fetchJson(this.apiUrl + path + queryStr);
+        const response = await (cache ? fetchJsonMemo : fetchJson)(this.apiUrl + path + queryStr);
         if (response.status !== "success") {
             throw new Error(`Failed querying API: ${path}${queryStr}`);
         }
@@ -148,7 +150,8 @@ class Api {
             fields: fields.join(","),
             routeIds: id,
         };
-        const response = await this.query<{ routes: PartialRoutesDataResult<T> }>("routes", query);
+        const shouldCache = !fields.includes("vehicles" as T);
+        const response = await this.query<{ routes: PartialRoutesDataResult<T> }>("routes", query, shouldCache);
         if (response.routes.length === 0) {
             throw new Error(`Route not found: ${id}`);
         }
@@ -159,13 +162,14 @@ class Api {
         ids: Id[],
         fields: T[],
     ): Promise<PartialRoutesDataResult<T>> {
+        const shouldCache = !fields.includes("vehicles" as T);
         const response = await this.query<{
             routes: PartialRoutesDataResult<T>;
             unknown?: Id[];
         }>("routes", {
             fields: fields.join(","),
             routeIds: ids.join(","),
-        });
+        }, shouldCache);
         if (response.unknown?.length) {
             console.warn("Some routes were not found", response.unknown);
         }
