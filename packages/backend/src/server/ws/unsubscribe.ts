@@ -8,7 +8,7 @@ export const unsubscribeRoute = new WebSocketRouteGenerator({
     optionalParams: [] as const,
     executor: async (route, { params, ws }) => {
         const id = params.id as Id;
-        const wasSubscribed = await ws.unsubscribe(getMQTTForVehicleUpdates(id));
+        const wasSubscribed = ws.unsubscribe(getMQTTForVehicleUpdates(id));
         return route.finish("success", {
             message: `${wasSubscribed ? "Unsubscribed" : "Already unsubscribed"} from ${id}.`,
         });

@@ -103,7 +103,7 @@ export class SqlBatcher<T extends any[]>{
         this.values.push(...items);
 
         // have filled up this batch, insert them now
-        if (this.values.length + items.length > await this.maxVariables) {
+        if (this.values.length + items.length > this.maxVariables) {
             await this.actionBatch();
         }
     }

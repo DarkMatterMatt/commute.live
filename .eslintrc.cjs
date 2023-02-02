@@ -35,6 +35,7 @@ module.exports = {
         "array-bracket-spacing": ["warn", "never"],
         "arrow-parens": ["warn", "as-needed"],
         "arrow-spacing": "warn",
+        "@typescript-eslint/await-thenable": "error",
         "brace-style": "off",
         "@typescript-eslint/brace-style": ["warn", "stroustrup"],
         "@typescript-eslint/camelcase": "off",
