@@ -11,7 +11,7 @@ module.exports = {
         Atomics: "readonly",
         SharedArrayBuffer: "readonly",
     },
-    ignorePatterns: ["*.js"],
+    ignorePatterns: ["*.js", "*.cjs", "*.mjs"],
     parserOptions: {
         ecmaVersion: 2018,
         project: "tsconfig.json",

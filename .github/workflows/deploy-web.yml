@@ -47,8 +47,14 @@ jobs:
           envkey_PWA_BASE_URL: ${{ secrets.PWA_BASE_URL }}
           envkey_WS_URL: ${{ secrets.WS_URL }}
 
+      - name: 🦔 Percy
+        run: lerna run --scope=*/web percy
+        env:
+          GMAPS_KEY: ${{ secrets.PERCY_GMAPS_KEY }}
+          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+
       - name: 🛠️ Build
-        run: lerna run --scope=*/web build
+        run: lerna run --scope=*/web build --skip-nx-cache
 
       - name: 🚀 Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
