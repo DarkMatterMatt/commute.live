@@ -104,8 +104,8 @@ async function downloadDatabaseIfNeeded(cacheDir: string) {
     await cleanUp(cacheDir, oldYear, oldMonth);
 }
 
-export const ipLocationRoute = new GetRouteGenerator({
-    name: "ipLocation",
+export const iplocationRoute = new GetRouteGenerator({
+    name: "iplocation",
     requiredParams: [] as const,
     optionalParams: [] as const,
     executor: async (route, { headers, res }) => {
