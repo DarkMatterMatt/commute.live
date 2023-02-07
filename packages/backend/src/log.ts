@@ -1,5 +1,5 @@
 import { inspect } from "node:util";
-import chalk, { type Chalk } from "chalk";
+import chalk, { type ChalkInstance } from "chalk";
 import jsonStringify_ from "fast-safe-stringify";
 import { type TransformableInfo } from "logform";
 import { createLogger, format, transports } from "winston";
@@ -12,7 +12,7 @@ type LogLevel = typeof logLevels[number];
 
 export type Logger = { label: string} & { [K in LogLevel]: ReturnType<typeof getLoggerLevel> };
 
-const colors: { [K in LogLevel]: Chalk } = {
+const colors: { [K in LogLevel]: ChalkInstance } = {
     error: chalk.bold.redBright,
     warn: chalk.bold.yellowBright,
     info: chalk.bold.greenBright,

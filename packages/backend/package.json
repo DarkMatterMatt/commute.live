@@ -92,29 +92,29 @@
     },
     "dependencies": {
         "@commutelive/common": "^2.5.0",
-        "chalk": "^4.1.2",
+        "chalk": "^5.2.0",
         "dotenv": "^16.0.3",
         "envalid": "^7.3.1",
         "fast-safe-stringify": "^2.1.1",
-        "gtfs": "^4.0.1",
+        "gtfs": "^4.0.3",
         "maxmind": "^4.3.8",
         "node-fetch": "3.3.0",
         "node-graceful": "^3.1.0",
-        "ts-proto": "^1.137.0",
-        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.15.0",
+        "ts-proto": "^1.139.0",
+        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.19.0",
         "winston": "^3.8.2",
         "winston-daily-rotate-file": "^4.7.1",
-        "ws": "^8.11.0"
+        "ws": "^8.12.0"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.3",
-        "@types/node": "^18.11.18",
+        "@types/node": "^18.11.19",
         "@types/ws": "^8.5.4",
-        "@typescript-eslint/eslint-plugin": "^5.48.0",
-        "@typescript-eslint/parser": "^5.48.0",
-        "eslint": "^8.31.0",
-        "eslint-import-resolver-typescript": "^3.5.2",
-        "rimraf": "^3.0.2",
-        "typescript": "^4.9.4"
+        "@typescript-eslint/eslint-plugin": "^5.51.0",
+        "@typescript-eslint/parser": "^5.51.0",
+        "eslint": "^8.33.0",
+        "eslint-import-resolver-typescript": "^3.5.3",
+        "rimraf": "^4.1.2",
+        "typescript": "^4.9.5"
     }
 }
