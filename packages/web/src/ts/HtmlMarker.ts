@@ -38,6 +38,7 @@ export default class HtmlMarker {
 
     constructor(opts: HtmlMarkerOptions) {
         this.id = opts.id;
+        this.root.classList.add("html-marker");
         this.root.style.position = "absolute";
         this.setAnchorPoint(opts.anchorPoint ?? null);
         this.setHtmlElement(opts.elem);

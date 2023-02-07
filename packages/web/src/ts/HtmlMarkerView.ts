@@ -24,6 +24,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
 
     onAdd(): void {
         this.hasAdded = true;
+        this.root.classList.add("html-marker-view");
         this.root.style.position = "absolute";
         this.root.style.height = "0";
         this.root.style.width = "0";
