@@ -1,13 +1,14 @@
 const os = require("os");
 const path = require("path");
 const Dotenv = require("dotenv-webpack");
-const getPort = require("get-port");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
 module.exports = (async () => {
+    const { default: getPort, portNumbers } = await import("get-port");
+
     // find internal IP
     const ifaces = os.networkInterfaces();
     let ip = "127.0.0.1";
@@ -20,7 +21,7 @@ module.exports = (async () => {
             }
         }
     }
-    const port = await getPort({ host: ip, port: getPort.makeRange(8080, 9000) });
+    const port = await getPort({ host: ip, port: portNumbers(8080, 9000) });
 
     return {
         entry: {
@@ -37,8 +38,7 @@ module.exports = (async () => {
         devtool: "source-map",
         devServer: {
             host: ip,
-            open: true,
-            openPage: `http://${ip}:${port}/`,
+            open: `http://${ip}:${port}/`,
             port,
         },
         module: {
