@@ -14,6 +14,10 @@ const path = require("path");
  */
 
 const LINE_ORDER = [
+    /* variables */
+    "--",
+    "$",
+
     /* visibility */
     "z-index",
     "content",
@@ -37,17 +41,25 @@ const LINE_ORDER = [
     "overflow-y",
     "vertical-align",
 
-    /* flex */
+    /* flex container */
     "flex",
     "flex-flow",
     "flex-direction",
     "flex-wrap",
+    "justify-content",
+    "justify-items",
+    "align-content",
+    "align-items",
+    "gap",
+    "row-gap",
+    "column-gap",
+
+    /* flex item */
+    "order",
     "flex-basis",
     "flex-grow",
     "flex-shrink",
-    "justify-content",
-    "align-content",
-    "align-items",
+    "justify-self",
     "align-self",
 
     /* size */
@@ -82,10 +94,15 @@ const LINE_ORDER = [
 
     /* appearance */
     "appearance",
+    "list-style",
+    "list-style-image",
+    "list-style-position",
+    "list-style-type",
     "fill",
     "background",
     "background-color",
     "box-shadow",
+    "filter",
 
     "border",
     "border-top",
@@ -109,12 +126,14 @@ const LINE_ORDER = [
     "font-weight",
 
     "color",
+    "text-decoration",
     "text-align",
     "text-align-last",
     "line-height",
     "white-space",
     "text-overflow",
     "text-size-adjust",
+    "text-decoration",
 
     /* cursor */
     "cursor",
@@ -122,18 +141,50 @@ const LINE_ORDER = [
     "pointer-events",
 
     /* animation */
+    "animation",
+    "animation-delay",
+    "animation-direction",
+    "animation-duration",
+    "animation-fill-mode",
+    "animation-iteration-count",
+    "animation-name",
+    "animation-play-state",
+    "animation-timing-function",
+
     "transition",
+    "transition-delay",
+    "transition-duration",
+    "transition-property",
+    "transition-timing-function",
     "will-change",
 ];
 
-function getAttributeOrder(a) {
-    const a2 = a.split(":")[0].trim();
-    if (a2.startsWith("--")) return -2;
-    if (a2.startsWith("$"))  return -3;
+const VENDOR_PREFIXES = [
+    "-moz-",    // firefox
+    "-ms-",     // internet explorer
+    "-o-",      // opera
+    "-webkit-", // chrome, safari
+]
 
-    const i = LINE_ORDER.indexOf(a2);
+function getAttributeOrder(a) {
+    a = a.split(":")[0].trim();
+
+    // CSS, SCSS variables
+    if (a.startsWith("--")) return LINE_ORDER.indexOf("--");
+    if (a.startsWith("$"))  return LINE_ORDER.indexOf("$");
+
+    // strip vendor prefixes
+    for (const vp of VENDOR_PREFIXES) {
+        if (a.startsWith(vp)) {
+            a = a.slice(vp.length);
+            break;
+        }
+    }
+
+    // get ordering
+    const i = LINE_ORDER.indexOf(a);
     if (i === -1) {
-        console.log(a2);
+        console.log(a);
         return LINE_ORDER.length;
     }
     return i;
@@ -198,5 +249,10 @@ async function processFile(cssFile) {
 }
 
 (async () => {
-    await Promise.all(process.argv.slice(2).map(processFile));
+    const files = process.argv.slice(2);
+    if (files.length === 0) {
+        console.log("Usage: reorderCSS.js file.css file2.scss file3.css");
+    }
+
+    await Promise.all(files.map(processFile));
 })();
