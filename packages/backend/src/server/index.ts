@@ -1,11 +1,11 @@
 import { URLSearchParams } from "node:url";
 import type { Id, RegionCode } from "@commutelive/common";
 import Graceful from "node-graceful";
-import uWS, { type us_listen_socket, type WebSocket } from "uWebSockets.js";
+import uWS, { type us_listen_socket } from "uWebSockets.js";
 import { getStatus as getDataSourcesStatus, getMQTTForTripUpdates, getMQTTForVehicleUpdates } from "~/datasources/";
 import env from "~/env.js";
 import { getLogger } from "~/log.js";
-import type { DataSource, TripUpdate, VehiclePosition } from "~/types";
+import type { DataSource, TripUpdate, VehiclePosition, WebSocket, WSUserData } from "~/types";
 import apiRoutes, { defaultRoute as defaultApiRoute, initialize as initializeGetRoutes } from "./api/";
 import type { GetRouteInitializeOpts } from "./api/GetRoute";
 import { convertTripUpdate, convertVehiclePosition } from "./transmission";
@@ -55,7 +55,7 @@ export async function startServer({
         uWS.us_listen_socket_close(listenSocket);
     });
 
-    app.ws("/v3/websocket", {
+    app.ws<WSUserData>("/v3/websocket", {
         open: ws => {
             activeWebSockets.add(ws);
         },

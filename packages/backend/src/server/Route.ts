@@ -1,6 +1,5 @@
 import type { PromiseOr } from "@commutelive/common";
-import type { WebSocket } from "uWebSockets.js";
-import type { DataSource } from "~/types";
+import type { DataSource, WebSocket } from "~/types";
 
 export interface RouteExecuteOpts {
     activeWebSockets: Set<WebSocket>;

@@ -1,7 +1,7 @@
 import type { PromiseOr, RegionCode } from "@commutelive/common";
-import type { HttpResponse, WebSocket } from "uWebSockets.js";
+import type { HttpResponse } from "uWebSockets.js";
 import { md5 } from "~/helpers/";
-import type { DataSource } from "~/types";
+import type { DataSource, WebSocket } from "~/types";
 import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen, type RouteInitializeOpts } from "../Route.js";
 
 const DEFAULT_CACHE_MAX_AGE = 3600; // 1 hour
