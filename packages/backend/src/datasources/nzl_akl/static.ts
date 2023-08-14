@@ -149,7 +149,7 @@ async function postImport(db: SqlDatabase): Promise<void> {
     log.info("Running post-import functions.");
 
     // add index for routes.route_short_name
-    db.prepare(`
+    db.prepare<[]>(`
         CREATE INDEX idx_routes_route_short_name
         ON routes (route_short_name)
     `).run();
@@ -162,7 +162,7 @@ async function postImport(db: SqlDatabase): Promise<void> {
 
     // rebuilds the database file, repacking it into a minimal amount of disk space
     // disabled for now because we run out of memory on servers with 1GB RAM
-    //db.prepare("VACUUM").run();
+    //db.prepare<[]>("VACUUM").run();
 }
 
 /**
@@ -172,7 +172,7 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
     log.debug("Adding missing shape distances.");
 
     // calculate our own shape_dist_traveled
-    const shapeIds = (db.prepare(`
+    const shapeIds = (db.prepare<[]>(`
         SELECT DISTINCT shape_id
         FROM shapes
         WHERE shape_dist_traveled IS NULL
@@ -182,7 +182,7 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
         return;
     }
 
-    db.prepare(`
+    db.prepare<[]>(`
         CREATE TABLE tmp_shapes (
             id INTEGER PRIMARY KEY,
             shape_dist_traveled REAL
@@ -196,16 +196,16 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
     });
 
     for (const shapeId of shapeIds) {
-        const points: {
-            id: number,
-            lat: number,
-            lng: number,
-        }[] = db.prepare(`
+        const points = db.prepare<{ shapeId: string }>(`
             SELECT id, shape_pt_lat AS lat, shape_pt_lon AS lng
             FROM shapes
             WHERE shape_id=$shapeId
             ORDER BY shape_pt_sequence ASC
-        `).all({ shapeId });
+        `).all({ shapeId }) as {
+            id: number,
+            lat: number,
+            lng: number,
+        }[];
 
         let dist = 0;
         await batcher.queue(points[0].id, dist);
@@ -220,7 +220,7 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
     await batcher.flush();
 
     // update database with inserted values
-    db.prepare(`
+    db.prepare<[]>(`
         UPDATE shapes
         SET shape_dist_traveled=(
             SELECT shape_dist_traveled
@@ -232,7 +232,7 @@ async function addShapeDistances(db: SqlDatabase): Promise<void> {
             WHERE id=shapes.id)
     `).run();
 
-    db.prepare("DROP TABLE tmp_shapes").run();
+    db.prepare<[]>("DROP TABLE tmp_shapes").run();
 }
 
 /**
@@ -253,16 +253,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         'Stn', 'Station'),
         '.', '')`;
 
-    let routes: {
-        directionId: 0 | 1;
-        longName: string;
-        routeCount: number;
-        routeLength: number;
-        routeType: number;
-        shapeId: string;
-        shortName: string;
-        tripHeadsign: string;
-    }[] = db.prepare(`
+    let routes = db.prepare<[]>(`
         SELECT
             direction_id AS directionId,
             route_long_name AS longName,
@@ -292,7 +283,16 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             FROM routes
         ) R ON R.route_id=T.route_id
         GROUP BY direction_id, route_long_name, trip_headsign
-    `).all();
+    `).all() as {
+        directionId: 0 | 1;
+        longName: string;
+        routeCount: number;
+        routeLength: number;
+        routeType: number;
+        shapeId: string;
+        shortName: string;
+        tripHeadsign: string;
+    }[];
 
     // Auckland Transport no longer provides route_long_name, so we use the trip headsign instead.
     routes = routes.map(({ longName, shortName, tripHeadsign, ...rest }) => ({
@@ -302,7 +302,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         ...rest,
     }));
 
-    db.prepare(`
+    db.prepare<[]>(`
         CREATE TABLE route_summaries (
             id VARCHAR(255) NOT NULL,
             route_long_name_0 VARCHAR(255),

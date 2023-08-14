@@ -8,15 +8,7 @@ import { parseId } from "./id";
 export async function getRoutesSummary(
     db: SqlDatabase,
 ): Promise<RouteSummary[]> {
-    const result: {
-        id: Id;
-        longName0: StrOrNull;
-        longName1: StrOrNull;
-        shortName: string;
-        routeType: number;
-        shapeId0: StrOrNull;
-        shapeId1: StrOrNull;
-    }[] = db.prepare(`
+    const result = db.prepare<[]>(`
         SELECT
             id,
             route_long_name_0 AS longName0,
@@ -26,7 +18,15 @@ export async function getRoutesSummary(
             shape_id_0 AS shapeId0,
             shape_id_1 AS shapeId1
         FROM route_summaries
-    `).all();
+    `).all() as {
+        id: Id;
+        longName0: StrOrNull;
+        longName1: StrOrNull;
+        shortName: string;
+        routeType: number;
+        shapeId0: StrOrNull;
+        shapeId1: StrOrNull;
+    }[];
 
     return result.map(r => ({
         id: r.id,
@@ -44,14 +44,7 @@ export async function getRouteSummary(
     db: SqlDatabase,
     id: Id,
 ): Promise<null | RouteSummary> {
-    const r: {
-        longName0: StrOrNull;
-        longName1: StrOrNull;
-        shortName: string;
-        routeType: number;
-        shapeId0: StrOrNull;
-        shapeId1: StrOrNull;
-    } = db.prepare(`
+    const r = db.prepare<{ id: string }>(`
         SELECT
             route_long_name_0 AS longName0,
             route_long_name_1 AS longName1,
@@ -61,7 +54,14 @@ export async function getRouteSummary(
             shape_id_1 AS shapeId1
         FROM route_summaries
         WHERE id=$id
-    `).get({ id });
+    `).get({ id }) as {
+        longName0: StrOrNull;
+        longName1: StrOrNull;
+        shortName: string;
+        routeType: number;
+        shapeId0: StrOrNull;
+        shapeId1: StrOrNull;
+    };
 
     if (r == null) {
         return null;
@@ -93,12 +93,12 @@ async function getShape(
         LIMIT 1
     `;
 
-    const result: LatLng[] = db.prepare(`
+    const result = db.prepare<{ id: string }>(`
         SELECT shape_pt_lat AS lat, shape_pt_lon AS lng
         FROM shapes
         WHERE shape_id=(${shapeIdQuery})
         ORDER BY shape_pt_sequence ASC
-    `).all({ id });
+    `).all({ id }) as LatLng[];
 
     return result.length > 0 ? result : null;
 }
@@ -126,13 +126,13 @@ export async function getIdByTripId(
     db: SqlDatabase,
     tripId: string,
 ): Promise<Id> {
-    const result: { id: Id } = db.prepare(`
+    const result = db.prepare<{ tripId: string }>(`
         SELECT id
         FROM trips T
         INNER JOIN routes R ON T.route_id=R.route_id
         INNER JOIN route_summaries S ON R.route_short_name=S.route_short_name AND R.route_type=S.route_type
         WHERE trip_id=$tripId
-    `).get({ tripId });
+    `).get({ tripId }) as { id: Id };
 
     if (result == null) {
         throw new Error(`Could not find trip ${tripId}`);
@@ -147,11 +147,11 @@ export function getDirectionIdByTripId(
     db: SqlDatabase,
     tripId: string,
 ): 0 | 1 {
-    const result: { directionId: 0 | 1 } = db.prepare(`
+    const result = db.prepare<{ tripId: string }>(`
         SELECT direction_id AS directionId
         FROM trips
         WHERE trip_id=$tripId
-    `).get({ tripId });
+    `).get({ tripId }) as { directionId: 0 | 1 };
 
     if (result == null) {
         throw new Error(`Could not find trip ${tripId}`);
@@ -168,7 +168,11 @@ export async function getTripIdByTripDetails(
     directionId: number,
     startTime: string,
 ): Promise<string> {
-    const result: { tripId: string } = db.prepare(`
+    const result = db.prepare<{
+        routeId: string,
+        directionId: number,
+        startTime: string,
+    }>(`
         SELECT trips.trip_id AS tripId
         FROM trips
         INNER JOIN stop_times ON trips.trip_id=stop_times.trip_id
@@ -178,7 +182,7 @@ export async function getTripIdByTripDetails(
         routeId,
         directionId,
         startTime,
-    });
+    }) as { tripId: string };
 
     if (result == null) {
         throw new Error(
@@ -196,16 +200,19 @@ export async function getRouteIds(
     id: Id,
 ): Promise<string[]> {
     const { shortName, type } = parseId(id);
-    const result: {
-        routeId: string;
-    }[] = db.prepare(`
+    const result = db.prepare<{
+        shortName: string,
+        routeType: number,
+    }>(`
         SELECT route_id AS routeId
         FROM routes
         WHERE route_short_name=$shortName AND route_type=$routeType
     `).all({
         shortName,
         routeType: type,
-    });
+    }) as {
+        routeId: string;
+    }[];
 
     return result.map(r => r.routeId);
 }
@@ -218,9 +225,10 @@ export async function getTripIds(
     id: Id,
 ): Promise<string[]> {
     const { shortName, type } = parseId(id);
-    const result: {
-        tripId: string;
-    }[] = db.prepare(`
+    const result = db.prepare<{
+        shortName: string,
+        routeType: number,
+    }>(`
         SELECT trip_id AS tripId
         FROM trips
         INNER JOIN routes ON trips.route_id=routes.route_id
@@ -228,7 +236,9 @@ export async function getTripIds(
     `).all({
         shortName,
         routeType: type,
-    });
+    }) as {
+        tripId: string;
+    }[];
 
     return result.map(r => r.tripId);
 }
@@ -240,12 +250,7 @@ export async function getStopsByShapeId(
     db: SqlDatabase,
     shapeId: string,
 ) {
-    const stops: {
-        lat: number;
-        lng: number;
-        stopCode: string;
-        stopId: string;
-    }[] = db.prepare(`
+    const stops = db.prepare<{ shapeId: string }>(`
         SELECT stop_lat AS lat, stop_lon AS lng, stop_code AS stopCode, S.stop_id AS stopId
         FROM stops S
         INNER JOIN stop_times ST ON S.stop_id=ST.stop_id
@@ -256,7 +261,12 @@ export async function getStopsByShapeId(
         )
         GROUP BY S.stop_id
         ORDER BY stop_sequence ASC
-    `).all({ shapeId });
+    `).all({ shapeId }) as {
+        lat: number;
+        lng: number;
+        stopCode: string;
+        stopId: string;
+    }[];
 
     return stops;
 }

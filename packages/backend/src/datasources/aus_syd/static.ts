@@ -151,7 +151,7 @@ async function postImport(db: SqlDatabase): Promise<void> {
     log.info("Running post-import functions.");
 
     // add index for routes.route_short_name
-    db.prepare(`
+    db.prepare<[]>(`
         CREATE INDEX idx_routes_route_short_name
         ON routes (route_short_name)
     `).run();
@@ -161,7 +161,7 @@ async function postImport(db: SqlDatabase): Promise<void> {
 
     // rebuilds the database file, repacking it into a minimal amount of disk space
     // disabled for now because we run out of memory on servers with 1GB RAM
-    //db.prepare("VACUUM").run();
+    //db.prepare<[]>("VACUUM").run();
 }
 
 /**
@@ -175,16 +175,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
     const julianDay = (field: string) =>
         `JULIANDAY(SUBSTR(${field}, 1, 4) || '-' || SUBSTR(${field}, 5, 2) || '-' || SUBSTR(${field}, 7, 2))`;
 
-    const routes: {
-        directionId: 0 | 1;
-        longName: string;
-        routeCount: number;
-        routeLength: number;
-        routeType: number;
-        shapeId: string;
-        shortName: string;
-        tripHeadsign: string;
-    }[] = db.prepare(`
+    const routes = db.prepare<[]>(`
         SELECT
             direction_id AS directionId,
             route_long_name AS longName,
@@ -214,10 +205,19 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             FROM routes
         ) R ON R.route_id=T.route_id
         GROUP BY direction_id, route_long_name, trip_headsign
-    `).all();
+    `).all() as {
+        directionId: 0 | 1;
+        longName: string;
+        routeCount: number;
+        routeLength: number;
+        routeType: number;
+        shapeId: string;
+        shortName: string;
+        tripHeadsign: string;
+    }[];
     log.debug(`Found ${routes.length} routes.`);
 
-    db.prepare(`
+    db.prepare<[]>(`
         CREATE TABLE route_summaries (
             id VARCHAR(255) NOT NULL,
             route_long_name_0 VARCHAR(255),

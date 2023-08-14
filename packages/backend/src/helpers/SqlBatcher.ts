@@ -1,9 +1,10 @@
+import type { Primitive } from "@commutelive/common";
 import { getLogger } from "~/log";
 import type { SqlDatabase } from "~/types";
 
 const log = getLogger("SQLBatcher");
 
-export interface SqlBatcherOpts<T extends any[]>{
+export interface SqlBatcherOpts<T extends Primitive[]> {
     db: SqlDatabase;
     table: string;
     columns: { [K in keyof T]: string }; // array of strings, same length as T
@@ -14,12 +15,12 @@ export interface SqlBatcherOpts<T extends any[]>{
  * Provides bulk insert support for SQLite.
  * @param T Datatype of values for each column.
  */
-export class SqlBatcher<T extends any[]>{
+export class SqlBatcher<T extends Primitive[]>{
     private readonly db: SqlDatabase;
     private readonly table: string;
     private readonly columns: { [K in keyof T]: string };
-    private readonly placeholders: any[] = [];
-    private readonly values: any[] = [];
+    private readonly placeholders: string[] = [];
+    private readonly values: Primitive[] = [];
     private readonly initialized: Promise<void>;
     private maxVariables = -1;
 
@@ -59,7 +60,7 @@ export class SqlBatcher<T extends any[]>{
 
     private async findMaxVariables() {
         // Search for MAX_VARIABLE_NUMBER compile option.
-        const compileOptions: { compile_options: string }[] = this.db.pragma("compile_options");
+        const compileOptions = this.db.pragma("compile_options") as { compile_options: string }[];
         const maxVariables = compileOptions
             .map(row => row.compile_options)
             .find(row => row.startsWith("MAX_VARIABLE_NUMBER="));
@@ -68,7 +69,7 @@ export class SqlBatcher<T extends any[]>{
         }
 
         // Default is 999 before v3.32.0 (2020-05-22), and 32766 from v3.32.0.
-        const sqliteVersion: { version: string } = this.db.prepare("SELECT sqlite_version() AS version").get();
+        const sqliteVersion = this.db.prepare<[]>("SELECT sqlite_version() AS version").get() as { version: string };
         const parts = sqliteVersion.version
             .split(".")
             .map(part => Number.parseInt(part));
@@ -80,7 +81,7 @@ export class SqlBatcher<T extends any[]>{
 
     private async actionBatch() {
         if (this.values.length > 0) {
-            this.db.prepare(`
+            this.db.prepare<T>(`
                 INSERT INTO ${this.table} (${this.columns.join(", ")})
                 VALUES ${this.placeholders.join(",")}
             `).run(...this.values);
