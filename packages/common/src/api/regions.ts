@@ -1,4 +1,4 @@
-import type { LatLng } from "../geo";
+import type { LatLng } from "~/geo";
 import type { Id, RegionCode } from "./id";
 
 export interface RegionDataResult {

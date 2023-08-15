@@ -1,4 +1,4 @@
-import { clamp, degreesToRadians, radiansToDegrees } from "../number";
+import { clamp, degreesToRadians, radiansToDegrees } from "~/number";
 import type { LatLng, Point } from "./point";
 
 const ALMOST_ONE = 1 - 1e-15;

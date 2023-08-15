@@ -1,5 +1,5 @@
+import type { LatLng } from "~/geo";
 import type { StrOrNull } from "~/types";
-import type { LatLng } from "../geo";
 import type { Id, RegionCode } from "./id";
 import type { LiveVehicle } from "./websocket";
 
