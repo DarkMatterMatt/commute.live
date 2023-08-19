@@ -32,6 +32,14 @@ export function isEmptyObject(obj: Record<any, any>): boolean {
 }
 
 /**
+ * Improves typing for keys in object entryset
+ * @returns `Object.entries(obj)`
+ */
+export function objectEntries<T extends object>(obj: T) {
+    return Object.entries(obj) as { [K in keyof T]: [K, T[K]] }[keyof T][];
+}
+
+/**
  * Test if the specified HTMLElement is visible
  * @param $e The HTMLElement to check the visibility of
  */

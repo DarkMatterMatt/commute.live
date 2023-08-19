@@ -10,7 +10,7 @@ const logLevels = ["debug", "verbose", "info", "warn", "error"] as const;
 
 type LogLevel = typeof logLevels[number];
 
-export type Logger = { label: string} & { [K in LogLevel]: ReturnType<typeof getLoggerLevel> };
+export type Logger = { label: string } & { [K in LogLevel]: ReturnType<typeof getLoggerLevel> };
 
 const colors: { [K in LogLevel]: ChalkInstance } = {
     error: chalk.bold.redBright,

@@ -17,4 +17,8 @@ declare global {
     interface Window {
         gmapsLoaded: Promise<boolean>;
     }
+
+    const process: {
+        readonly env: Record<string, string>;
+    };
 }

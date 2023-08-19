@@ -1,13 +1,11 @@
 import "@simonwep/pickr/dist/themes/monolith.min.css";
 import { type Id, type LiveVehicle, type PartialRegionDataResult, type RegionCode, UnreachableError } from "@commutelive/common";
 import Pickr from "@simonwep/pickr";
+import convert from "color-convert";
 import type { hex } from "color-convert/route";
 import { largeScreen } from "./Helpers";
 import React from "./JsxElem";
 import type { MarkerType, SearchRoute } from "./types";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const convert = require("color-convert");
 
 const MAX_FILTER_RESULTS = 20;
 const SUGGESTED_COLORS = [

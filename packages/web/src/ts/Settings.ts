@@ -71,7 +71,7 @@ export class Settings {
     }
 
     public getVal<N extends SettingNames, S extends SettingByName<N>>(name: N): S["value"] {
-        return this.getSetting(name).value;
+        return this.getSetting(name).value as S["value"];
     }
 
     public setVal<N extends SettingNames, S extends SettingByName<N>>(name: N, val: S["value"]): void {

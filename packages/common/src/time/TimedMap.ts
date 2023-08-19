@@ -1,12 +1,9 @@
-// Reference the DOM lib to get the setTimeout type
-/// <reference lib="DOM" />
+import type { TimerId } from "./time";
 
 interface IteratorResult<T> {
     value: T;
     done?: boolean;
 }
-
-type Timeout = ReturnType<typeof setTimeout>;
 
 interface TimedMapOpts<K, V> {
     /**
@@ -24,7 +21,7 @@ interface TimedMapOpts<K, V> {
  * Map which automatically evicts entries by time. Uses `setTimeout` for each entry.
  */
 export class TimedMap<K, V> implements Map<K, V> {
-    private cache: Map<K, [Timeout, V]>;
+    private cache: Map<K, [TimerId, V]>;
     private defaultTtl: number;
 
     public constructor(partialOpts?: TimedMapOpts<K, V>) {
@@ -91,7 +88,7 @@ export class TimedMap<K, V> implements Map<K, V> {
 
         return {
             next: () => {
-                const { value, done }: IteratorResult<[K, [Timeout, V]]> = iter.next();
+                const { value, done }: IteratorResult<[K, [TimerId, V]]> = iter.next();
                 if (done) {
                     return { value: null, done };
                 }
@@ -112,7 +109,7 @@ export class TimedMap<K, V> implements Map<K, V> {
 
         return {
             next: () => {
-                const { value, done }: IteratorResult<[Timeout, V]> = iter.next();
+                const { value, done }: IteratorResult<[TimerId, V]> = iter.next();
                 if (done) {
                     return { value: null, done };
                 }

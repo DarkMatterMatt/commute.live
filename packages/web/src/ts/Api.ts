@@ -1,4 +1,4 @@
-import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRoutesResult, memo, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RegionsDataResult, type RouteDataResult } from "@commutelive/common";
+import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRoutesResult, memo, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RegionsDataResult, type RouteDataResult, type TimerId } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -19,7 +19,7 @@ class Api {
 
     private webSocketConnectedPreviously = false;
 
-    private _onWebSocketReconnect: ((ws: WebSocket, ev: Event) => void)  | null = null;
+    private _onWebSocketReconnect: ((ws: WebSocket, ev: Event) => void) | null = null;
 
     private _onMessage: ((data: Record<string, any>) => void) | null = null;
 
@@ -189,7 +189,7 @@ class Api {
 
     public wsConnect(): Promise<void> {
         const ws = this.ws = new WebSocket(this.wsUrl);
-        let wsHeartbeatInterval: NodeJS.Timeout;
+        let wsHeartbeatInterval: TimerId;
 
         ws.addEventListener("open", ev => {
             this.resolveWhenWsConnect();

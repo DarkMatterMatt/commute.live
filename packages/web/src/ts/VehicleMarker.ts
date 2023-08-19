@@ -1,4 +1,4 @@
-import type { LiveVehicle } from "@commutelive/common";
+import type { LiveVehicle, TimerId } from "@commutelive/common";
 import { afterRepaint } from "./Helpers";
 import HtmlMarker from "./HtmlMarker";
 import Render from "./Render";
@@ -33,7 +33,7 @@ class VehicleMarker extends HtmlMarker {
 
     private directionId: LiveVehicle["directionId"];
 
-    private expiryTimeout: ReturnType<typeof setTimeout> | null = null;
+    private expiryTimeout: TimerId | null = null;
 
     private lastUpdated: number | null = null;
 

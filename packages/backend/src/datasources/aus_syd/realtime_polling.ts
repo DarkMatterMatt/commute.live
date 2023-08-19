@@ -190,9 +190,9 @@ function fixPosition(
         latitude,
         longitude,
     };
-    if (keep.bearing) output.bearing = (bearing + 360) % 360;
-    if (keep.odometer) output.odometer = odometer;
-    if (keep.speed) output.speed = speed;
+    if (keep.bearing && bearing != null) output.bearing = (bearing + 360) % 360;
+    if (keep.odometer && odometer != null) output.odometer = odometer;
+    if (keep.speed && speed != null) output.speed = speed;
     return output;
 }
 
@@ -203,9 +203,9 @@ function fixStopTimeEvent(
     const { delay, time, uncertainty } = ste;
 
     const output: TripUpdate$StopTimeEvent = {};
-    if (keep.delay) output.delay = delay;
-    if (keep.time) output.time = time;
-    if (keep.uncertainty) output.uncertainty = uncertainty;
+    if (keep.delay && delay != null) output.delay = delay;
+    if (keep.time && time != null) output.time = time;
+    if (keep.uncertainty && uncertainty != null) output.uncertainty = uncertainty;
     return output;
 }
 
@@ -218,12 +218,11 @@ function fixStopTimeUpdate(
     const output: StopTimeUpdate = {};
     if (keep.arrival && arrival != null) output.arrival = fixStopTimeEvent(arrival, keep.arrival);
     if (keep.departure && departure != null) output.departure = fixStopTimeEvent(departure, keep.departure);
-    if (keep.schedule_relationship) {
-        output.schedule_relationship = parseEnum(
-            TripUpdate$StopTimeUpdate$ScheduleRelationship, schedule_relationship);
+    if (keep.schedule_relationship && schedule_relationship != null) {
+        output.schedule_relationship = parseEnum(TripUpdate$StopTimeUpdate$ScheduleRelationship, schedule_relationship);
     }
-    if (keep.stop_id) output.stop_id = stop_id;
-    if (keep.stop_sequence) output.stop_sequence = stop_sequence;
+    if (keep.stop_id && stop_id != null) output.stop_id = stop_id;
+    if (keep.stop_sequence && stop_sequence != null) output.stop_sequence = stop_sequence;
     return output;
 }
 
@@ -234,23 +233,23 @@ function fixTrip(
     const { direction_id, route_id, schedule_relationship, start_date, start_time, trip_id } = t;
 
     const output: TripDescriptor = {};
-    if (keep.direction_id) {
+    if (keep.direction_id && direction_id != null) {
         output.direction_id = direction_id;
     }
-    else if (keep.trip_id) {
+    else if (keep.trip_id && trip_id != null) {
         const result = memoGetDirectionIdByTripId(trip_id);
         if (result != null) output.direction_id = result;
     }
-    if (keep.route_id) output.route_id = route_id;
-    if (keep.schedule_relationship) {
+    if (keep.route_id && route_id != null) output.route_id = route_id;
+    if (keep.schedule_relationship && schedule_relationship != null) {
         try {
             output.schedule_relationship = parseEnum(TripDescriptor$ScheduleRelationship, schedule_relationship);
         }
         catch { /* ignore */ }
     }
-    if (keep.start_date) output.start_date = start_date;
-    if (keep.start_time) output.start_time = start_time;
-    if (keep.trip_id) output.trip_id = trip_id;
+    if (keep.start_date && start_date != null) output.start_date = start_date;
+    if (keep.start_time && start_time != null) output.start_time = start_time;
+    if (keep.trip_id && trip_id != null) output.trip_id = trip_id;
     return output;
 }
 
@@ -271,8 +270,8 @@ export function fixTripUpdate(
             : [],
         trip: fixTrip(trip, keep.trip),
     };
-    if (keep.delay) output.delay = delay;
-    if (keep.timestamp) output.timestamp = timestamp;
+    if (keep.delay && delay != null) output.delay = delay;
+    if (keep.timestamp&&timestamp != null) output.timestamp = timestamp;
     if (keep.vehicle && vehicle != null) output.vehicle = fixVehicleDescriptor(vehicle, keep.vehicle);
     return output;
 }
@@ -284,9 +283,9 @@ function fixVehicleDescriptor(
     const { id, label, license_plate } = vd;
 
     const output: VehicleDescriptor = {};
-    if (keep.id) output.id = id;
-    if (keep.label) output.label = label;
-    if (keep.license_plate) output.license_plate = license_plate;
+    if (keep.id && id  != null) output.id = id;
+    if (keep.label && label != null) output.label = label;
+    if (keep.license_plate && license_plate != null) output.license_plate = license_plate;
     return output;
 }
 
@@ -307,13 +306,21 @@ export function fixVehiclePosition(
     } = vp;
 
     const output: VehiclePosition = {};
-    if (keep.congestion_level) output.congestion_level = parseEnum(CongestionLevel, congestion_level);
-    if (keep.current_status) output.current_status = parseEnum(VehicleStopStatus, current_status);
-    if (keep.current_stop_sequence) output.current_stop_sequence = current_stop_sequence;
-    if (keep.occupancy_status) output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
+    if (keep.congestion_level && congestion_level != null) {
+        output.congestion_level = parseEnum(CongestionLevel, congestion_level);
+    }
+    if (keep.current_status && current_status != null) {
+        output.current_status = parseEnum(VehicleStopStatus, current_status);
+    }
+    if (keep.current_stop_sequence && current_stop_sequence != null) {
+        output.current_stop_sequence = current_stop_sequence;
+    }
+    if (keep.occupancy_status && occupancy_status != null) {
+        output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
+    }
     if (keep.position && position != null) output.position = fixPosition(position, keep.position);
-    if (keep.stop_id) output.stop_id = stop_id;
-    if (keep.timestamp) output.timestamp = timestamp;
+    if (keep.stop_id && stop_id != null) output.stop_id = stop_id;
+    if (keep.timestamp && timestamp != null) output.timestamp = timestamp;
     if (keep.trip && trip != null) output.trip = fixTrip(trip, keep.trip);
     if (keep.vehicle && vehicle != null) output.vehicle = fixVehicleDescriptor(vehicle, keep.vehicle);
     return output;
