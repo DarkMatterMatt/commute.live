@@ -88,7 +88,7 @@
     },
     "type": "module",
     "engines": {
-        "node": ">=18"
+        "node": "^20"
     },
     "dependencies": {
         "@commutelive/common": "^2.5.1",
