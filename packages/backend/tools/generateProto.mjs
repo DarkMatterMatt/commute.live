@@ -1,7 +1,7 @@
 import childProcess from "node:child_process";
 import { basename, dirname } from "node:path";
 import { promisify } from "node:util";
-import glob from "glob";
+import { glob } from "glob";
 
 const execFile = promisify(childProcess.execFile);
 
