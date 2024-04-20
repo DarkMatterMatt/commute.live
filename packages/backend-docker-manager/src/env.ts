@@ -23,7 +23,7 @@ const size = makeValidator(x => {
 });
 
 export async function getEnv() {
-    dotenv.config({ path: envFile, override: true });
+    dotenv.config({ path: envFile });
 
     const env = cleanEnv(process.env, {
         MANAGER_PORT: port(),
@@ -51,7 +51,7 @@ export async function getEnv() {
 }
 
 export async function getWorkerEnv() {
-    const { error, parsed: parsedEnvFile } = dotenv.config({ path: envFile, override: true });
+    const { error, parsed: parsedEnvFile } = dotenv.config({ path: envFile });
     if (error || parsedEnvFile == null) {
         throw error;
     }
