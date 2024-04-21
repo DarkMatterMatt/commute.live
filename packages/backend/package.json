@@ -91,7 +91,8 @@
         "node": "^20"
     },
     "dependencies": {
-        "@commutelive/common": "^2.5.1",
+        "@commutelive/common": "^2.5.2",
+        "better-sqlite3": "^9.5.0",
         "chalk": "^5.3.0",
         "dotenv": "^16.4.5",
         "envalid": "^8.0.0",
@@ -110,10 +111,11 @@
         "@types/better-sqlite3": "^7.6.9",
         "@types/node": "^20.12.7",
         "@types/ws": "^8.5.10",
-        "@typescript-eslint/eslint-plugin": "^5.62.0",
-        "@typescript-eslint/parser": "^5.62.0",
+        "@typescript-eslint/eslint-plugin": "^7.7.0",
+        "@typescript-eslint/parser": "^7.7.0",
         "eslint": "^8.57.0",
         "eslint-import-resolver-typescript": "^3.6.1",
+        "eslint-plugin-import": "^2.29.1",
         "rimraf": "^5.0.5",
         "typescript": "^5.4.5"
     }

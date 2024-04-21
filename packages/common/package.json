@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/common",
-    "version": "2.5.1",
+    "version": "2.5.2",
     "description": "Contains shared types and functions for [Commute.live](https://commute.live).",
     "main": "dist/index.js",
     "author": "Matt Moran",
@@ -21,12 +21,16 @@
     },
     "type": "module",
     "engines": {
-        "node": ">=18"
+        "node": "^20"
     },
     "devDependencies": {
-        "eslint-import-resolver-typescript": "^3.5.3",
-        "rimraf": "^4.1.2",
-        "tsc-alias": "^1.8.2",
-        "typescript": "^4.9.5"
+        "@typescript-eslint/eslint-plugin": "^7.7.0",
+        "@typescript-eslint/parser": "^7.7.0",
+        "eslint": "^8.57.0",
+        "eslint-import-resolver-typescript": "^3.6.1",
+        "eslint-plugin-import": "^2.29.1",
+        "rimraf": "^5.0.5",
+        "tsc-alias": "^1.8.8",
+        "typescript": "^5.4.5"
     }
 }
