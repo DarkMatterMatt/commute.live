@@ -1,15 +1,15 @@
 const path = require("path");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const CnameWebpackPlugin = require("cname-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const CnameWebpackPlugin = require("cname-webpack-plugin");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
 // Load .env and ../../.env
-require('dotenv').config({ path: '../../.env' });
-require('dotenv').config();
+require("dotenv").config({ path: "../../.env" });
+require("dotenv").config();
 
 if (!process.env.PWA_BASE_URL) {
     throw new Error("PWA_BASE_URL is not defined");
@@ -38,17 +38,17 @@ module.exports = {
                         loader: `${path.dirname(require.resolve("html-webpack-plugin"))}/lib/loader.js`,
                         options: {
                             force: true,
-                        }
+                        },
                     },
                     {
                         loader: "string-replace-loader",
                         options: {
-                            search: "=\"(..\/assets\/[^\"]*)\"",
+                            search: "=\"(../assets/[^\"]*)\"",
                             replace: "=\"<%= require('$1').default %>\"",
                             flags: "g",
-                        }
+                        },
                     },
-                ]
+                ],
             }, {
                 test: /\.[j|t]sx?$/,
                 use: "babel-loader",

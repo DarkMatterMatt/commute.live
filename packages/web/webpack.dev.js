@@ -50,17 +50,17 @@ module.exports = (async () => {
                             loader: `${path.dirname(require.resolve("html-webpack-plugin"))}/lib/loader.js`,
                             options: {
                                 force: true,
-                            }
+                            },
                         },
                         {
                             loader: "string-replace-loader",
                             options: {
-                                search: "=\"(..\/assets\/[^\"]*)\"",
+                                search: "=\"(../assets/[^\"]*)\"",
                                 replace: "=\"<%= require('$1').default %>\"",
                                 flags: "g",
-                            }
+                            },
                         },
-                    ]
+                    ],
                 }, {
                     test: /\.[j|t]sx?$/,
                     use: "babel-loader",
@@ -119,5 +119,5 @@ module.exports = (async () => {
             new WebpackPwaManifest(require("./web_manifest")),
             new WorkboxPlugin.GenerateSW(),
         ],
-    }
+    };
 })();

@@ -1,5 +1,4 @@
 const fs = require("fs");
-const path = require("path");
 
 /**
  * Reorders CSS attributes according to the LINE_ORDER defined below.
@@ -8,7 +7,7 @@ const path = require("path");
  * - Opening braces must be at the end of their line
  * - Closing braces must be on a newline
  * - The original file is renamed with a .bak file extension
- * 
+ *
  * Usage:
  * - reorderCSS.js file.css file2.scss file3.css
  */
@@ -164,7 +163,7 @@ const VENDOR_PREFIXES = [
     "-ms-",     // internet explorer
     "-o-",      // opera
     "-webkit-", // chrome, safari
-]
+];
 
 function getAttributeOrder(a) {
     a = a.split(":")[0].trim();

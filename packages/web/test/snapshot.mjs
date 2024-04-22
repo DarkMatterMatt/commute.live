@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
