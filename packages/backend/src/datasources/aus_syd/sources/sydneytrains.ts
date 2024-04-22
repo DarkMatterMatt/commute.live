@@ -2,7 +2,7 @@ import { FeedMessage } from "../gtfs-realtime_v2.proto";
 import type { NSWSource } from "../realtime_polling";
 
 export const sydneytrains: NSWSource = {
-    url: "https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/sydneytrains",
+    url: "https://api.transport.nsw.gov.au/v2/gtfs/vehiclepos/sydneytrains",
     decode: FeedMessage.decode,
     keep: {
         id: false,

@@ -1,8 +1,8 @@
-import { FeedMessage } from "../gtfs-realtime.proto";
+import { FeedMessage } from "../gtfs-realtime_v2.proto";
 import type { NSWSource } from "../realtime_polling";
 
 export const metro: NSWSource = {
-    url: "https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/metro",
+    url: "https://api.transport.nsw.gov.au/v2/gtfs/vehiclepos/metro",
     decode: FeedMessage.decode,
     keep: {
         id: false,
