@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/common",
-    "version": "2.5.2",
+    "version": "2.5.3",
     "description": "Contains shared types and functions for [Commute.live](https://commute.live).",
     "main": "dist/index.js",
     "author": "Matt Moran",
