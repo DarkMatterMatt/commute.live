@@ -15,10 +15,14 @@
     },
     "scripts": {
         "build": "webpack --env prod --mode production",
+        "build:docker": "docker build -f Dockerfile -t commute.live-web ../../",
         "clean": "rimraf dist",
+        "clean:docker": "docker rm commute.live-web || echo\\",
         "lint": "eslint src/ts/** --fix",
         "percy": "node test/snapshot.mjs dist",
         "start": "webpack serve --env dev --mode development",
+        "start:docker": "docker run --name commute.live-web -dp 8080:80 commute.live-web",
+        "stop:docker": "docker kill --signal=SIGINT commute.live-web || echo\\",
         "typecheck": "tsc --noEmit"
     },
     "nx": {
@@ -31,6 +35,18 @@
                 "outputs": [
                     "{projectRoot}/dist"
                 ]
+            },
+            "build:docker": {
+                "dependsOn": [
+                    "^build"
+                ],
+                "outputs": []
+            },
+            "clean:docker": {
+                "dependsOn": [
+                    "stop:docker"
+                ],
+                "outputs": []
             },
             "lint": {
                 "dependsOn": [
@@ -47,6 +63,13 @@
             "start": {
                 "dependsOn": [
                     "typecheck"
+                ],
+                "outputs": []
+            },
+            "start:docker": {
+                "dependsOn": [
+                    "clean:docker",
+                    "build:docker"
                 ],
                 "outputs": []
             },
