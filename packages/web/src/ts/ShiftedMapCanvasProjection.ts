@@ -1,61 +1,83 @@
-class ShiftedMapCanvasProjection {
-    private proj: ShiftedMapCanvasProjection | google.maps.MapCanvasProjection | null;
+import { Preconditions } from "@commutelive/common";
 
-    private top: number;
+export interface MapCanvasProjection {
+    fromContainerPixelToLatLng(pixel: google.maps.Point, noClampNoWrap?: boolean): google.maps.LatLng
 
-    private left: number;
+    fromDivPixelToLatLng(pixel: google.maps.Point, noClampNoWrap?: boolean): google.maps.LatLng
 
-    constructor(proj: ShiftedMapCanvasProjection | google.maps.MapCanvasProjection | null, top: number, left: number) {
-        this.proj = proj;
-        this.top = top;
-        this.left = left;
-    }
+    fromLatLngToContainerPixel(latLng: google.maps.LatLng): google.maps.Point
 
-    isValid(): boolean {
-        return this.proj != null;
-    }
-
-    update(proj: ShiftedMapCanvasProjection | google.maps.MapCanvasProjection, top: number, left: number): void {
-        this.proj = proj;
-        this.top = top;
-        this.left = left;
-    }
-
-    shiftPixel(pixel: google.maps.Point): google.maps.Point {
-        return new google.maps.Point(pixel.x + this.left, pixel.y + this.top);
-    }
-
-    unshiftPixel(pixel: google.maps.Point): google.maps.Point {
-        return new google.maps.Point(pixel.x - this.left, pixel.y - this.top);
-    }
-
-    fromContainerPixelToLatLng(pixel: google.maps.Point, nowrap?: boolean): google.maps.LatLng {
-        if (this.proj == null) {
-            throw new Error("Projection is null");
-        }
-        return this.proj.fromContainerPixelToLatLng(this.shiftPixel(pixel), nowrap);
-    }
-
-    fromDivPixelToLatLng(pixel: google.maps.Point, nowrap?: boolean): google.maps.LatLng {
-        if (this.proj == null) {
-            throw new Error("Projection is null");
-        }
-        return this.proj.fromDivPixelToLatLng(this.shiftPixel(pixel), nowrap);
-    }
-
-    fromLatLngToContainerPixel(latLng: google.maps.LatLng): google.maps.Point {
-        if (this.proj == null) {
-            throw new Error("Projection is null");
-        }
-        return this.unshiftPixel(this.proj.fromLatLngToContainerPixel(latLng));
-    }
-
-    fromLatLngToDivPixel(latLng: google.maps.LatLng): google.maps.Point {
-        if (this.proj == null) {
-            throw new Error("Projection is null");
-        }
-        return this.unshiftPixel(this.proj.fromLatLngToDivPixel(latLng));
-    }
+    fromLatLngToDivPixel(latLng: google.maps.LatLng): google.maps.Point
 }
 
-export default ShiftedMapCanvasProjection;
+export class CheckedMapCanvasProjection implements MapCanvasProjection {
+    constructor(
+        private readonly proj: google.maps.MapCanvasProjection,
+    ) {}
+
+    readonly fromContainerPixelToLatLng = (pixel: google.maps.Point, noClampNoWrap?: boolean): google.maps.LatLng => {
+        return Preconditions.checkExists(this.proj.fromContainerPixelToLatLng(pixel, noClampNoWrap));
+    };
+
+    readonly fromDivPixelToLatLng = (pixel: google.maps.Point, noClampNoWrap?: boolean): google.maps.LatLng => {
+        return Preconditions.checkExists(this.proj.fromDivPixelToLatLng(pixel, noClampNoWrap));
+    };
+
+    readonly fromLatLngToContainerPixel = (latLng: google.maps.LatLng): google.maps.Point => {
+        return Preconditions.checkExists(this.proj.fromLatLngToContainerPixel(latLng));
+    };
+
+    readonly fromLatLngToDivPixel = (latLng: google.maps.LatLng): google.maps.Point => {
+        return Preconditions.checkExists(this.proj.fromLatLngToDivPixel(latLng));
+    };
+
+    readonly getWorldWidth = (): number => {
+        return Preconditions.checkExists(this.proj.getWorldWidth());
+    };
+}
+
+export class ShiftedMapCanvasProjection implements MapCanvasProjection {
+    constructor(
+        private proj: MapCanvasProjection | null,
+        private top: number,
+        private left: number,
+    ) {}
+
+    readonly isValid = (): boolean => {
+        return this.proj != null;
+    };
+
+    readonly update = (proj: MapCanvasProjection, top: number, left: number): void => {
+        this.proj = proj;
+        this.top = top;
+        this.left = left;
+    };
+
+    readonly shiftPixel = (pixel: google.maps.Point): google.maps.Point => {
+        return new google.maps.Point(pixel.x + this.left, pixel.y + this.top);
+    };
+
+    readonly unshiftPixel = (pixel: google.maps.Point): google.maps.Point  => {
+        return new google.maps.Point(pixel.x - this.left, pixel.y - this.top);
+    };
+
+    readonly fromContainerPixelToLatLng = (pixel: google.maps.Point, nowrap?: boolean): google.maps.LatLng => {
+        const proj = Preconditions.checkExists(this.proj);
+        return proj.fromContainerPixelToLatLng(this.shiftPixel(pixel), nowrap);
+    };
+
+    readonly fromDivPixelToLatLng = (pixel: google.maps.Point, nowrap?: boolean): google.maps.LatLng => {
+        const proj = Preconditions.checkExists(this.proj);
+        return proj.fromDivPixelToLatLng(this.shiftPixel(pixel), nowrap);
+    };
+
+    readonly fromLatLngToContainerPixel = (latLng: google.maps.LatLng): google.maps.Point => {
+        const proj = Preconditions.checkExists(this.proj);
+        return this.unshiftPixel(proj.fromLatLngToContainerPixel(latLng));
+    };
+
+    readonly fromLatLngToDivPixel = (latLng: google.maps.LatLng): google.maps.Point => {
+        const proj = Preconditions.checkExists(this.proj);
+        return this.unshiftPixel(proj.fromLatLngToDivPixel(latLng));
+    };
+}

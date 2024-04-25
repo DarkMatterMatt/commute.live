@@ -1,5 +1,4 @@
 import { fromLatLngLiteral } from "./Helpers";
-import type ShiftedMapCanvasProjection from "./ShiftedMapCanvasProjection";
 
 export interface HtmlMarkerOptions {
     anchorPoint?: google.maps.Point;
@@ -25,7 +24,11 @@ export default class HtmlMarker {
 
     private position: google.maps.LatLng | null = null;
 
-    private proj: ShiftedMapCanvasProjection | null = null;
+    /**
+     * Returns a projection from coordinates to pixel space, if one is available.
+     * Initially, no projection is available and this marker will not be drawn on screen.
+     */
+    private fromLatLngToDivPixelProvider: () => ((latLng: google.maps.LatLng) => google.maps.Point) | null = () => null;
 
     // container element so we don't modify the user's transitions
     private root = document.createElement("div");
@@ -65,7 +68,8 @@ export default class HtmlMarker {
             return;
         }
         // don't draw if we can't calculate the position
-        if (this.position == null || this.proj == null || !this.proj.isValid()) {
+        const fromLatLngToDivPixel = this.fromLatLngToDivPixelProvider();
+        if (this.position == null || fromLatLngToDivPixel == null) {
             return;
         }
 
@@ -88,7 +92,7 @@ export default class HtmlMarker {
 
         this.elem.style.opacity = `${this.opacity}`;
 
-        const coords = this.proj.fromLatLngToDivPixel(this.position);
+        const coords = fromLatLngToDivPixel(this.position);
         this.root.style.left = `${coords.x - this.anchorPoint.x}px`;
         this.root.style.top = `${coords.y - this.anchorPoint.y}px`;
     }
@@ -111,10 +115,6 @@ export default class HtmlMarker {
 
     getPosition(): google.maps.LatLng | null {
         return this.position;
-    }
-
-    getProjection(): google.maps.MapCanvasProjection | ShiftedMapCanvasProjection | null {
-        return this.proj;
     }
 
     getRootElement(): HTMLElement {
@@ -172,8 +172,8 @@ export default class HtmlMarker {
         }
     }
 
-    setProjection(proj: ShiftedMapCanvasProjection): void {
-        this.proj = proj;
+    setFromLatLngToDivPixelProvider(provider: HtmlMarker["fromLatLngToDivPixelProvider"]): void {
+        this.fromLatLngToDivPixelProvider = provider;
     }
 
     setSize(size: google.maps.Size | null): void {

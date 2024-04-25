@@ -206,7 +206,15 @@ function onGeolocationError(err: GeolocationPositionError) {
      * Add settings event listeners
      */
 
-    map.addListener("idle", () => state.save("map", [map.getCenter().lat(), map.getCenter().lng(), map.getZoom()]));
+    map.addListener("idle", () => {
+        const newCenter = map.getCenter();
+        const newZoom = map.getZoom();
+        if (newCenter == null || newZoom == null) {
+            // this should never happen
+            return;
+        }
+        state.save("map", [newCenter.lat(), newCenter.lng(), newZoom]);
+    });
 
     settings.getSetting("currentRegion").addChangeListener(async s => {
         search.setRegion(s);

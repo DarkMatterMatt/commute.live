@@ -1,5 +1,6 @@
+import { Preconditions } from "@commutelive/common";
 import type HtmlMarker from "./HtmlMarker";
-import ShiftedMapCanvasProjection from "./ShiftedMapCanvasProjection";
+import { CheckedMapCanvasProjection, type MapCanvasProjection, ShiftedMapCanvasProjection  } from "./ShiftedMapCanvasProjection";
 
 class HtmlMarkerView extends google.maps.OverlayView {
     private root = document.createElement("div");
@@ -10,7 +11,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
 
     private worldWidth: number | null = null;
 
-    private shiftedProj = new ShiftedMapCanvasProjection(null, 0, 0);
+    private shiftedProj: MapCanvasProjection | null = null;
 
     private hasDrawn = false;
 
@@ -18,7 +19,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
 
     constructor(map: google.maps.Map) {
         super();
-        this.referencePoint = map.getCenter();
+        this.referencePoint = Preconditions.checkExists(map.getCenter());
         this.setMap(map);
     }
 
@@ -28,7 +29,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
         this.root.style.position = "absolute";
         this.root.style.height = "0";
         this.root.style.width = "0";
-        this.getPanes().markerLayer.appendChild(this.root);
+        Preconditions.checkExists(this.getPanes()).markerLayer.appendChild(this.root);
         this.markers.forEach(m => m.onAdd());
     }
 
@@ -39,9 +40,9 @@ class HtmlMarkerView extends google.maps.OverlayView {
     draw(): void {
         this.hasDrawn = true;
 
-        const proj = this.getProjection();
+        const proj = new CheckedMapCanvasProjection(this.getProjection());
         const pos = proj.fromLatLngToDivPixel(this.referencePoint);
-        this.shiftedProj.update(proj, pos.y, pos.x);
+        this.shiftedProj = new ShiftedMapCanvasProjection(proj, pos.y, pos.x);
 
         this.root.style.top = `${pos.y}px`;
         this.root.style.left = `${pos.x}px`;
@@ -64,7 +65,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
         this.markers.set(m.getId(), m);
 
         this.root.appendChild(m.getRootElement());
-        m.setProjection(this.shiftedProj);
+        m.setFromLatLngToDivPixelProvider(this.fromLatLngToDivPixelProvider);
 
         if (this.hasAdded) {
             m.onAdd();
@@ -81,6 +82,8 @@ class HtmlMarkerView extends google.maps.OverlayView {
             this.root.removeChild(m.getRootElement());
         }
     }
+
+    private readonly fromLatLngToDivPixelProvider = () => this.shiftedProj && this.shiftedProj.fromLatLngToDivPixel;
 }
 
 export default HtmlMarkerView;
