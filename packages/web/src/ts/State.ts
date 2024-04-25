@@ -1,4 +1,4 @@
-import { defaultProjection, type Id, type LatLng, type LiveVehicle, type PartialRegionDataResult, type Path, type PathValue, type RegionDataResult } from "@commutelive/common";
+import { defaultProjection, type Id, type LatLng, type LiveVehicle, type PartialRegionDataResult, type Path, type PathValue, Preconditions, type RegionDataResult } from "@commutelive/common";
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 import { api } from "./Api";
 import { isEmptyObject, localStorageEnabled } from "./Helpers";
@@ -303,7 +303,10 @@ class State {
     }
 
     private saveRoutes(): void {
-        this.save("routes", [...this.routes.values()].map(r => [r.id, r.isActive(), r.getColor()]));
+        this.save(
+            "routes",
+            [...this.routes.values()].map<[Id, boolean, string]>(r => [r.id, r.isActive(), r.getColor()]),
+        );
     }
 
     private changeRouteColor(id: Id, color: string): void {
@@ -385,16 +388,10 @@ class State {
             .map(r => this.loadRouteVehicles(r.id)));
     }
 
-    public getMapCenterAndZoom(): { center: LatLng; zoom: number } {
-        if (this.map == null) {
-            throw new Error("Map is not set");
-        }
-
-        const center = this.map.getCenter();
-        return {
-            center: { lat: center.lat(), lng: center.lng() },
-            zoom: this.map.getZoom(),
-        };
+    public getMapCenter(): LatLng {
+        const map = Preconditions.checkExists(this.map);
+        const center = Preconditions.checkExists(map.getCenter());
+        return { lat: center.lat(), lng: center.lng() };
     }
 
     public async getClosestRegion(pos: LatLng): Promise<RegionDataResult> {

@@ -61,7 +61,7 @@ class Search {
         }
 
         if (this.currentRegion === "SMART") {
-            const mapCenter = this.state.getMapCenterAndZoom().center;
+            const mapCenter = this.state.getMapCenter();
             const region = await this.state.getClosestRegion(mapCenter);
             this.$search.placeholder = `Searching routes in ${region.region}`;
             regionCode = region.code;
