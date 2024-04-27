@@ -15,8 +15,6 @@ class Api {
 
     private wsSeq = 0;
 
-    private wsResponseHandlers = new Map<number, (...args: any[]) => void>();
-
     private webSocketConnectedPreviously = false;
 
     private _onWebSocketReconnect: ((ws: WebSocket, ev: Event) => void) | null = null;
@@ -176,15 +174,12 @@ class Api {
         return response.routes;
     }
 
-    private wsSend<T = void>(data: Record<string, any>): Promise<undefined | T> {
+    private wsSend(data: Record<string, any>): void {
         if (this.ws == null || this.ws.readyState !== this.ws.OPEN) {
             throw new Error("WebSocket is not connected");
         }
         const seq = this.wsSeq++;
         this.ws.send(JSON.stringify({ ...data, seq }));
-        return new Promise<T>(resolve => {
-            this.wsResponseHandlers.set(seq, resolve);
-        });
     }
 
     public wsConnect(): Promise<void> {
@@ -218,13 +213,8 @@ class Api {
         });
 
         ws.addEventListener("message", ev => {
-            const data = JSON.parse(ev.data);
-            if (data.seq) {
-                // resolve promise
-                this.wsResponseHandlers.get(data.seq)?.();
-                this.wsResponseHandlers.delete(data.seq);
-            }
             if (this._onMessage === null) return;
+            const data = JSON.parse(ev.data);
             if (!data.status || !data.route) return;
             this._onMessage(data as Record<string, any>);
         });
