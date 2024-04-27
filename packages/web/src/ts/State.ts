@@ -330,10 +330,8 @@ class State {
     }
 
     public async activateRoute({ region: regionCode, id, shortName, longName, type }: SearchRoute): Promise<void> {
-        const { map, markerView } = this;
-        if (map == null || markerView == null) {
-            throw new Error("Map or markerView is not set");
-        }
+        const map = Preconditions.checkExists(this.map);
+        const markerView = Preconditions.checkExists(this.markerView);
         const region = await api.queryRegion(regionCode);
 
         let route = this.routes.get(id);
