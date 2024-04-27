@@ -31,7 +31,7 @@ type HtmlChildren = string | Node;
  * @see https://itnext.io/lessons-learned-using-jsx-without-react-bbddb6c28561
  */
 class React {
-    static createElement(tag: HtmlTag, attrs?: HtmlAttrs, ...children: HtmlChildren[]) {
+    public static createElement(tag: HtmlTag, attrs?: HtmlAttrs, ...children: HtmlChildren[]) {
         // custom components will be functions
         if (typeof tag === "function") {
             return tag();

@@ -23,7 +23,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
         this.setMap(map);
     }
 
-    onAdd(): void {
+    public onAdd(): void {
         this.hasAdded = true;
         this.root.classList.add("html-marker-view");
         this.root.style.position = "absolute";
@@ -33,11 +33,11 @@ class HtmlMarkerView extends google.maps.OverlayView {
         this.markers.forEach(m => m.onAdd());
     }
 
-    onRemove(): void {
+    public onRemove(): void {
         this.root.parentNode?.removeChild(this.root);
     }
 
-    draw(): void {
+    public draw(): void {
         this.hasDrawn = true;
 
         const proj = new CheckedMapCanvasProjection(this.getProjection());
@@ -54,11 +54,11 @@ class HtmlMarkerView extends google.maps.OverlayView {
         }
     }
 
-    getRootElement(): HTMLDivElement {
+    public getRootElement(): HTMLDivElement {
         return this.root;
     }
 
-    addMarker(m: HtmlMarker): void {
+    public addMarker(m: HtmlMarker): void {
         if (this.markers.has(m.getId())) {
             throw new Error(`Marker with id '${m.getId()}' already exists.`);
         }
@@ -75,7 +75,7 @@ class HtmlMarkerView extends google.maps.OverlayView {
         }
     }
 
-    removeMarker(m_: HtmlMarker | string): void {
+    public removeMarker(m_: HtmlMarker | string): void {
         const m = typeof m_ === "string" ? this.markers.get(m_) : m_;
         if (m != null) {
             this.markers.delete(m.getId());

@@ -52,17 +52,17 @@ export default class HtmlMarker {
         this.setSmoothMovementEasing(opts.smoothMovementEasing ?? null);
     }
 
-    onAdd(): void {
+    public onAdd(): void {
         this.isAdded_ = true;
     }
 
-    destroy(): void {
+    public destroy(): void {
         if (this.root.parentNode != null) {
             this.root.parentNode.removeChild(this.root);
         }
     }
 
-    draw(smoothMovement = true): void {
+    public draw(smoothMovement = true): void {
         // don't draw if we have nothing to draw, or if we aren't on the DOM
         if (this.elem == null || this.root.parentNode == null) {
             return;
@@ -97,54 +97,54 @@ export default class HtmlMarker {
         this.root.style.top = `${coords.y - this.anchorPoint.y}px`;
     }
 
-    getAnchorPoint(): google.maps.Point {
+    public getAnchorPoint(): google.maps.Point {
         return this.anchorPoint;
     }
 
-    getHtmlElement(): HTMLElement {
+    public getHtmlElement(): HTMLElement {
         return this.elem;
     }
 
-    getId(): string {
+    public getId(): string {
         return this.id;
     }
 
-    getOpacity(): number {
+    public getOpacity(): number {
         return this.opacity;
     }
 
-    getPosition(): google.maps.LatLng | null {
+    public getPosition(): google.maps.LatLng | null {
         return this.position;
     }
 
-    getRootElement(): HTMLElement {
+    public getRootElement(): HTMLElement {
         return this.root;
     }
 
-    getSize(): google.maps.Size | null {
+    public getSize(): google.maps.Size | null {
         return this.size;
     }
 
-    getSmoothMovementEasing(): string {
+    public getSmoothMovementEasing(): string {
         return this.smoothMovementEasing;
     }
 
-    getSmoothMovementDuration(): number {
+    public getSmoothMovementDuration(): number {
         return this.smoothMovementDuration;
     }
 
-    isAdded(): boolean {
+    public isAdded(): boolean {
         return this.isAdded_;
     }
 
-    setAnchorPoint(anchorPoint: google.maps.Point | null): void {
+    public setAnchorPoint(anchorPoint: google.maps.Point | null): void {
         if (anchorPoint != null && !anchorPoint.equals(this.anchorPoint)) {
             this.anchorPoint = anchorPoint;
             this.draw();
         }
     }
 
-    setHtmlElement(elem: HTMLElement | null): void {
+    public setHtmlElement(elem: HTMLElement | null): void {
         if (elem != null) {
             if (this.elem != null) {
                 this.root.removeChild(this.elem);
@@ -155,14 +155,14 @@ export default class HtmlMarker {
         }
     }
 
-    setOpacity(opacity: number): void {
+    public setOpacity(opacity: number): void {
         if (this.opacity !== opacity) {
             this.opacity = opacity;
             this.draw();
         }
     }
 
-    setPosition(position: google.maps.LatLng | google.maps.LatLngLiteral | null): void {
+    public setPosition(position: google.maps.LatLng | google.maps.LatLngLiteral | null): void {
         if (position != null) {
             const pos = fromLatLngLiteral(position);
             if (this.position == null || !pos.equals(this.position)) {
@@ -172,18 +172,18 @@ export default class HtmlMarker {
         }
     }
 
-    setFromLatLngToDivPixelProvider(provider: HtmlMarker["fromLatLngToDivPixelProvider"]): void {
+    public setFromLatLngToDivPixelProvider(provider: HtmlMarker["fromLatLngToDivPixelProvider"]): void {
         this.fromLatLngToDivPixelProvider = provider;
     }
 
-    setSize(size: google.maps.Size | null): void {
+    public setSize(size: google.maps.Size | null): void {
         if (size != null && (this.size == null || !size.equals(this.size))) {
             this.size = size;
             this.draw();
         }
     }
 
-    setSmoothMovementDuration(smoothMovementDuration: number | null): void {
+    public setSmoothMovementDuration(smoothMovementDuration: number | null): void {
         if (smoothMovementDuration != null) {
             this.smoothMovementDuration = smoothMovementDuration;
         }
@@ -198,7 +198,7 @@ export default class HtmlMarker {
         }
     }
 
-    setSmoothMovementEasing(smoothMovementEasing: string | null): void {
+    public setSmoothMovementEasing(smoothMovementEasing: string | null): void {
         if (smoothMovementEasing != null) {
             this.smoothMovementEasing = smoothMovementEasing;
         }
