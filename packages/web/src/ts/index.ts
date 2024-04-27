@@ -216,9 +216,7 @@ function onGeolocationError(err: GeolocationPositionError) {
         state.save("map", [newCenter.lat(), newCenter.lng(), newZoom]);
     });
 
-    settings.getSetting("currentRegion").addChangeListener(async s => {
-        search.setRegion(s);
-    });
+    settings.getSetting("currentRegion").addChangeListener(s => search.setRegion(s));
 
     settings.getSetting("currentRegion").addChangeListener(async s => {
         // when the region manually changes, pan to the new region

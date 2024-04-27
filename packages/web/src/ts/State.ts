@@ -295,7 +295,7 @@ class State {
 
     public showVehicle(data: LiveVehicle): void {
         const route = this.routes.get(data.id);
-        if (route === undefined) {
+        if (route == null) {
             console.log("Skipping vehicle update because the route does not exist", data);
             return;
         }
@@ -338,7 +338,7 @@ class State {
 
         let route = this.routes.get(id);
         let showPickr = false;
-        if (route === undefined) {
+        if (route == null) {
             const animateMarkerPosition = settings.getVal("animateMarkerPosition");
             const showTransitRoutes = settings.getVal("showTransitRoutes");
             const snapToRoute = settings.getVal("snapToRoute");
@@ -375,7 +375,7 @@ class State {
 
     private async loadRouteVehicles(id: Id): Promise<void> {
         const route = this.routes.get(id);
-        if (route === undefined) {
+        if (route == null) {
             console.error(`Could not reload vehicles for route: ${id}.`);
             return;
         }
