@@ -1,4 +1,5 @@
 import { accessSync, constants } from "node:fs";
+import { Preconditions } from "@commutelive/common";
 import dotenv from "dotenv";
 import { bool, cleanEnv, makeValidator, port, str } from "envalid";
 
@@ -7,7 +8,7 @@ const file = makeValidator(x => (accessSync(x, constants.R_OK), x));
 
 dotenv.config();
 
-const env = cleanEnv(process.env, {
+const rawEnv = cleanEnv(process.env, {
     ENABLED_REGIONS: makeValidator(x => x ? x.split(",") : "all")({ default: "all" }),
     AUCKLAND_TRANSPORT_KEY: str(),
     NSW_KEY: str(),
@@ -20,13 +21,38 @@ const env = cleanEnv(process.env, {
     USE_SSL: bool({ default: false }),
 });
 
-if (env.USE_SSL) {
-    if (env.SSL_CERT_FILE === "") {
-        throw new Error("env.CERT_FILE_NAME must be set when using SSL.");
-    }
-    if (env.SSL_KEY_FILE === "") {
-        throw new Error("env.KEY_FILE_NAME must be set when using SSL.");
-    }
-}
+const env = validateSSL(rawEnv);
 
 export default env;
+
+type EnvSSL = Readonly<{
+    USE_SSL: true,
+    SSL_CERT_FILE: string
+    SSL_KEY_FILE: string
+} | {
+    USE_SSL: false,
+    SSL_CERT_FILE?: never
+    SSL_KEY_FILE?: never
+}>
+
+function validateSSL({
+    USE_SSL,
+    SSL_CERT_FILE,
+    SSL_KEY_FILE,
+    ...env
+}: typeof rawEnv): Omit<typeof rawEnv, keyof EnvSSL> & EnvSSL {
+    const ssl: EnvSSL = USE_SSL ? {
+        USE_SSL,
+        SSL_CERT_FILE: Preconditions.checkExists(
+            SSL_CERT_FILE,
+            "env.SSL_CERT_FILE must be set when using SSL, received <>",
+        ),
+        SSL_KEY_FILE: Preconditions.checkExists(
+            SSL_KEY_FILE,
+            "env.SSL_KEY_FILE must be set when using SSL, received <>",
+        ),
+    } : {
+        USE_SSL,
+    };
+    return { ...env, ...ssl };
+}
