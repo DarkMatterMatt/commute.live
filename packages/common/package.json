@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/common",
-    "version": "2.5.3",
+    "version": "2.5.4",
     "description": "Contains shared types and functions for [Commute.live](https://commute.live).",
     "main": "dist/index.js",
     "author": "Matt Moran",
@@ -15,21 +15,23 @@
     },
     "scripts": {
         "clean": "rimraf dist",
-        "build": "tsc && tsc-alias",
+        "build": "tsc -p tsconfig.build.json && tsc-alias",
         "lint": "eslint --fix src && tsc --noEmit",
-        "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
+        "test": "npm run build && jest"
     },
     "type": "module",
     "engines": {
         "node": "^20"
     },
     "devDependencies": {
+        "@types/jest": "^29.5.12",
         "@typescript-eslint/eslint-plugin": "^7.7.0",
         "@typescript-eslint/parser": "^7.7.0",
         "eslint": "^8.57.0",
         "eslint-import-resolver-typescript": "^3.6.1",
         "eslint-plugin-import": "^2.29.1",
         "rimraf": "^5.0.5",
+        "ts-jest": "^29.1.2",
         "tsc-alias": "^1.8.8",
         "typescript": "^5.4.5"
     }

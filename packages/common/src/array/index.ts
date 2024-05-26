@@ -19,6 +19,9 @@ export function sum(arr: number[]) {
 /**
  * Get the q'th quantile of an array.
  *
+ * Uses the R‑7 type of calculation. For more details see Wikipedia
+ * @see https://en.wikipedia.org/wiki/Quantile#Estimating_quantiles_from_a_sample
+ *
  * Modified from https://stackoverflow.com/a/55297611.
  * @param q quantile to get, in range 0 - 1.0.
  */

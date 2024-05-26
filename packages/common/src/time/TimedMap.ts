@@ -1,11 +1,14 @@
-import type { TimerId } from "./time";
+import type { ClearTimeout, SetTimeout, TimerId } from "./time";
+
+const defaultSetTimeout = setTimeout;
+const defaultClearTimeout = clearTimeout;
 
 interface IteratorResult<T> {
     value: T;
     done?: boolean;
 }
 
-interface TimedMapOpts<K, V> {
+export interface TimedMapOpts<K, V> {
     /**
      * Each entry is in the format [key, value], or [key, [ttl, value]].
      */
@@ -21,10 +24,14 @@ interface TimedMapOpts<K, V> {
  * Map which automatically evicts entries by time. Uses `setTimeout` for each entry.
  */
 export class TimedMap<K, V> implements Map<K, V> {
-    private cache: Map<K, [TimerId, V]>;
-    private defaultTtl: number;
+    private readonly cache: Map<K, [TimerId, V]>;
+    readonly defaultTtl: number;
 
-    public constructor(partialOpts?: TimedMapOpts<K, V>) {
+    public constructor(
+        partialOpts?: TimedMapOpts<K, V>,
+        private readonly setTimeout: SetTimeout = defaultSetTimeout,
+        private readonly clearTimeout: ClearTimeout = defaultClearTimeout,
+    ) {
         const opts = {
             entries: null,
             defaultTtl: 60 * 1000,
@@ -36,7 +43,7 @@ export class TimedMap<K, V> implements Map<K, V> {
         this.cache = new Map(opts.entries?.map(([k, v]) => {
             const [ttl, val] = Array.isArray(v) ? v : [opts.defaultTtl, v];
             return [k, [
-                setTimeout(() => this.delete(k), ttl),
+                this.setTimeout(() => this.delete(k), ttl),
                 val,
             ]];
         }));
@@ -45,20 +52,21 @@ export class TimedMap<K, V> implements Map<K, V> {
     /* Basic cache functions */
 
     public clear(): void {
-        this.cache.forEach(v => clearTimeout(v[0]));
+        this.cache.forEach(v => this.clearTimeout(v[0]));
         this.cache.clear();
     }
 
     public delete(key: K): boolean {
         const arr = this.cache.get(key);
         if (arr != null) {
-            clearTimeout(arr[0]);
+            this.clearTimeout(arr[0]);
         }
         return this.cache.delete(key);
     }
 
-    public get(key: K): undefined | V {
-        return this.cache.get(key)?.[1];
+    public get<D = undefined>(key: K, defaultValue = undefined as D): V | D {
+        const cached = this.cache.get(key);
+        return cached == null ? defaultValue : cached[1];
     }
 
     public has(key: K): boolean {
@@ -66,11 +74,11 @@ export class TimedMap<K, V> implements Map<K, V> {
     }
 
     public set(key: K, value: V, ttl?: number): this {
-        const timeout = setTimeout(() => this.delete(key), ttl ?? this.defaultTtl);
+        const timeout = this.setTimeout(() => this.delete(key), ttl ?? this.defaultTtl);
 
         const arr = this.cache.get(key);
         if (arr != null) {
-            clearTimeout(arr[0]);
+            this.clearTimeout(arr[0]);
         }
         this.cache.set(key, [timeout, value]);
 
