@@ -87,9 +87,7 @@ export async function startServer({
                 return;
             }
 
-            const { route: routeName, seq } = json;
-            delete json.route;
-            delete json.seq;
+            const { route: routeName, seq, ...params } = json;
 
             if (typeof routeName !== "string" || routeName === "") {
                 ws.send(JSON.stringify({
@@ -108,7 +106,7 @@ export async function startServer({
             }
 
             const route = wsRoutes.get(routeName) || defaultWsRoute;
-            route.createRoute({ params: json, seq, ws })
+            route.createRoute({ params, seq, ws })
                 .execute({
                     activeWebSockets,
                     availableRegions,
