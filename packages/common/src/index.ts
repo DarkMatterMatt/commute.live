@@ -5,5 +5,6 @@ export * from "./geo";
 export * from "./memoize";
 export * from "./number";
 export * from "./promises";
+export * from "./test-helpers";
 export * from "./time";
 export * from "./types";

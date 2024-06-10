@@ -1,4 +1,4 @@
-import { simpleTest } from "~/tests/helpers";
+import { simpleTest } from "~/test-helpers";
 import { binarySearch, quantile } from "..";
 
 describe("quantile", () => {
