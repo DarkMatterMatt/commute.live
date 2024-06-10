@@ -1,6 +1,6 @@
 import type { PromiseOr, RegionCode } from "@commutelive/common";
 import type { DataSource, WebSocket } from "~/types";
-import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen, type RouteInitializeOpts } from "../Route.js";
+import { type CreateRouteData, Route, type RouteExecuteOpts, RouteGen, type RouteInitializeOpts } from "../Route";
 
 export type ValidParams<R extends readonly string[], O extends readonly string[]> =
     { [K in R[number]]: string } & Partial<{ [K in O[number]]: string }>;

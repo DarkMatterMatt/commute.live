@@ -1,5 +1,5 @@
-import { getStatus as getDataSourcesStatus } from "~/datasources/index.js";
-import { GetRouteGenerator } from "./GetRoute.js";
+import { getStatus as getDataSourcesStatus } from "~/datasources/index";
+import { GetRouteGenerator } from "./GetRoute";
 
 export const statusRoute = new GetRouteGenerator({
     name: "status",

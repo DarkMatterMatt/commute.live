@@ -1,6 +1,6 @@
 import type { JSONSerializable } from "@commutelive/common";
 import { MultiPersistentWebSocket, parseEnum, RollingAverage } from "~/helpers/";
-import { getLogger } from "~/log.js";
+import { getLogger } from "~/log";
 import type { FeedEntity, Position, StopTimeUpdate, TripDescriptor, TripUpdate, TripUpdate$StopTimeEvent, VehicleDescriptor, VehiclePosition } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
 

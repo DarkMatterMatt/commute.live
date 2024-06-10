@@ -8,7 +8,7 @@ import { closeDb, importGtfs, openDb } from "gtfs";
 import fetch, { type Response } from "node-fetch";
 import Graceful from "node-graceful";
 import { SqlBatcher } from "~/helpers/";
-import { getLogger } from "~/log.js";
+import { getLogger } from "~/log";
 import type { SqlDatabase } from "~/types";
 import { makeId } from "./id";
 

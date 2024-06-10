@@ -6,8 +6,8 @@ import { createGunzip } from "node:zlib";
 import { type IpLocationResult, sleep } from "@commutelive/common";
 import maxmind, { type CityResponse, type Reader } from "maxmind";
 import fetch from "node-fetch";
-import { getLogger } from "~/log.js";
-import { GetRouteGenerator } from "./GetRoute.js";
+import { getLogger } from "~/log";
+import { GetRouteGenerator } from "./GetRoute";
 
 const URL = "https://download.db-ip.com/free/dbip-city-lite-{{YEAR}}-{{MONTH}}.mmdb.gz";
 

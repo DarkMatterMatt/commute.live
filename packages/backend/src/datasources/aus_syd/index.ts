@@ -1,10 +1,10 @@
 import type { DataSource } from "~/types";
-import { makeId, regionCode } from "./id.js";
-import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
-import type { NSWSource } from "./realtime_polling.js";
+import { makeId, regionCode } from "./id";
+import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime";
+import type { NSWSource } from "./realtime_polling";
 import { buses, ferries_sydneyferries, lightrail_cbdandsoutheast, lightrail_innerwest, lightrail_newcastle, metro, nswtrains, sydneytrains } from "./sources/";
-import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static.js";
-import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries.js";
+import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static";
+import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries";
 
 const GTFS_URL = "https://api.transport.nsw.gov.au/v1/publictransport/timetables/complete/gtfs";
 

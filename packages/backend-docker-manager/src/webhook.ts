@@ -2,7 +2,7 @@ import fs from "node:fs";
 import http from "node:http";
 import https from "node:https";
 import { createNodeMiddleware, Webhooks } from "@octokit/webhooks";
-import { log } from "./log.js";
+import { log } from "./log";
 
 type Middleware = ReturnType<typeof createNodeMiddleware>;
 

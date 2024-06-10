@@ -2,11 +2,11 @@ import { type JSONSerializable, type Primitive, sum, timedMemo } from "@commutel
 import { parseEnum, RollingAverage } from "~/helpers";
 import { getLogger } from "~/log";
 import { CongestionLevel, OccupancyStatus, type Position, type StopTimeUpdate, type TripDescriptor, TripDescriptor$ScheduleRelationship, type TripUpdate, type TripUpdate$StopTimeEvent, TripUpdate$StopTimeUpdate$ScheduleRelationship, type VehicleDescriptor, type VehiclePosition, VehicleStopStatus } from "~/types";
-import { queryApi } from "./api.js";
-import type { FeedEntity as FeedEntityV1, FeedMessage as FeedMessageV1, Position as PositionV1, TripDescriptor as TripDescriptorV1, TripUpdate_StopTimeEvent as TripUpdate_StopTimeEventV1, TripUpdate_StopTimeUpdate as TripUpdate_StopTimeUpdateV1, TripUpdate as TripUpdateV1, VehicleDescriptor as VehicleDescriptorV1, VehiclePosition as VehiclePositionV1 } from "./gtfs-realtime.proto.js";
-import type { FeedEntity as FeedEntityV2, FeedMessage as FeedMessageV2, Position as PositionV2, TripDescriptor as TripDescriptorV2, TripUpdate_StopTimeEvent as TripUpdate_StopTimeEventV2, TripUpdate_StopTimeUpdate as TripUpdate_StopTimeUpdateV2, TripUpdate as TripUpdateV2, VehicleDescriptor as VehicleDescriptorV2, VehiclePosition as VehiclePositionV2 } from "./gtfs-realtime_v2.proto.js";
-import { getDatabase } from "./static.js";
-import { getDirectionIdByTripId } from "./static_queries.js";
+import { queryApi } from "./api";
+import type { FeedEntity as FeedEntityV1, FeedMessage as FeedMessageV1, Position as PositionV1, TripDescriptor as TripDescriptorV1, TripUpdate_StopTimeEvent as TripUpdate_StopTimeEventV1, TripUpdate_StopTimeUpdate as TripUpdate_StopTimeUpdateV1, TripUpdate as TripUpdateV1, VehicleDescriptor as VehicleDescriptorV1, VehiclePosition as VehiclePositionV1 } from "./gtfs-realtime.proto";
+import type { FeedEntity as FeedEntityV2, FeedMessage as FeedMessageV2, Position as PositionV2, TripDescriptor as TripDescriptorV2, TripUpdate_StopTimeEvent as TripUpdate_StopTimeEventV2, TripUpdate_StopTimeUpdate as TripUpdate_StopTimeUpdateV2, TripUpdate as TripUpdateV2, VehicleDescriptor as VehicleDescriptorV2, VehiclePosition as VehiclePositionV2 } from "./gtfs-realtime_v2.proto";
+import { getDatabase } from "./static";
+import { getDirectionIdByTripId } from "./static_queries";
 
 const log = getLogger("AUSSYD/realtime/poll");
 

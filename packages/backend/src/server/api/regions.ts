@@ -1,5 +1,5 @@
 import { type RegionCode, type RegionDataResult, UnreachableError } from "@commutelive/common";
-import { GetRouteGenerator } from "./GetRoute.js";
+import { GetRouteGenerator } from "./GetRoute";
 
 const validFields = [
     "code",

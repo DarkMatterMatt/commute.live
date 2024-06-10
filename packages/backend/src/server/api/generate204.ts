@@ -1,4 +1,4 @@
-import { GetRouteGenerator } from "./GetRoute.js";
+import { GetRouteGenerator } from "./GetRoute";
 
 export const generate204Route = new GetRouteGenerator({
     name: "generate204",

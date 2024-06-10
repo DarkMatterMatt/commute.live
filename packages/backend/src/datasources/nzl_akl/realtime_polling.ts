@@ -1,7 +1,7 @@
 import type { JSONSerializable } from "@commutelive/common";
 import fetch from "node-fetch";
 import WebSocket from "ws";
-import env from "~/env.js";
+import env from "~/env";
 import { RollingAverage } from "~/helpers";
 import { getLogger } from "~/log";
 import type { FeedEntity, TripUpdate, VehiclePosition } from "~/types";

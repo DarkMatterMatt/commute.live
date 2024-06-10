@@ -1,4 +1,4 @@
-import { WebSocketRouteGenerator } from "./WebSocketRoute.js";
+import { WebSocketRouteGenerator } from "./WebSocketRoute";
 
 export const pingRoute = new WebSocketRouteGenerator({
     name: "ping",

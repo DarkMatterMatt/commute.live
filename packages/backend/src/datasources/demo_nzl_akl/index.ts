@@ -1,7 +1,7 @@
 import type { DataSource } from "~/types";
-import { makeId, regionCode } from "./id.js";
-import { getTripUpdates, getVehicleUpdates, initialize, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime.js";
-import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes } from "./static.js";
+import { makeId, regionCode } from "./id";
+import { getTripUpdates, getVehicleUpdates, initialize, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime";
+import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes } from "./static";
 
 export const DEMO_NZL_AKL: DataSource = {
     hidden: true,

@@ -1,6 +1,6 @@
 import type { Id } from "@commutelive/common";
 import { getMQTTForVehicleUpdates } from "~/datasources/";
-import { WebSocketRouteGenerator } from "./WebSocketRoute.js";
+import { WebSocketRouteGenerator } from "./WebSocketRoute";
 
 export const unsubscribeRoute = new WebSocketRouteGenerator({
     name: "unsubscribe",

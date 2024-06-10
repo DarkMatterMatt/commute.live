@@ -1,4 +1,4 @@
-import { Queue } from "./Queue.js";
+import { Queue } from "./Queue";
 
 export interface RateLimiterOptions {
     /**

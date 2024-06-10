@@ -1,5 +1,5 @@
 import type { PromiseOr } from "@commutelive/common";
-import { Queue } from "./Queue.js";
+import { Queue } from "./Queue";
 
 /**
  * ReplayTimeline is used when replaying realtime events.

@@ -4,8 +4,8 @@ import { type Id, TimedMap } from "@commutelive/common";
 import fetch from "node-fetch";
 import Graceful from "node-graceful";
 import { checkForRealtimeUpdates, checkForStaticUpdates, getRegion, initialize as initializeRegions, mapRegionsSync, regions } from "~/datasources/";
-import env from "~/env.js";
-import { getLogger } from "~/log.js";
+import env from "~/env";
+import { getLogger } from "~/log";
 import { publishTripUpdate, publishVehiclePosition, startServer } from "~/server/";
 import type { DataSource, TripDescriptor, TripUpdate, VehiclePosition } from "~/types/";
 

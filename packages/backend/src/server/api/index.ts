@@ -1,12 +1,12 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { generate204Route } from "./generate204.js";
-import { GetRouteGenerator, type GetRouteInitializeOpts } from "./GetRoute.js";
-import { iplocationRoute } from "./iplocation.js";
-import { listRoute } from "./list.js";
-import { regionsRoute } from "./regions.js";
-import { routesRoute } from "./routes.js";
-import { statusRoute } from "./status.js";
+import { generate204Route } from "./generate204";
+import { GetRouteGenerator, type GetRouteInitializeOpts } from "./GetRoute";
+import { iplocationRoute } from "./iplocation";
+import { listRoute } from "./list";
+import { regionsRoute } from "./regions";
+import { routesRoute } from "./routes";
+import { statusRoute } from "./status";
 
 export const defaultRoute = new GetRouteGenerator({
     name: "default",

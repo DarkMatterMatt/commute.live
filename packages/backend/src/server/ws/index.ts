@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { pingRoute } from "./ping.js";
-import { subscribeRoute } from "./subscribe.js";
-import { unsubscribeRoute } from "./unsubscribe.js";
-import { WebSocketRouteGenerator, type WebSocketRouteInitializeOpts } from "./WebSocketRoute.js";
+import { pingRoute } from "./ping";
+import { subscribeRoute } from "./subscribe";
+import { unsubscribeRoute } from "./unsubscribe";
+import { WebSocketRouteGenerator, type WebSocketRouteInitializeOpts } from "./WebSocketRoute";
 
 export const defaultRoute = new WebSocketRouteGenerator({
     name: "default",

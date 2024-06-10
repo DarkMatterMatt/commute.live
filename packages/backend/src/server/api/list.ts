@@ -1,5 +1,5 @@
 import type { ListRoutesResult } from "@commutelive/common";
-import { GetRouteGenerator } from "./GetRoute.js";
+import { GetRouteGenerator } from "./GetRoute";
 
 export const listRoute = new GetRouteGenerator({
     name: "list",

@@ -1,7 +1,7 @@
 import { createPromise } from "@commutelive/common";
-import type { TimerId } from "~/types/timer.js";
-import { Queue } from "./Queue.js";
-import { RateLimiter, type RateLimiterOptions } from "./RateLimiter.js";
+import type { TimerId } from "~/types/timer";
+import { Queue } from "./Queue";
+import { RateLimiter, type RateLimiterOptions } from "./RateLimiter";
 
 export type QueueingRateLimiterOptions = RateLimiterOptions;
 

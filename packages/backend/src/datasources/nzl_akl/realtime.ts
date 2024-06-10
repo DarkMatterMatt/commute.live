@@ -1,9 +1,9 @@
 import { type Id, type JSONSerializable, TimedMap } from "@commutelive/common";
-import { getLogger } from "~/log.js";
+import { getLogger } from "~/log";
 import type { SqlDatabase, TripUpdate, TripUpdateListener, VehiclePosition, VehicleUpdateListener } from "~/types";
-import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling } from "./realtime_polling.js";
-import { getStatus as getWebSocketStatus, initialize as initializeWebSocket } from "./realtime_websocket.js";
-import { getRouteIds, getTripIds } from "./static_queries.js";
+import { checkForRealtimeUpdate as checkForRealtimeUpdatePolling, getStatus as getPollingStatus, initialize as initializePolling } from "./realtime_polling";
+import { getStatus as getWebSocketStatus, initialize as initializeWebSocket } from "./realtime_websocket";
+import { getRouteIds, getTripIds } from "./static_queries";
 
 const MINUTE = 60 * 1000;
 

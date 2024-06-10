@@ -1,7 +1,7 @@
 import { type Id, type RouteDataResult, UnreachableError } from "@commutelive/common";
-import { parseRegionalId } from "~/datasources/index.js";
-import { convertVehiclePosition } from "../transmission/vehicleUpdate.js";
-import { GetRouteGenerator } from "./GetRoute.js";
+import { parseRegionalId } from "~/datasources/index";
+import { convertVehiclePosition } from "../transmission/vehicleUpdate";
+import { GetRouteGenerator } from "./GetRoute";
 
 const validFields = [
     "id",
