@@ -39,5 +39,6 @@ export function parseStringEnum<T extends string, TEnumValue extends string>(
         return val as TEnumValue;
     }
 
-    throw new Error(`Could not resolve enum type for ${val}, should be one of ${[...Object.keys(enumType)]}`);
+    const options = [...Object.values(enumType), ...Object.keys(enumType)];
+    throw new Error(`Could not resolve enum type for ${val}, should be one of ${options}`);
 }
