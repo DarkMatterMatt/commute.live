@@ -14,7 +14,7 @@
         "url": "https://github.com/DarkMatterMatt/commute.live/issues"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -p tsconfig.build.json",
         "build:docker": "docker build -f Dockerfile -t commute.live ../../",
         "clean": "rimraf dist && npm run clean:proto",
         "clean:proto": "rimraf src/**/*.proto.ts",
@@ -24,7 +24,7 @@
         "start": "node --experimental-loader ./dist/loader.js dist/index.js",
         "start:docker": "docker run --env-file ../../.env --name commute.live -dp 9001:9001 commute.live",
         "stop:docker": "docker kill --signal=SIGINT commute.live || echo\\",
-        "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\"",
+        "test": "npm run build && cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
         "typecheck": "tsc --noEmit"
     },
     "nx": {
@@ -109,14 +109,17 @@
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.10",
+        "@types/jest": "^29.5.12",
         "@types/node": "^20.12.7",
         "@types/ws": "^8.5.10",
         "@typescript-eslint/eslint-plugin": "^7.7.1",
         "@typescript-eslint/parser": "^7.7.1",
+        "cross-env": "^7.0.3",
         "eslint": "^8.57.0",
         "eslint-import-resolver-typescript": "^3.6.1",
         "eslint-plugin-import": "^2.29.1",
         "rimraf": "^5.0.5",
+        "ts-jest": "^29.1.4",
         "typescript": "^5.4.5"
     }
 }
