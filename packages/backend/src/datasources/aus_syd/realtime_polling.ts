@@ -10,14 +10,14 @@ import { getDirectionIdByTripId } from "./static_queries";
 
 const log = getLogger("AUSSYD/realtime/poll");
 
-type Booleaned_<T> = { [K in keyof T]:
-    T[K] extends Array<any>
-        ? T[K] extends Array<Primitive>
+type Booleaned_<T> = {
+    [K in keyof T]: T[K] extends any[]
+        ? T[K] extends Primitive[]
             ? boolean
             : false | Booleaned_<NonNullable<T[K][number]>>
         : T[K] extends Primitive
             ? boolean
-            : false |Booleaned_<NonNullable<T[K]>>
+            : false | Booleaned_<NonNullable<T[K]>>
 };
 export type Booleaned<T> = Booleaned_<NonNullable<T>>;
 
