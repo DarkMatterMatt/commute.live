@@ -17,9 +17,9 @@
         "build": "tsc",
         "build:docker": "docker build -f Dockerfile -t commute.live-manager ../../",
         "clean": "rimraf dist",
-        "clean:docker": "docker rm commute.live-manager || echo\\",
+        "clean:docker": "docker rm commute.live-manager || echo",
         "start:docker": "docker run -d --name commute.live-manager -v /var/run/docker.sock:/var/run/docker.sock -v \"$(pwd)\"/docker-env:/env -p 8443:8443 -p 443:443 ghcr.io/darkmattermatt/commute.live-manager:main",
-        "stop:docker": "docker kill --signal=SIGINT commute.live-manager || echo\\",
+        "stop:docker": "docker kill --signal=SIGINT commute.live-manager || echo",
         "lint": "eslint --fix src && tsc --noEmit",
         "start": "node dist/index.js",
         "test": "npm run build && mocha --paths \"dist/**/*.spec.ts\""
