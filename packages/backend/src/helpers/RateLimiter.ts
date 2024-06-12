@@ -23,15 +23,18 @@ export class RateLimiter {
      */
     protected readonly recent: Queue<number>;
 
-    constructor(opts: RateLimiterOptions) {
+    constructor(
+        opts: RateLimiterOptions,
+        private readonly getEpochTime = Date.now,
+    ) {
         this.requestsPerSecond = opts.requestsPerSecond;
         this.recent = new Queue(opts.triggerThreshold);
     }
 
-    public accept(cb: null | (() => void) = null): boolean {
+    public accept(cb?: (() => void)): boolean {
         // remove old items from queue
-        const now = Date.now();
-        while (this.recent.size() > 0 && this.recent.element() < now) {
+        const now = this.getEpochTime();
+        while (this.recent.size() > 0 && this.recent.element() <= now) {
             this.recent.remove();
         }
 

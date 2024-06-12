@@ -1,3 +1,5 @@
+export class QueueError extends Error {}
+
 class Node<T> {
     public constructor(
         public readonly value: T,
@@ -11,16 +13,26 @@ export class Queue<T> {
     private len = 0;
 
     constructor(
-        public readonly maxSize = -1,
+        /**
+         * Maximum capacity of this queue. Defaults to unlimited.
+         */
+        public readonly maxSize = Infinity,
     ) {}
 
-    public size() {
+    /**
+     * Returns the number of elements in this Queue.
+     */
+    public size(): number {
         return this.len;
     }
 
-    public add(value: T) {
-        if (this.maxSize !== -1 && this.len >= this.maxSize) {
-            throw new Error("Queue is full.");
+    /**
+     * Inserts the specified element into this queue if it is possible to do so immediately without
+     * violating capacity restrictions, throwing a `QueueError` if no space is currently available.
+     */
+    public add(value: T): void {
+        if (this.len >= this.maxSize) {
+            throw new QueueError("Queue is full.");
         }
 
         const node = new Node(value);
@@ -37,16 +49,24 @@ export class Queue<T> {
         this.len++;
     }
 
-    public element() {
+    /**
+     * Retrieves, but does not remove, the head of this queue. Throws a `QueueError` if there are no
+     * elements in this queue.
+     */
+    public element(): T {
         if (this.head === null) {
-            throw new Error("Queue is empty.");
+            throw new QueueError("Queue is empty.");
         }
         return this.head.value;
     }
 
-    public remove() {
+    /**
+     * Retrieves and removes the head of this queue. Throws a `QueueError` if there are no elements
+     * in this queue.
+     */
+    public remove(): T {
         if (this.head === null) {
-            throw new Error("Queue is empty.");
+            throw new QueueError("Queue is empty.");
         }
         const { value } = this.head;
         this.head = this.head.next;
@@ -54,42 +74,57 @@ export class Queue<T> {
         return value;
     }
 
+    /**
+     * Inserts the specified element into this queue if it is possible to do so immediately without
+     * violating capacity restrictions, returning `true` upon success and `false` if no space is
+     * currently available.
+     */
     public offer(value: T): boolean {
-        if (this.maxSize !== -1 && this.len >= this.maxSize) {
+        if (this.len >= this.maxSize) {
             return false;
         }
         this.add(value);
         return true;
     }
 
-    public peek() : null | T;
-    public peek<V>(defaultValue: V) : V | T;
-    public peek(defaultValue = null) {
+    /**
+     * Retrieves, but does not remove, the head of this queue, If this queue is empty, returns
+     * `defaultValue` if provided, otherwise `null`.
+     */
+    public peek<V = null>(defaultValue: V = null as V): T | V {
         if (this.head === null) {
             return defaultValue;
         }
         return this.element();
     }
 
-    public poll() : null | T;
-    public poll<V>(defaultValue: V) : V | T;
-    public poll(defaultValue = null) {
+    /**
+     * Retrieves and removes the head of this queue. If this queue is empty, returns `defaultValue`
+     * if provided, otherwise `null`.
+     */
+    public poll<V = null>(defaultValue: V = null as V): T | V {
         if (this.head === null) {
             return defaultValue;
         }
         return this.remove();
     }
 
-    public elementLast() {
+    /**
+     * Retrieves, but does not remove, the tail of this queue. Throws a `QueueError` if there are no
+     * elements in this queue.
+     */
+    public elementLast(): T {
         if (this.tail === null) {
-            throw new Error("Queue is empty.");
+            throw new QueueError("Queue is empty.");
         }
         return this.tail.value;
     }
 
-    public peekLast() : null | T;
-    public peekLast<V>(defaultValue: V) : V | T;
-    public peekLast(defaultValue = null) {
+    /**
+     * Retrieves, but does not remove, the tail of this queue, If this queue is empty, returns
+     * `defaultValue` if provided, otherwise `null`.
+     */
+    public peekLast<V = null>(defaultValue: V = null as V): T | V {
         if (this.tail === null) {
             return defaultValue;
         }
