@@ -1,5 +1,5 @@
 import { type JSONSerializable, type Primitive, sum, timedMemo } from "@commutelive/common";
-import { parseEnum, RollingAverage } from "~/helpers";
+import { parseEnum, RollingAverageByTime } from "~/helpers";
 import { getLogger } from "~/log";
 import { CongestionLevel, OccupancyStatus, type Position, type StopTimeUpdate, type TripDescriptor, TripDescriptor$ScheduleRelationship, type TripUpdate, type TripUpdate$StopTimeEvent, TripUpdate$StopTimeUpdate$ScheduleRelationship, type VehicleDescriptor, type VehiclePosition, VehicleStopStatus } from "~/types";
 import { queryApi } from "./api";
@@ -40,15 +40,9 @@ let addTripUpdate: (tripUpdate: TripUpdate) => boolean;
 
 let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => boolean;
 
-const recentTripUpdatesAverageAge = new RollingAverage({
-    windowType: "time",
-    windowSize: 2 * 60 * 1000,
-});
+const recentTripUpdatesAverageAge = new RollingAverageByTime(2 * 60 * 1000);
 
-const recentVehiclePositionsAverageAge = new RollingAverage({
-    windowType: "time",
-    windowSize: 2 * 60 * 1000,
-});
+const recentVehiclePositionsAverageAge = new RollingAverageByTime(2 * 60 * 1000);
 
 let realtimeApiUrls: NSWSource[];
 let updateInProgress = false;

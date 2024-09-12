@@ -1,70 +1,78 @@
-import { UnreachableError } from "@commutelive/common";
 import { Queue } from "./Queue";
 
-interface RollingAverageOpts {
-    /** Number of values/time in milliseconds to average over. */
-    windowSize: number;
-
-    /**
-     * Type of sliding window:
-     * - `count` sets a maximum number of elements.
-     * - `time` sets a maximum age in milliseconds.
-     */
-    windowType: "count" | "time";
-}
-
-export class RollingAverage {
-    private readonly queue = new Queue<[number, number]>();
+abstract class RollingAverage<T = void> {
+    private readonly queue = new Queue<[number, T]>();
     private sum = 0;
-    private readonly windowSize: number;
-    private readonly windowType: "count" | "time";
 
-    public constructor(opts: RollingAverageOpts) {
-        this.windowSize = opts.windowSize;
-        this.windowType = opts.windowType;
+    public add(value: number, data: T): void {
+        this.addElement(value, data);
     }
 
-    public add(value: number) {
-        this.queue.add([Date.now(), value]);
+    protected addElement(value: number, data: T): void {
+        this.queue.add([value, data]);
         this.sum += value;
 
         this.update();
     }
 
     /**
-     * Returns the average of the values in the window, or `NaN` if the window is empty.
+     * Returns the average (mean) of the values in the window, or `NaN` if the window is empty.
      */
-    public getAverage() {
+    public getAverage(): number {
         this.update();
         return this.sum / this.queue.size();
     }
-    public size() {
+
+    /**
+     * Return the number of elements being averaged.
+     */
+    public getSize(): number {
         this.update();
         return this.queue.size();
     }
 
-    private remove(): void {
-        const [, value] = this.queue.remove();
+    private removeOldest(): void {
+        const [value] = this.queue.remove();
         this.sum -= value;
     }
 
-    private update(): void {
-        switch (this.windowType) {
-            case "count": {
-                while (this.queue.size() > this.windowSize) {
-                    this.remove();
-                }
-                break;
-            }
-            case "time": {
-                const now = Date.now();
-                while (this.queue.size() > 0 && this.queue.element()[0] < now - this.windowSize) {
-                    this.remove();
-                }
-                break;
-            }
-            default:
-                throw new UnreachableError(this.windowType);
+    protected update(): void {
+        while (this.queue.size() > 0 && !this.isElementValid(this.queue.element()[1], this.queue.size())) {
+            this.removeOldest();
         }
+    }
+
+    /**
+     * Returns true if the rolling average should keep the element.
+     */
+    protected abstract isElementValid(data: T, queueSize: number): boolean
+}
+
+export class RollingAverageByCount extends RollingAverage {
+    public constructor(
+        private readonly windowSize: number,
+    ) {
+        super();
+    }
+
+    protected override isElementValid(_: void, queueSize: number) {
+        return queueSize <= this.windowSize;
+    }
+}
+
+export class RollingAverageByTime extends RollingAverage<number> {
+    public constructor(
+        private readonly windowSizeInMs: number,
+        private readonly getTime = Date.now,
+    ) {
+        super();
+    }
+
+    public override add(value: number): void {
+        this.addElement(value, this.getTime());
+    }
+
+    override isElementValid(timeAdded: number): boolean {
+        return timeAdded >= this.getTime() - this.windowSizeInMs;
     }
 }

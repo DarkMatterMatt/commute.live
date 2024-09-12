@@ -2,7 +2,7 @@ import type { JSONSerializable } from "@commutelive/common";
 import fetch from "node-fetch";
 import WebSocket from "ws";
 import env from "~/env";
-import { RollingAverage } from "~/helpers";
+import { RollingAverageByTime } from "~/helpers";
 import { getLogger } from "~/log";
 import type { FeedEntity, TripUpdate, VehiclePosition } from "~/types";
 import { fixTripUpdate, fixVehiclePosition, getReadyState } from "./realtime_websocket";
@@ -13,15 +13,9 @@ let addTripUpdate: (tripUpdate: TripUpdate) => boolean;
 
 let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => boolean;
 
-const recentTripUpdatesAverageAge = new RollingAverage({
-    windowType: "time",
-    windowSize: 2 * 60 * 1000,
-});
+const recentTripUpdatesAverageAge = new RollingAverageByTime(2 * 60 * 1000);
 
-const recentVehiclePositionsAverageAge = new RollingAverage({
-    windowType: "time",
-    windowSize: 2 * 60 * 1000,
-});
+const recentVehiclePositionsAverageAge = new RollingAverageByTime(2 * 60 * 1000);
 
 let realtimeApiUrl: string;
 let updateInProgress = false;

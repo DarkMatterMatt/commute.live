@@ -1,5 +1,5 @@
 import type { JSONSerializable } from "@commutelive/common";
-import { MultiPersistentWebSocket, parseEnum, RollingAverage } from "~/helpers/";
+import { MultiPersistentWebSocket, parseEnum, RollingAverageByTime } from "~/helpers/";
 import { getLogger } from "~/log";
 import type { FeedEntity, Position, StopTimeUpdate, TripDescriptor, TripUpdate, TripUpdate$StopTimeEvent, VehicleDescriptor, VehiclePosition } from "~/types";
 import { CongestionLevel, OccupancyStatus, TripDescriptor$ScheduleRelationship, TripUpdate$StopTimeUpdate$ScheduleRelationship, VehicleStopStatus } from "~/types/";
@@ -18,15 +18,9 @@ let addTripUpdate: (tripUpdate: TripUpdate) => boolean;
 
 let addVehicleUpdate: (vehicleUpdate: VehiclePosition) => boolean;
 
-const recentTripUpdatesAverageAge = new RollingAverage({
-    windowType: "time",
-    windowSize: 2 * 60 * 1000,
-});
+const recentTripUpdatesAverageAge = new RollingAverageByTime(2 * 60 * 1000);
 
-const recentVehiclePositionsAverageAge = new RollingAverage({
-    windowType: "time",
-    windowSize: 2 * 60 * 1000,
-});
+const recentVehiclePositionsAverageAge = new RollingAverageByTime(2 * 60 * 1000);
 
 export async function getStatus(): Promise<JSONSerializable> {
     return {
