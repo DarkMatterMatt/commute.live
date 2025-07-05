@@ -18,7 +18,7 @@ export const regionsRoute = new GetRouteGenerator({
     requiredParams: [] as const,
     optionalParams: ["fields", "regions"] as const,
     executor: async (route, { getRegion, params, regions }) => {
-        const rawFields = params.fields ? params.fields.split(",") : validFields;
+        const rawFields = params.fields?.length ? params.fields.split(",") : validFields;
         for (const field of rawFields) {
             if (!validFields.includes(field as ValidField)) {
                 return route.finish("error", {
@@ -28,7 +28,7 @@ export const regionsRoute = new GetRouteGenerator({
             }
         }
         const fields = rawFields as ValidField[];
-        const regionsToFetch = params.regions
+        const regionsToFetch = params.regions?.length
             ? (params.regions.split(",") as RegionCode[])
             : regions.filter(r => !r.hidden).map(r => r.code);
 
@@ -60,7 +60,7 @@ export const regionsRoute = new GetRouteGenerator({
                         break;
                     }
 
-                    case "region":{
+                    case "region": {
                         result["region"] = region.region;
                         break;
                     }
