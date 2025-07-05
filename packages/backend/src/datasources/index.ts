@@ -1,11 +1,13 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import type { Id, JSONSerializable, Primitive, PromiseOr, RegionCode } from "@commutelive/common";
+import type { Id, JSONSerializable, PromiseOr, RegionCode } from "@commutelive/common";
 import { getLogger } from "~/log";
 import type { DataSource } from "~/types";
 import { AUS_SYD } from "./aus_syd/";
 import { DEMO_NZL_AKL } from "./demo_nzl_akl/";
 import { NZL_AKL } from "./nzl_akl/";
+
+export { makeRegionalId, parseRegionalId } from "./base/id";
 
 const log = getLogger("datasources");
 
@@ -59,28 +61,6 @@ export function getMQTTForTripUpdates(id: Id) {
     return `trips/${id}`;
 }
 
-export function makeRegionalId(region: RegionCode, ...idComponents: Primitive[]): Id {
-    const idComponentRegex = /^[a-zA-Z0-9_-]+$/;
-    if (idComponents.some(s => !idComponentRegex.test(s?.toString() ?? ""))) {
-        throw new Error(`Id components must match ${idComponentRegex}. Received ${idComponents}`);
-    }
-    return [region, ...idComponents].join("|") as Id;
-}
-
-export function parseRegionalId(id: Id): [RegionCode, string[]];
-export function parseRegionalId(region: RegionCode, id: Id): string[];
-export function parseRegionalId(regionOrId: Id | RegionCode, id?: Id): [RegionCode, string[]] | string[] {
-    if (id == null) {
-        return regionOrId.split("|");
-    }
-
-    const [region, ...idComponents] = id.split("|");
-    if (region !== regionOrId) {
-        throw new Error(`Expected region ${regionOrId}, got ${region}`);
-    }
-    return idComponents;
-}
-
 export async function initialize(cacheDir: string, selectRegions: "all" | string[]): Promise<void> {
     // select the regions to initialize
     const lowercaseSelectRegions = selectRegions === "all" ? "all" : selectRegions.map(r => r.toLowerCase());
@@ -104,7 +84,7 @@ export async function initialize(cacheDir: string, selectRegions: "all" | string
     // initialize each region
     const results = await mapRegions(async r => {
         const regionCache = path.join(cacheDir, r.code.toLowerCase());
-        if (!existsSync(regionCache)){
+        if (!existsSync(regionCache)) {
             mkdirSync(regionCache, { recursive: true });
         }
         await r.initialize(regionCache);

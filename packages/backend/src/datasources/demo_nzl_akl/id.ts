@@ -1,5 +1,5 @@
 import type { Id, RegionCode } from "@commutelive/common";
-import { makeRegionalId, parseRegionalId } from "..";
+import { makeRegionalId, parseRegionalId } from "../base/id";
 
 export const regionCode: RegionCode = "FAKE_NZL_AKL";
 
