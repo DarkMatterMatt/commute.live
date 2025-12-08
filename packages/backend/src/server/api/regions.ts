@@ -1,4 +1,4 @@
-import { type RegionCode, type RegionDataResult, UnreachableError } from "@commutelive/common";
+import { type PartialRegionsDataResult, type RegionCode, type RegionDataResult, UnreachableError } from "@commutelive/common";
 import { GetRouteGenerator } from "./GetRoute";
 
 const validFields = [
@@ -13,10 +13,10 @@ const validFields = [
 
 type ValidField = typeof validFields[number];
 
-export const regionsRoute = new GetRouteGenerator({
+export const regionsRoute = new GetRouteGenerator<[], ["fields", "regions"], PartialRegionsDataResult>({
     name: "regions",
-    requiredParams: [] as const,
-    optionalParams: ["fields", "regions"] as const,
+    requiredParams: [],
+    optionalParams: ["fields", "regions"],
     executor: async (route, { getRegion, params, regions }) => {
         const rawFields = params.fields?.length ? params.fields.split(",") : validFields;
         for (const field of rawFields) {

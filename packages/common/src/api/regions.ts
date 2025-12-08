@@ -16,4 +16,8 @@ export type RegionsDataResult = RegionDataResult[];
 export type PartialRegionDataResult<T extends keyof RegionDataResult> =
     Pick<RegionDataResult, T> & Partial<RegionDataResult>;
 
-export type PartialRegionsDataResult<T extends keyof RegionDataResult> = PartialRegionDataResult<T>[];
+export type PartialRegionsDataResult<T extends keyof RegionDataResult = never> = Readonly<{
+    message: string;
+    regions: readonly PartialRegionDataResult<T>[]
+    unknown: RegionCode[]
+}>;
