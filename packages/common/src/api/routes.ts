@@ -18,4 +18,8 @@ export type RoutesDataResult = RouteDataResult[];
 export type PartialRouteDataResult<T extends keyof RouteDataResult> =
     Pick<RouteDataResult, T> & Partial<RouteDataResult>;
 
-export type PartialRoutesDataResult<T extends keyof RouteDataResult> = PartialRouteDataResult<T>[];
+export type PartialRoutesDataResult<T extends keyof RouteDataResult = never> = Readonly<{
+    message: string;
+    routes: readonly PartialRouteDataResult<T>[];
+    unknown: Id[];
+}>;

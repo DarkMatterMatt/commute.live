@@ -1,5 +1,5 @@
-import { type Id, type RouteDataResult, UnreachableError } from "@commutelive/common";
-import { parseRegionalId } from "~/datasources/index";
+import { type Id, type PartialRoutesDataResult, type RouteDataResult, UnreachableError } from "@commutelive/common";
+import { parseRegionalId } from "~/datasources/base/id";
 import { convertVehiclePosition } from "../transmission/vehicleUpdate";
 import { GetRouteGenerator } from "./GetRoute";
 
@@ -15,10 +15,10 @@ const validFields = [
 
 type ValidField = typeof validFields[number];
 
-export const routesRoute = new GetRouteGenerator({
+export const routesRoute = new GetRouteGenerator<["fields", "routeIds"], [], PartialRoutesDataResult>({
     name: "routes",
-    requiredParams: ["fields", "routeIds"] as const,
-    optionalParams: [] as const,
+    requiredParams: ["fields", "routeIds"],
+    optionalParams: [],
     executor: async (route, { getRegion, params }) => {
         const rawFields = params.fields.split(",");
         for (const field of rawFields) {
