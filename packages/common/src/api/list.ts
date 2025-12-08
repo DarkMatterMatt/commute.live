@@ -9,7 +9,7 @@ export interface ListRouteResult {
     type: number;
 }
 
-export type ListRoutesResult = {
+export type ListRoutesResult = Readonly<{
     message: string;
-    routes: ListRouteResult[]
-};
+    routes: readonly ListRouteResult[]
+}>;

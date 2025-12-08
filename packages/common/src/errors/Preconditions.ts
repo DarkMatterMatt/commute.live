@@ -1,4 +1,4 @@
-export class PreconditionError extends Error {}
+export class PreconditionError extends Error { }
 
 /**
  * Throws error if `obj` is nullish.
@@ -9,4 +9,14 @@ export function checkExists<T>(obj: T | null | undefined, messageTemplate = "Obj
         throw new PreconditionError(messageTemplate.replace("<>", `${obj}`));
     }
     return obj;
+}
+
+/**
+ * Throws error if `assertion` is not true.
+ * @param message Error message to throw.
+ */
+export function assert(assertion: boolean, message = "Assertion failed."): asserts assertion {
+    if (assertion !== true) {
+        throw new PreconditionError(message);
+    }
 }
