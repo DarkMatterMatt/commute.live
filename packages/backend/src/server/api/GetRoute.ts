@@ -29,9 +29,9 @@ export interface GetRouteExecuteOpts {
     regions: DataSource[];
 }
 
-export interface GetRouteOpts<R extends readonly string[], O extends readonly string[]> {
+export interface GetRouteOpts<R extends readonly string[], O extends readonly string[], T extends Record<string, any>> {
     cacheMaxAge: number;
-    executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    executor: (route: GetRoute<R, O, T>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     headers: Record<string, string>;
     name: string;
     optionalParams: O;
@@ -41,9 +41,13 @@ export interface GetRouteOpts<R extends readonly string[], O extends readonly st
     res: HttpResponse;
 }
 
-export class GetRoute<R extends readonly string[], O extends readonly string[]> extends Route {
+export class GetRoute<
+    R extends readonly string[],
+    O extends readonly string[],
+    T extends Record<string, any>,
+> extends Route {
     private aborted = false;
-    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    private readonly executor: (route: GetRoute<R, O, T>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     private cacheMaxAge: number;
     private readonly headers: Record<string, string>;
     private readonly optionalParams: O;
@@ -53,7 +57,7 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
     private readonly requiresRegion: boolean;
     private readonly res: HttpResponse;
 
-    constructor (opts: GetRouteOpts<R, O>) {
+    constructor(opts: GetRouteOpts<R, O, T>) {
         super(opts.name);
 
         const { pretty: prettyJson, ...params } = opts.params;
@@ -141,7 +145,9 @@ export class GetRoute<R extends readonly string[], O extends readonly string[]> 
         return this;
     }
 
-    public finish(status: "success" | "error", data: Record<string, any>): void {
+    public finish(status: "success", data: T): void;
+    public finish(status: "error", data: Record<string, any>): void;
+    public finish(status: "success" | "error", data: T | Record<string, any>): void {
         if (this.aborted) {
             return;
         }
@@ -189,9 +195,13 @@ export interface CreateGetRouteData extends CreateRouteData {
     res: HttpResponse;
 }
 
-export interface GetRouteGeneratorOpts<R extends readonly string[], O extends readonly string[]> {
+export interface GetRouteGeneratorOpts<
+    R extends readonly string[],
+    O extends readonly string[],
+    T extends Record<string, any>,
+> {
     name: string;
-    executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    executor: (route: GetRoute<R, O, T>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     initialize?: (data: GetRouteInitializeOpts) => PromiseOr<void>;
     cacheMaxAge?: number;
     optionalParams: O;
@@ -199,15 +209,19 @@ export interface GetRouteGeneratorOpts<R extends readonly string[], O extends re
     requiresRegion?: boolean;
 }
 
-export class GetRouteGenerator<R extends readonly string[], O extends readonly string[]> extends RouteGen {
+export class GetRouteGenerator<
+    R extends readonly string[],
+    O extends readonly string[],
+    T extends Record<string, any>,
+> extends RouteGen {
     private readonly cacheMaxAge: number;
-    private readonly executor: (route: GetRoute<R, O>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
+    private readonly executor: (route: GetRoute<R, O, T>, data: GetRouteExecutorOpts<R, O>) => PromiseOr<void>;
     private readonly initialize_?: (data: GetRouteInitializeOpts) => PromiseOr<void>;
     private readonly optionalParams: O;
     private readonly requiredParams: R;
     private readonly requiresRegion: boolean;
 
-    constructor (opts: GetRouteGeneratorOpts<R, O>) {
+    constructor(opts: GetRouteGeneratorOpts<R, O, T>) {
         super(opts.name);
         this.cacheMaxAge = opts.cacheMaxAge ?? DEFAULT_CACHE_MAX_AGE;
         this.executor = opts.executor;
@@ -217,7 +231,7 @@ export class GetRouteGenerator<R extends readonly string[], O extends readonly s
         this.requiresRegion = opts.requiresRegion ?? false;
     }
 
-    public createRoute({ headers, params, res }: CreateGetRouteData): GetRoute<R, O> {
+    public createRoute({ headers, params, res }: CreateGetRouteData): GetRoute<R, O, T> {
         return new GetRoute({
             cacheMaxAge: this.cacheMaxAge,
             executor: this.executor,

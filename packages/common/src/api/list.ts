@@ -9,4 +9,7 @@ export interface ListRouteResult {
     type: number;
 }
 
-export type ListRoutesResult = ListRouteResult[];
+export type ListRoutesResult = {
+    message: string;
+    routes: ListRouteResult[]
+};

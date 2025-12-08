@@ -1,4 +1,4 @@
-import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRoutesResult, memo, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RegionsDataResult, type RouteDataResult, type TimerId } from "@commutelive/common";
+import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRouteResult, type ListRoutesResult, memo, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RegionsDataResult, type RouteDataResult, type TimerId } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -135,8 +135,8 @@ class Api {
         return [...result, ...newResponse.regions];
     }
 
-    public async listRoutes(region: RegionCode): Promise<ListRoutesResult> {
-        const response = await this.query<{ routes: ListRoutesResult }>("list", { region });
+    public async listRoutes(region: RegionCode): Promise<ListRouteResult[]> {
+        const response = await this.query<ListRoutesResult>("list", { region });
         return response.routes;
     }
 
