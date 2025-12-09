@@ -3,7 +3,7 @@ import { unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import { type IpLocationResult, sleep } from "@commutelive/common";
+import { type IpLocationDataResult, type IpLocationResult, sleep } from "@commutelive/common";
 import maxmind, { type CityResponse, type Reader } from "maxmind";
 import fetch from "node-fetch";
 import { getLogger } from "~/log";
@@ -104,10 +104,10 @@ async function downloadDatabaseIfNeeded(cacheDir: string) {
     await cleanUp(cacheDir, oldYear, oldMonth);
 }
 
-export const iplocationRoute = new GetRouteGenerator({
+export const iplocationRoute = new GetRouteGenerator<[], [], IpLocationDataResult>({
     name: "iplocation",
-    requiredParams: [] as const,
-    optionalParams: [] as const,
+    requiredParams: [],
+    optionalParams: [],
     executor: async (route, { headers, res }) => {
         const ip = headers["x-forwarded-for"]?.split(",")?.[0]
             ?? Buffer.from(res.getRemoteAddressAsText()).toString();
