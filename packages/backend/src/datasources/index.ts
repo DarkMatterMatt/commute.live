@@ -120,9 +120,9 @@ export async function checkForStaticUpdates() {
     }
 }
 
-export async function getStatus() {
+export async function getStatus(regions_?: DataSource[]) {
     const results: Record<RegionCode, JSONSerializable> = {};
-    for (const r of regions.values()) {
+    for (const r of regions_ ?? regions.values()) {
         try {
             results[r.code] = await r.getStatus();
         }
