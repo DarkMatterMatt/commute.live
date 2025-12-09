@@ -41,7 +41,7 @@ async function generateProto(protoc, plugin, fname) {
         `--proto_path=${dir}`,
         `--ts_proto_out=${dir}`,
         "--ts_proto_opt=esModuleInterop=true",
-        "--ts_proto_opt=fileSuffix=.proto",
+        "--ts_proto_opt=fileSuffix=.generated",
         "--ts_proto_opt=env=node",
         "--ts_proto_opt=snakeToCamel=false",
         basename(fname),

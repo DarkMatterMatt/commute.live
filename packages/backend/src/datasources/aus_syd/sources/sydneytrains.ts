@@ -1,4 +1,4 @@
-import { FeedMessage } from "../gtfs-realtime_v2.proto";
+import { FeedMessage } from "../gtfs-realtime_v2.generated";
 import type { NSWSource } from "../realtime_polling";
 
 export const sydneytrains: NSWSource = {

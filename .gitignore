@@ -9,6 +9,7 @@ cache/
 
 # generated Protocol Buffer files 
 *.proto.ts
+*.generated.ts
 
 ################################################################################
 ## Everything below this is from
