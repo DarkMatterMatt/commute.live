@@ -12,6 +12,7 @@ export interface WebSocketRouteExecutorOpts<
     params: ValidParams<R, O>;
     region: DataSource | null;
     ws: WebSocket;
+    getRegion: (region: string) => DataSource | null;
 }
 
 export interface WebSocketRouteExecuteOpts {
@@ -44,7 +45,7 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
     private readonly seq: number;
     private readonly ws: WebSocket;
 
-    constructor (opts: WebSocketRouteOpts<R, O>) {
+    constructor(opts: WebSocketRouteOpts<R, O>) {
         super(opts.name);
 
         const { pretty: prettyJson, ...params } = opts.params;
@@ -60,7 +61,7 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
     }
 
     public async execute(opts: WebSocketRouteExecuteOpts): Promise<void> {
-        const { activeWebSockets, regions } = opts;
+        const { activeWebSockets, regions, getRegion } = opts;
 
         const [params, errors] = this.validateParams(this.params, opts.availableRegions);
         if (errors != null) {
@@ -68,8 +69,8 @@ export class WebSocketRoute<R extends readonly string[], O extends readonly stri
         }
 
         const regionName = this.params.region as string | undefined;
-        const region = regionName == null ? null : opts.getRegion(regionName);
-        await this.executor(this, { activeWebSockets, params, ws: this.ws, region, regions });
+        const region = regionName == null ? null : getRegion(regionName);
+        await this.executor(this, { activeWebSockets, params, ws: this.ws, region, regions, getRegion });
     }
 
     private validateParams(params: Record<string, unknown>, availableRegions: string[]): [ValidParams<R, O>, null];
@@ -140,7 +141,7 @@ export class WebSocketRouteGenerator<R extends readonly string[], O extends read
     private readonly requiredParams: R;
     private readonly requiresRegion: boolean;
 
-    constructor (opts: WebSocketRouteGeneratorOpts<R, O>) {
+    constructor(opts: WebSocketRouteGeneratorOpts<R, O>) {
         super(opts.name);
         this.executor = opts.executor;
         this.optionalParams = opts.optionalParams;

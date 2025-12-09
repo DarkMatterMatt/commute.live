@@ -1,12 +1,12 @@
 import { type Id } from "@commutelive/common";
-import { getMQTTForVehicleUpdates, getRegion, parseRegionalId } from "~/datasources/";
+import { getMQTTForVehicleUpdates, parseRegionalId } from "~/datasources/";
 import { WebSocketRouteGenerator } from "./WebSocketRoute";
 
 export const subscribeRoute = new WebSocketRouteGenerator({
     name: "subscribe",
     requiredParams: ["id"] as const,
     optionalParams: [] as const,
-    executor: async (route, { params, ws }) => {
+    executor: async (route, { params, ws, getRegion }) => {
         const fail = () => route.finish("error", {
             message: `Unknown route id: ${id}.`,
         });
