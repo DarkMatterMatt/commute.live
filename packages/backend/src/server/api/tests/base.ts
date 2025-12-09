@@ -5,7 +5,14 @@ import type { DataSource } from "~/types";
 import type { GetRouteGenerator } from "../GetRoute";
 
 function setupMockResponse() {
-    const mockRes: jest.Mocked<Pick<HttpResponse, "onAborted" | "writeStatus" | "writeHeader" | "end">> & {
+    const mockRes: jest.Mocked<Pick<HttpResponse,
+        | "onAborted"
+        | "writeStatus"
+        | "writeHeader"
+        | "end"
+        | "endWithoutBody"
+        | "getRemoteAddressAsText"
+    >> & {
         headers: Record<string, string>;
         status: string;
         responseBody: string;
@@ -26,6 +33,9 @@ function setupMockResponse() {
             mockRes.responseBody = body;
             return castRes;
         }),
+        endWithoutBody: jest.fn(() => castRes),
+        // Return a mock IP address.
+        getRemoteAddressAsText: jest.fn(() => new TextEncoder().encode("192.0.2.1").buffer),
     };
 
     const castRes = mockRes as unknown as (HttpResponse & { status: string });
