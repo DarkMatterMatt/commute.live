@@ -97,6 +97,10 @@ function showNav() {
 }
 
 function hideNav() {
+    if (!largeScreen()) {
+        // never hide the nav on mobile, cause there's no way to bring it back
+        return;
+    }
     $main.classList.remove("show");
     $map.classList.remove("nav-show");
 }
