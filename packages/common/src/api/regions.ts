@@ -1,7 +1,7 @@
 import type { LatLng } from "~/geo";
 import type { Id, RegionCode } from "./id";
 
-export interface RegionDataResult {
+export type RegionDataResult = {
     code: RegionCode;
     location: LatLng;
     country: string;
@@ -11,10 +11,10 @@ export interface RegionDataResult {
     defaultRouteIds: Id[];
 }
 
-export type RegionsDataResult = RegionDataResult[];
+export type RegionsDataResult = readonly RegionDataResult[];
 
 export type PartialRegionDataResult<T extends keyof RegionDataResult> =
-    Pick<RegionDataResult, T> & Partial<RegionDataResult>;
+    Readonly<Pick<RegionDataResult, T> & Partial<RegionDataResult>>;
 
 export type PartialRegionsDataResult<T extends keyof RegionDataResult = never> = Readonly<{
     message: string;

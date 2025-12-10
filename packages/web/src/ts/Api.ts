@@ -135,7 +135,7 @@ class Api {
         return [...result, ...newResponse.regions];
     }
 
-    public async listRoutes(region: RegionCode): Promise<ListRouteResult[]> {
+    public async listRoutes(region: RegionCode): Promise<readonly ListRouteResult[]> {
         const response = await this.query<ListRoutesResult>("list", { region });
         return response.routes;
     }
@@ -149,7 +149,7 @@ class Api {
             routeIds: id,
         };
         const shouldCache = !fields.includes("vehicles" as T);
-        const response = await this.query<{ routes: PartialRoutesDataResult<T> }>("routes", query, shouldCache);
+        const response = await this.query<PartialRoutesDataResult<T>>("routes", query, shouldCache);
         if (response.routes.length === 0) {
             throw new Error(`Route not found: ${id}`);
         }
@@ -159,12 +159,9 @@ class Api {
     public async queryRoutes<T extends keyof RouteDataResult>(
         ids: Id[],
         fields: T[],
-    ): Promise<PartialRoutesDataResult<T>> {
+    ): Promise<readonly PartialRouteDataResult<T>[]> {
         const shouldCache = !fields.includes("vehicles" as T);
-        const response = await this.query<{
-            routes: PartialRoutesDataResult<T>;
-            unknown?: Id[];
-        }>("routes", {
+        const response = await this.query<PartialRoutesDataResult<T>>("routes", {
             fields: fields.join(","),
             routeIds: ids.join(","),
         }, shouldCache);
