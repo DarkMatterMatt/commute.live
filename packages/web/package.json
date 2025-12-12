@@ -1,6 +1,6 @@
 {
     "name": "@commutelive/web",
-    "version": "2.5.4",
+    "version": "2.6.0",
     "description": "The main frontend of [Commute.live](https://commute.live), which provides a user-friendly interface to view vehicles on one or more public transport routes.",
     "main": "src/ts/index.ts",
     "author": "Matt Moran",
@@ -86,7 +86,7 @@
     },
     "dependencies": {
         "@babel/runtime": "^7.24.4",
-        "@commutelive/common": "^2.5.4",
+        "@commutelive/common": "^2.6.0",
         "@simonwep/pickr": "^1.9.0",
         "@types/color-convert": "^2.0.3",
         "babel-plugin-transform-react-jsx": "^6.24.1",
