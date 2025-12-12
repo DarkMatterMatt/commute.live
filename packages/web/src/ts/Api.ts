@@ -1,4 +1,4 @@
-import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRouteResult, type ListRoutesResult, memo, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RegionsDataResult, type RouteDataResult, type TimerId } from "@commutelive/common";
+import { createPromise, type Id, type IpLocationResult, type LatLng, type ListRouteResult, type ListRoutesResult, memo, type PartialRegionsDataResult, type PartialRouteDataResult, type PartialRoutesDataResult, type RegionCode, type RegionDataResult, type RegionsDataResult, type RouteDataResult, type TimerId } from "@commutelive/common";
 
 let instance: Api | null = null;
 
@@ -102,9 +102,7 @@ class Api {
     }
 
     public async queryRegions(regionCodes?: RegionCode[]): Promise<RegionsDataResult> {
-        const response = await this.query<{
-            regions: RegionsDataResult;
-        }>("regions", {
+        const response = await this.query<PartialRegionsDataResult<keyof RegionDataResult>>("regions", {
             fields: "", // all fields
             regions: "", // all regions
         });
@@ -120,10 +118,7 @@ class Api {
 
         // try to fetch the missing regions (usually hidden regions, or might be old region codes)
         const missingRegions = regionCodes.filter(c => !result.some(r => r.code === c));
-        const newResponse = await this.query<{
-            regions: RegionsDataResult;
-            unknown: RegionCode[];
-        }>("regions", {
+        const newResponse = await this.query<PartialRegionsDataResult<keyof RegionDataResult>>("regions", {
             fields: "", // all fields
             regions: missingRegions.join(","),
         });
