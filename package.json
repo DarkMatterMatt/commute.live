@@ -22,9 +22,7 @@
     "workspaces": [
         "packages/*"
     ],
-    "scripts": {
-        "prepare": "lerna bootstrap"
-    },
+    "scripts": {},
     "dependencies": {},
     "devDependencies": {
         "lerna": "^6.4.1",
