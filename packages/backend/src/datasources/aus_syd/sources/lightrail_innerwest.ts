@@ -1,8 +1,8 @@
-import { FeedMessage } from "../gtfs-realtime.generated";
+import { FeedMessage } from "../gtfs-realtime_v2.generated";
 import type { NSWSource } from "../realtime_polling";
 
 export const lightrail_innerwest: NSWSource = {
-    url: "https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/lightrail/innerwest",
+    url: "https://api.transport.nsw.gov.au/v2/gtfs/vehiclepos/lightrail/innerwest",
     decode: FeedMessage.decode,
     keep: {
         id: false,
