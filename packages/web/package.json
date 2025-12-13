@@ -133,7 +133,7 @@
         "normalize.css": "^8.0.1",
         "postcss-loader": "^8.2.0",
         "puppeteer": "^22.15.0",
-        "rimraf": "^5.0.10",
+        "rimraf": "^6.1.2",
         "sass": "^1.96.0",
         "sass-loader": "^14.2.1",
         "sharp": "^0.34.5",
