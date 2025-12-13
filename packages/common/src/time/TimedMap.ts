@@ -86,40 +86,46 @@ export class TimedMap<K, V> implements Map<K, V> {
 
     /* Cache iteration functions */
 
-    public entries(): IterableIterator<[K, V]> {
+    public entries(): MapIterator<[K, V]> {
         const iter = this.cache.entries();
 
         return {
             next: () => {
                 const next = iter.next();
                 if (next.done) {
-                    return { value: null, done: next.done };
+                    return { value: undefined, done: next.done };
                 }
                 return { value: [next.value[0], next.value[1][1]] };
             },
             [Symbol.iterator]() {
                 return this;
             },
+            [Symbol.dispose]() {
+                // No resources to dispose
+            },
         };
     }
 
-    public keys(): IterableIterator<K> {
+    public keys(): MapIterator<K> {
         return this.cache.keys();
     }
 
-    public values(): IterableIterator<V> {
+    public values(): MapIterator<V> {
         const iter = this.cache.values();
 
         return {
             next: () => {
                 const next = iter.next();
                 if (next.done) {
-                    return { value: null, done: next.done };
+                    return { value: undefined, done: next.done };
                 }
                 return { value: next.value[1] };
             },
             [Symbol.iterator]() {
                 return this;
+            },
+            [Symbol.dispose]() {
+                // No resources to dispose
             },
         };
     }
@@ -128,7 +134,7 @@ export class TimedMap<K, V> implements Map<K, V> {
         this.cache.forEach((v, k) => callbackfn(v[1], k, this));
     }
 
-    public [Symbol.iterator](): IterableIterator<[K, V]> {
+    public [Symbol.iterator](): MapIterator<[K, V]> {
         return this.entries();
     }
 
