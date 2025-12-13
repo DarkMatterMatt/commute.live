@@ -63,7 +63,6 @@ describe("fixPrecisionError", () => {
     });
 
     it("javascript loses the 17th decimal place of precision", () => {
-        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
         expect(0.98765432101234567).toBe(0.9876543210123456);
     });
 });

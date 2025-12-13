@@ -55,7 +55,6 @@ export function isVisible($e: HTMLElement): boolean {
 export function onClickOutside($e: HTMLElement, cb: (ev: MouseEvent) => void): void {
     const outsideClickListener = (ev: MouseEvent): void => {
         if (!$e.contains(ev.target as Node) && isVisible($e)) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             removeClickListener();
             cb(ev);
         }
@@ -110,6 +109,5 @@ export function queue(cb: (...cbArgs: any[]) => void, ...args: any[]): void {
  * Trigger reflow on element.
  */
 export function triggerReflow(elem: HTMLElement): void {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     elem.offsetHeight;
 }
