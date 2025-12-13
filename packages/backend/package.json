@@ -101,7 +101,7 @@
         "maxmind": "^5.0.1",
         "node-fetch": "3.3.2",
         "node-graceful": "^3.1.0",
-        "ts-proto": "^1.181.2",
+        "ts-proto": "^2.8.3",
         "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.56.0",
         "winston": "^3.19.0",
         "winston-daily-rotate-file": "^5.0.0",
