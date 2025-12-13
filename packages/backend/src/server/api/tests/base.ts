@@ -6,12 +6,12 @@ import type { GetRouteGenerator } from "../GetRoute";
 
 function setupMockResponse() {
     const mockRes: jest.Mocked<Pick<HttpResponse,
-        | "onAborted"
-        | "writeStatus"
-        | "writeHeader"
-        | "end"
-        | "endWithoutBody"
-        | "getRemoteAddressAsText"
+    | "onAborted"
+    | "writeStatus"
+    | "writeHeader"
+    | "end"
+    | "endWithoutBody"
+    | "getRemoteAddressAsText"
     >> & {
         headers: Record<string, string>;
         status: string;
@@ -53,9 +53,9 @@ export async function executeRoute<
     regions: DataSource[],
     headers: Record<string, string> = {},
 ): Promise<{
-    response: (HttpResponse & { status: string });
-    body: ({ status: "success"; } & T) | ({ status: "error"; } & Record<string, any>) | null;
-}> {
+        response: (HttpResponse & { status: string });
+        body: ({ status: "success"; } & T) | ({ status: "error"; } & Record<string, any>) | null;
+    }> {
     const mockRes = setupMockResponse();
     const createdRoute = route.createRoute({
         params,

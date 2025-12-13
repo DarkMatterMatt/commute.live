@@ -23,8 +23,8 @@
         "packages/*"
     ],
     "scripts": {},
-    "dependencies": {},
     "devDependencies": {
+        "@eslint/compat": "^1.4.1",
         "lerna": "^6.6.2",
         "nx": "^15.6.3"
     }
