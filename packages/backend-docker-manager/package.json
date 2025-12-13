@@ -52,7 +52,7 @@
         "node": "^20"
     },
     "dependencies": {
-        "@octokit/webhooks": "^13.9.1",
+        "@octokit/webhooks": "^14.2.0",
         "dotenv": "^17.2.3",
         "envalid": "^8.1.1"
     },
