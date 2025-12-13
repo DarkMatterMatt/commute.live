@@ -92,7 +92,7 @@
     },
     "dependencies": {
         "@commutelive/common": "^2.6.0",
-        "better-sqlite3": "^11.0.0",
+        "better-sqlite3": "^12.0.0",
         "chalk": "^5.6.2",
         "dotenv": "^17.2.3",
         "envalid": "^8.1.1",
