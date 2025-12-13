@@ -52,25 +52,25 @@
         "node": "^20"
     },
     "dependencies": {
-        "@octokit/webhooks": "^13.2.4",
-        "dotenv": "^16.4.5",
+        "@octokit/webhooks": "^13.9.1",
+        "dotenv": "^16.6.1",
         "envalid": "^7.3.1"
     },
     "devDependencies": {
         "@jest/globals": "^29.7.0",
-        "@octokit/webhooks-types": "^7.5.0",
-        "@types/jest": "^29.5.12",
-        "@types/node": "^20.19.25",
-        "@typescript-eslint/eslint-plugin": "^7.7.0",
-        "@typescript-eslint/parser": "^7.7.0",
+        "@octokit/webhooks-types": "^7.6.1",
+        "@types/jest": "^29.5.14",
+        "@types/node": "^20.19.26",
+        "@typescript-eslint/eslint-plugin": "^7.18.0",
+        "@typescript-eslint/parser": "^7.18.0",
         "cross-env": "^7.0.3",
-        "eslint": "^8.57.0",
-        "eslint-import-resolver-typescript": "^3.6.1",
-        "eslint-plugin-import": "^2.29.1",
+        "eslint": "^8.57.1",
+        "eslint-import-resolver-typescript": "^3.10.1",
+        "eslint-plugin-import": "^2.32.0",
         "jest": "^29.7.0",
-        "rimraf": "^5.0.5",
-        "ts-jest": "^29.1.2",
+        "rimraf": "^5.0.10",
+        "ts-jest": "^29.4.6",
         "ts-node": "^10.9.2",
-        "typescript": "^5.4.5"
+        "typescript": "^5.9.3"
     }
 }

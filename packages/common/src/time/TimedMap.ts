@@ -3,11 +3,6 @@ import type { ClearTimeout, SetTimeout, TimerId } from "./time";
 const defaultSetTimeout = setTimeout;
 const defaultClearTimeout = clearTimeout;
 
-interface IteratorResult<T> {
-    value: T;
-    done?: boolean;
-}
-
 export interface TimedMapOpts<K, V> {
     /**
      * Each entry is in the format [key, value], or [key, [ttl, value]].
@@ -96,11 +91,11 @@ export class TimedMap<K, V> implements Map<K, V> {
 
         return {
             next: () => {
-                const { value, done }: IteratorResult<[K, [TimerId, V]]> = iter.next();
-                if (done) {
-                    return { value: null, done };
+                const next = iter.next();
+                if (next.done) {
+                    return { value: null, done: next.done };
                 }
-                return { value: [value[0], value[1][1]] };
+                return { value: [next.value[0], next.value[1][1]] };
             },
             [Symbol.iterator]() {
                 return this;
@@ -117,11 +112,11 @@ export class TimedMap<K, V> implements Map<K, V> {
 
         return {
             next: () => {
-                const { value, done }: IteratorResult<[TimerId, V]> = iter.next();
-                if (done) {
-                    return { value: null, done };
+                const next = iter.next();
+                if (next.done) {
+                    return { value: null, done: next.done };
                 }
-                return { value: value[1] };
+                return { value: next.value[1] };
             },
             [Symbol.iterator]() {
                 return this;

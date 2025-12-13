@@ -117,7 +117,7 @@ export async function startServer({
     });
 
     app.get("/v3/:route", (res, req) => {
-        const routeName = req.getParameter(0);
+        const routeName = req.getParameter(0)!;
         const params = Object.fromEntries(new URLSearchParams(req.getQuery()));
         const headers: Record<string, string> = {};
         req.forEach((k, v) => headers[k] = v);
