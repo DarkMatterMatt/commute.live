@@ -3,7 +3,7 @@
 ############################################################
 # Build Commute.live backend.
 ############################################################
-FROM node:24-slim AS builder
+FROM node:24-trixie-slim AS builder
 WORKDIR /app
 
 # Install dependencies' dependencies.
@@ -58,7 +58,7 @@ RUN node scripts/printDependencies.js package-lock.json dev \
 ############################################################
 # Extract distribution image.
 ############################################################
-FROM node:24-slim
+FROM node:24-trixie-slim
 WORKDIR /app/packages/backend
 
 # Copy runtime files.
