@@ -1,5 +1,4 @@
 const path = require("path");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CnameWebpackPlugin = require("cname-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -27,6 +26,7 @@ module.exports = {
         path: path.resolve(__dirname, "dist"),
         filename: "[name].[chunkhash].js",
         publicPath: "",
+        clean: true,
     },
     // devtool: "source-map",
     module: {
@@ -88,7 +88,6 @@ module.exports = {
     plugins: [
         new Dotenv({ path: "../../.env" }),
         new Dotenv(),
-        new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({
             filename: "style.[contenthash].css",
         }),
