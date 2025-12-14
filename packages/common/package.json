@@ -21,7 +21,7 @@
     },
     "type": "module",
     "engines": {
-        "node": "^20"
+        "node": "^24"
     },
     "devDependencies": {
         "@types/jest": "^30.0.0",

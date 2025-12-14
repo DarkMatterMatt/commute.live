@@ -3,7 +3,7 @@
 ############################################################
 # Build Commute.live web.
 ############################################################
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 
 # Install dependencies' dependencies.
