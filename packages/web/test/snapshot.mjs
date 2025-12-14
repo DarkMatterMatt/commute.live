@@ -56,7 +56,7 @@ async function main(args) {
 
     // launch puppeteer
     const browser = await launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
     const page = await browser.newPage();
 
