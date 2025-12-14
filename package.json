@@ -24,7 +24,7 @@
     ],
     "scripts": {},
     "devDependencies": {
-        "@eslint/compat": "^1.4.1",
+        "@eslint/compat": "^2.0.0",
         "lerna": "^6.6.2",
         "nx": "^15.6.3"
     }
