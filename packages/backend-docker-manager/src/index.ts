@@ -1,8 +1,8 @@
 import http from "node:http";
-import { containerExists, pullImage, removeWorker, renameStartingContainer, startWorker } from "./docker";
-import { getEnv, getWorkerEnv } from "./env";
-import { log } from "./log";
-import { createHttpServer, createHttpsServer, createWebhookMiddleware } from "./webhook";
+import { containerExists, pullImage, removeWorker, renameStartingContainer, startWorker } from "./docker.js";
+import { getEnv, getWorkerEnv } from "./env.js";
+import { log } from "./log.js";
+import { createHttpServer, createHttpsServer, createWebhookMiddleware } from "./webhook.js";
 
 let restartQueued = false;
 let onWorkerLoad: null | (() => void) = null;
