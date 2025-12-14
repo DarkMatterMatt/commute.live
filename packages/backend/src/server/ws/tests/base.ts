@@ -39,9 +39,9 @@ export async function executeWebSocketRoute<
     regions: DataSource[],
     seq = 1,
 ): Promise<{
-    ws: WebSocket & { sentMessages: string[]; subscriptions: Set<string> };
-    response: { status: "success" | "error"; route: string; seq: number } & Record<string, any> | null;
-}> {
+        ws: WebSocket & { sentMessages: string[]; subscriptions: Set<string> };
+        response: { status: "success" | "error"; route: string; seq: number } & Record<string, any> | null;
+    }> {
     const mockWs = setupMockWebSocket();
 
     const createdRoute = route.createRoute({

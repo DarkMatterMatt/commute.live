@@ -1,23 +1,36 @@
-// eslint-disable-next-line no-undef
-module.exports = {
-    extends: [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:import/typescript",
-    ],
-    env: {
-        es6: true,
+const { fixupConfigRules, fixupPluginRules } = require("@eslint/compat");
+const { FlatCompat } = require("@eslint/eslintrc");
+const js = require("@eslint/js");
+const typescriptEslint = require("@typescript-eslint/eslint-plugin");
+const tsParser = require("@typescript-eslint/parser");
+const _import = require("eslint-plugin-import");
+
+const compat = new FlatCompat({
+    baseDirectory: __dirname,
+    recommendedConfig: js.configs.recommended,
+    allConfig: js.configs.all,
+});
+
+module.exports = [{
+    ignores: [".eslintrc.*"],
+}, ...fixupConfigRules(compat.extends(
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/typescript",
+)).map(config => ({
+    ...config,
+    languageOptions: {
+        globals: {},
+        parser: tsParser,
+        parserOptions: {
+            project: "tsconfig.json",
+        },
     },
-    ignorePatterns: [".eslintrc.*"],
-    parser: "@typescript-eslint/parser",
-    parserOptions: {
-        project: "tsconfig.json",
+    plugins: {
+        "@typescript-eslint": fixupPluginRules(typescriptEslint),
+        "import": fixupPluginRules(_import),
     },
-    plugins: [
-        "@typescript-eslint",
-        "import",
-    ],
     settings: {
         "import/parsers": {
             "@typescript-eslint/parser": [".ts", ".tsx"],
@@ -96,8 +109,8 @@ module.exports = {
         "quote-props": ["warn", "consistent-as-needed"],
         "semi": ["warn", "always"],
         "sort-imports": ["warn", {
-            "ignoreCase": true,
-            "ignoreDeclarationSort": true,
-        }]
+            ignoreCase: true,
+            ignoreDeclarationSort: true,
+        }],
     },
-};
+}))];

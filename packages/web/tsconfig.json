@@ -8,8 +8,7 @@
         "target": "ES2015",
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "allowJs": true,
-        "jsx": "react",
-        
+        "jsx": "react"
     },
     "include": ["src"]
 }

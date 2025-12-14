@@ -88,7 +88,7 @@ function startInternalListener(workerCallbackPort: number, reload: () => void) {
         env.MANAGER_WORKER_IMAGE,
         env.MANAGER_WORKER_NAME,
         env.MANAGER_INTERNAL_PORT,
-        env.MANAGER_WORKER_MAX_MEMORY,
+        env.MANAGER_WORKER_MAX_MEMORY ?? null,
     );
 
     // listen for workers being loaded
@@ -107,8 +107,8 @@ function startInternalListener(workerCallbackPort: number, reload: () => void) {
     if (env.MANAGER_USE_SSL) {
         createHttpsServer(
             env.MANAGER_PORT,
-            env.MANAGER_SSL_CERT_FILE,
-            env.MANAGER_SSL_KEY_FILE,
+            env.MANAGER_SSL_CERT_FILE!,
+            env.MANAGER_SSL_KEY_FILE!,
             env.MANAGER_SSL_CERT_CHECK_FREQ,
             middleware,
         );

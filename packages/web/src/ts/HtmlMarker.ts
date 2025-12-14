@@ -73,7 +73,6 @@ export default class HtmlMarker {
             return;
         }
 
-        /* eslint-disable no-param-reassign */
         if (this.smoothMovementDuration > 0) {
             if (smoothMovement) {
                 this.root.style.transition = `all ${this.smoothMovementDuration}ms ${this.smoothMovementEasing}`;

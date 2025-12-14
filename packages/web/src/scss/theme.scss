@@ -1,3 +1,5 @@
+@use "sass:color";
+
 body {
     /* AT colors
      * red: #ea3630
@@ -8,8 +10,8 @@ body {
 
     $primary: #86cbff;
     --primary: #{$primary};
-    --primary-lighter: #{lighten($primary, 20%)};
-    --primary-darker: #{darken($primary, 25%)};
+    --primary-lighter: #{color.adjust($primary, $lightness: 20%)};
+    --primary-darker: #{color.adjust($primary, $lightness: -25%)};
 
     $background: #ffffff;
     --background: #{$background};
@@ -27,12 +29,12 @@ body {
 body.theme-dark {
     $primary: #005d84;
     --primary: #{$primary};
-    --primary-lighter: #{darken($primary, 15%)};
-    --primary-darker: #{lighten($primary, 20%)};
+    --primary-lighter: #{color.adjust($primary, $lightness: -15%)};
+    --primary-darker: #{color.adjust($primary, $lightness: 20%)};
 
     $background: #121212;
     --background: #{$background};
-    --background-03dp: #{lighten($background, 8%)};
+    --background-03dp: #{color.adjust($background, $lightness: 8%)};
 
     --surface: #121212;
     --error: #cf6679;
@@ -47,12 +49,12 @@ body.theme-dark {
     body.theme-system {
         $primary: #006590;
         --primary: #{$primary};
-        --primary-lighter: #{darken($primary, 20%)};
-        --primary-darker: #{lighten($primary, 20%)};
+        --primary-lighter: #{color.adjust($primary, $lightness: -20%)};
+        --primary-darker: #{color.adjust($primary, $lightness: 20%)};
 
         $background: #121212;
         --background: #{$background};
-        --background-03dp: #{lighten($background, 8%)};    
+        --background-03dp: #{color.adjust($background, $lightness: 8%)};    
 
         --surface: #121212;
         --error: #cf6679;
