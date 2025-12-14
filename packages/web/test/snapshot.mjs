@@ -78,7 +78,8 @@ async function main(args) {
         if (width > 2000) {
             img.resize({ width: Math.min(Math.floor(width / 2), 2000) });
         }
-        await img.toFile(join(dir, `${device}.png`));
+        const info = await img.toFile(join(dir, `${device}.png`));
+        console.log(`  ✓ ${device}: ${info.width}x${info.height}, ${(info.size / 1024).toFixed(1)} KB`);
     }
 
     // close the browser and stop the server
