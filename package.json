@@ -1,31 +1,31 @@
 {
-    "name": "@commutelive/root",
-    "description": "[Commute.live](https://commute.live) provides real-time tracking for buses, trains and ferries.",
-    "private": true,
-    "author": "Matt Moran",
-    "license": "GPL-3.0",
-    "keywords": [
-        "public",
-        "transport",
-        "commute",
-        "live",
-        "tracker"
-    ],
-    "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
-    },
-    "bugs": {
-        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
-    },
-    "workspaces": [
-        "packages/*"
-    ],
-    "scripts": {},
-    "devDependencies": {
-        "@eslint/compat": "^2.0.0",
-        "lerna": "^9.0.3",
-        "nx": "^15.6.3"
-    }
+  "name": "@commutelive/root",
+  "description": "[Commute.live](https://commute.live) provides real-time tracking for buses, trains and ferries.",
+  "private": true,
+  "author": "Matt Moran",
+  "license": "GPL-3.0",
+  "keywords": [
+    "public",
+    "transport",
+    "commute",
+    "live",
+    "tracker"
+  ],
+  "homepage": "https://github.com/DarkMatterMatt/commute.live#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {},
+  "devDependencies": {
+    "@eslint/compat": "^2.0.0",
+    "lerna": "^9.0.3",
+    "nx": "^22.2.3"
+  }
 }
