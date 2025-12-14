@@ -55,7 +55,9 @@ async function main(args) {
         .listen(8080);
 
     // launch puppeteer
-    const browser = await launch();
+    const browser = await launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
 
     // wait for a marker to appear
