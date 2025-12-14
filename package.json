@@ -25,7 +25,7 @@
     "scripts": {},
     "devDependencies": {
         "@eslint/compat": "^2.0.0",
-        "lerna": "^6.6.2",
+        "lerna": "^9.0.3",
         "nx": "^15.6.3"
     }
 }
