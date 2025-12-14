@@ -1,37 +1,36 @@
 {
-    "tasksRunnerOptions": {
-        "default": {
-            "runner": "nx/tasks-runners/default",
-            "options": {
-                "cacheableOperations": [
-                    "build",
-                    "docker:build",
-                    "generate:proto",
-                    "lint",
-                    "test",
-                    "typecheck"
-                ]
-            }
-        }
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ],
+      "cache": true
     },
-    "targetDefaults": {
-        "build": {
-            "dependsOn": [
-                "^build"
-            ],
-            "outputs": [
-                "{projectRoot}/dist"
-            ]
-        },
-        "clean": {
-            "dependsOn": [],
-            "outputs": []
-        },
-        "test": {
-            "dependsOn": [
-                "build"
-            ],
-            "outputs": []
-        }
+    "clean": {
+      "dependsOn": [],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "docker:build": {
+      "cache": true
+    },
+    "generate:proto": {
+      "cache": true
+    },
+    "lint": {
+      "cache": true
+    },
+    "typecheck": {
+      "cache": true
     }
+  }
 }

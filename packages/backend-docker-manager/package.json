@@ -1,76 +1,76 @@
 {
-    "name": "@commutelive/backend-docker-manager",
-    "version": "2.4.1",
-    "description": "This is deployed on the server to automatically update the [Commute.live](https://commute.live) backend with zero downtime.",
-    "main": "dist/index.js",
-    "author": "Matt Moran",
-    "license": "GPL-3.0",
-    "homepage": "https://github.com/DarkMatterMatt/commute.live/packages/backend-docker-manager#readme",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
-    },
-    "bugs": {
-        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
-    },
-    "scripts": {
-        "build": "tsc",
-        "build:docker": "docker build -f Dockerfile -t commute.live-manager ../../",
-        "clean": "rimraf dist",
-        "clean:docker": "docker rm commute.live-manager || echo",
-        "start:docker": "docker run -d --name commute.live-manager -v /var/run/docker.sock:/var/run/docker.sock -v \"$(pwd)\"/docker-env:/env -p 8443:8443 -p 443:443 ghcr.io/darkmattermatt/commute.live-manager:main",
-        "stop:docker": "docker kill --signal=SIGINT commute.live-manager || echo",
-        "lint": "eslint --fix src && tsc --noEmit",
-        "start": "node dist/index.js",
-        "test": "npm run build && cross-env NODE_OPTIONS='--experimental-vm-modules' jest"
-    },
-    "nx": {
-        "targets": {
-            "clean:docker": {
-                "dependsOn": [
-                    "stop:docker"
-                ],
-                "outputs": []
-            },
-            "start": {
-                "dependsOn": [
-                    "build"
-                ],
-                "outputs": []
-            },
-            "start:docker": {
-                "dependsOn": [
-                    "clean:docker",
-                    "build:docker"
-                ],
-                "outputs": []
-            }
-        }
-    },
-    "type": "module",
-    "engines": {
-        "node": "^24"
-    },
-    "dependencies": {
-        "@octokit/webhooks": "^14.2.0",
-        "dotenv": "^17.2.3",
-        "envalid": "^8.1.1"
-    },
-    "devDependencies": {
-        "@jest/globals": "^30.2.0",
-        "@octokit/webhooks-types": "^7.6.1",
-        "@types/jest": "^30.0.0",
-        "@types/node": "^25.0.1",
-        "@typescript-eslint/eslint-plugin": "^8.49.0",
-        "@typescript-eslint/parser": "^8.49.0",
-        "cross-env": "^10.1.0",
-        "eslint": "^9.39.2",
-        "eslint-import-resolver-typescript": "^4.4.4",
-        "eslint-plugin-import": "^2.32.0",
-        "jest": "^30.2.0",
-        "rimraf": "^6.1.2",
-        "ts-jest": "^29.4.6",
-        "ts-node": "^10.9.2",
-        "typescript": "^5.9.3"
+  "name": "@commutelive/backend-docker-manager",
+  "version": "2.4.1",
+  "description": "This is deployed on the server to automatically update the [Commute.live](https://commute.live) backend with zero downtime.",
+  "main": "dist/index.js",
+  "author": "Matt Moran",
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/DarkMatterMatt/commute.live/packages/backend-docker-manager#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:docker": "docker build -f Dockerfile -t commute.live-manager ../../",
+    "clean": "rimraf dist",
+    "clean:docker": "docker rm commute.live-manager || echo",
+    "start:docker": "docker run -d --name commute.live-manager -v /var/run/docker.sock:/var/run/docker.sock -v \"$(pwd)\"/docker-env:/env -p 8443:8443 -p 443:443 ghcr.io/darkmattermatt/commute.live-manager:main",
+    "stop:docker": "docker kill --signal=SIGINT commute.live-manager || echo",
+    "lint": "eslint --fix src && tsc --noEmit",
+    "start": "node dist/index.js",
+    "test": "npm run build && cross-env NODE_OPTIONS='--experimental-vm-modules' jest"
+  },
+  "nx": {
+    "targets": {
+      "clean:docker": {
+        "dependsOn": [
+          "stop:docker"
+        ],
+        "outputs": []
+      },
+      "start": {
+        "dependsOn": [
+          "build"
+        ],
+        "outputs": []
+      },
+      "start:docker": {
+        "dependsOn": [
+          "clean:docker",
+          "build:docker"
+        ],
+        "outputs": []
+      }
     }
+  },
+  "type": "module",
+  "engines": {
+    "node": "^24"
+  },
+  "dependencies": {
+    "@octokit/webhooks": "^14.2.0",
+    "dotenv": "^17.2.3",
+    "envalid": "^8.1.1"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.2.0",
+    "@octokit/webhooks-types": "^7.6.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.39.2",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "jest": "^30.2.0",
+    "rimraf": "^6.1.2",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
 }

@@ -1,130 +1,130 @@
 {
-    "name": "@commutelive/backend",
-    "version": "2.5.1",
-    "description": "The main backend of [Commute.live](https://commute.live), which aggregates static and realtime data from multiple sources and exposes it via an API.",
-    "main": "dist/index.js",
-    "author": "Matt Moran",
-    "license": "GPL-3.0",
-    "homepage": "https://github.com/DarkMatterMatt/commute.live/packages/backend#readme",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
-    },
-    "bugs": {
-        "url": "https://github.com/DarkMatterMatt/commute.live/issues"
-    },
-    "scripts": {
-        "build": "tsc -p tsconfig.build.json",
-        "build:docker": "docker build -f Dockerfile -t commute.live ../../",
-        "clean": "rimraf dist && npm run clean:proto",
-        "clean:proto": "rimraf src/**/*.proto.ts",
-        "clean:docker": "docker rm commute.live || echo",
-        "generate:proto": "node ./tools/generateProto.mjs protoc ../../node_modules/.bin/protoc-gen-ts_proto src/**/*.proto",
-        "lint": "eslint --fix src && tsc --noEmit",
-        "start": "node --experimental-loader ./dist/loader.js dist/index.js",
-        "start:docker": "docker run --env-file ../../.env --name commute.live -dp 9001:9001 commute.live",
-        "stop:docker": "docker kill --signal=SIGINT commute.live || echo",
-        "test": "npm run build && cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
-        "typecheck": "tsc --noEmit"
-    },
-    "nx": {
-        "targets": {
-            "build": {
-                "dependsOn": [
-                    "^build",
-                    "generate:proto"
-                ],
-                "outputs": [
-                    "{projectRoot}/dist"
-                ]
-            },
-            "build:docker": {
-                "dependsOn": [
-                    "^build"
-                ],
-                "outputs": []
-            },
-            "clean:docker": {
-                "dependsOn": [
-                    "stop:docker"
-                ],
-                "outputs": []
-            },
-            "generate:proto": {
-                "dependsOn": [],
-                "inputs": [
-                    "{projectRoot}/src/**/*.proto"
-                ],
-                "outputs": [
-                    "{projectRoot}/src/**/*.proto.ts"
-                ]
-            },
-            "lint": {
-                "dependsOn": [
-                    "^build"
-                ],
-                "outputs": []
-            },
-            "start": {
-                "dependsOn": [
-                    "build"
-                ],
-                "outputs": []
-            },
-            "start:docker": {
-                "dependsOn": [
-                    "clean:docker",
-                    "build:docker"
-                ],
-                "outputs": []
-            },
-            "typecheck": {
-                "dependsOn": [
-                    "^build"
-                ],
-                "outputs": []
-            }
-        }
-    },
-    "type": "module",
-    "engines": {
-        "node": "^24"
-    },
-    "dependencies": {
-        "@commutelive/common": "^2.6.1",
-        "better-sqlite3": "^12.0.0",
-        "chalk": "^5.6.2",
-        "dotenv": "^17.2.3",
-        "envalid": "^8.1.1",
-        "fast-safe-stringify": "^2.1.1",
-        "gtfs": "^4.18.2",
-        "maxmind": "^5.0.1",
-        "node-fetch": "3.3.2",
-        "node-graceful": "^3.1.0",
-        "ts-proto": "^2.8.3",
-        "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.56.0",
-        "winston": "^3.19.0",
-        "winston-daily-rotate-file": "^5.0.0",
-        "ws": "^8.18.3"
-    },
-    "devDependencies": {
-        "@eslint/eslintrc": "^3.3.3",
-        "@eslint/js": "^9.39.2",
-        "@jest/globals": "^30.2.0",
-        "@types/better-sqlite3": "^7.6.13",
-        "@types/jest": "^30.0.0",
-        "@types/node": "^25.0.1",
-        "@types/ws": "^8.18.1",
-        "@typescript-eslint/eslint-plugin": "^8.49.0",
-        "@typescript-eslint/parser": "^8.49.0",
-        "cross-env": "^10.1.0",
-        "eslint": "^9.39.2",
-        "eslint-import-resolver-typescript": "^4.4.4",
-        "eslint-plugin-import": "^2.32.0",
-        "globals": "^16.5.0",
-        "rimraf": "^6.1.2",
-        "ts-jest": "^29.4.6",
-        "typescript": "^5.9.3",
-        "typescript-eslint": "^8.49.0"
+  "name": "@commutelive/backend",
+  "version": "2.5.1",
+  "description": "The main backend of [Commute.live](https://commute.live), which aggregates static and realtime data from multiple sources and exposes it via an API.",
+  "main": "dist/index.js",
+  "author": "Matt Moran",
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/DarkMatterMatt/commute.live/packages/backend#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DarkMatterMatt/commute.live.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DarkMatterMatt/commute.live/issues"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:docker": "docker build -f Dockerfile -t commute.live ../../",
+    "clean": "rimraf dist && npm run clean:proto",
+    "clean:proto": "rimraf src/**/*.proto.ts",
+    "clean:docker": "docker rm commute.live || echo",
+    "generate:proto": "node ./tools/generateProto.mjs protoc ../../node_modules/.bin/protoc-gen-ts_proto src/**/*.proto",
+    "lint": "eslint --fix src && tsc --noEmit",
+    "start": "node --experimental-loader ./dist/loader.js dist/index.js",
+    "start:docker": "docker run --env-file ../../.env --name commute.live -dp 9001:9001 commute.live",
+    "stop:docker": "docker kill --signal=SIGINT commute.live || echo",
+    "test": "npm run build && cross-env NODE_OPTIONS='--experimental-vm-modules' jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "dependsOn": [
+          "^build",
+          "generate:proto"
+        ],
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      },
+      "build:docker": {
+        "dependsOn": [
+          "^build"
+        ],
+        "outputs": []
+      },
+      "clean:docker": {
+        "dependsOn": [
+          "stop:docker"
+        ],
+        "outputs": []
+      },
+      "generate:proto": {
+        "dependsOn": [],
+        "inputs": [
+          "{projectRoot}/src/**/*.proto"
+        ],
+        "outputs": [
+          "{projectRoot}/src/**/*.proto.ts"
+        ]
+      },
+      "lint": {
+        "dependsOn": [
+          "^build"
+        ],
+        "outputs": []
+      },
+      "start": {
+        "dependsOn": [
+          "build"
+        ],
+        "outputs": []
+      },
+      "start:docker": {
+        "dependsOn": [
+          "clean:docker",
+          "build:docker"
+        ],
+        "outputs": []
+      },
+      "typecheck": {
+        "dependsOn": [
+          "^build"
+        ],
+        "outputs": []
+      }
     }
+  },
+  "type": "module",
+  "engines": {
+    "node": "^24"
+  },
+  "dependencies": {
+    "@commutelive/common": "^2.6.1",
+    "better-sqlite3": "^12.0.0",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.2.3",
+    "envalid": "^8.1.1",
+    "fast-safe-stringify": "^2.1.1",
+    "gtfs": "^4.18.2",
+    "maxmind": "^5.0.1",
+    "node-fetch": "3.3.2",
+    "node-graceful": "^3.1.0",
+    "ts-proto": "^2.8.3",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.56.0",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
+    "@jest/globals": "^30.2.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.1",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.39.2",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^16.5.0",
+    "rimraf": "^6.1.2",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.49.0"
+  }
 }
