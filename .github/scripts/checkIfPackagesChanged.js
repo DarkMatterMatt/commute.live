@@ -174,8 +174,8 @@ function nxPrintAffected(baseSha) {
 
     const result = () => {
         console.log("Finding affected projects at commit:", baseSha);
-        const stdout = execSync(`npx nx print-affected --base=${baseSha}`);
-        return nxPrintAffectedCache[baseSha] = JSON.parse(stdout).projects;
+        const stdout = execSync(`npx nx show projects --affected --base=${baseSha} --json`);
+        return nxPrintAffectedCache[baseSha] = JSON.parse(stdout);
     }
 
     try {
