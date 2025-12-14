@@ -16,22 +16,20 @@ RUN apt-get update \
     && apt-get install git ssh ca-certificates \
         -yq --reinstall --no-install-suggests --no-install-recommends --allow-downgrades --allow-remove-essential --allow-change-held-packages
 
-# Install Lerna.
+# Install dependencies using npm workspaces.
 COPY package*.json .
+COPY packages/common/package*.json packages/common/
+COPY packages/web/package*.json packages/web/
 RUN npm ci --ignore-scripts
 ENV PATH /app/node_modules/.bin:$PATH
 COPY *.json .
 
 # Build common.
-COPY packages/common/package*.json packages/common/
-RUN lerna --scope=*/common bootstrap --include-dependencies
 COPY packages/common/*.json packages/common/
 COPY packages/common/src/ packages/common/src/
 RUN lerna --scope=*/common run build
 
 # Build web.
-COPY packages/web/package*.json packages/web/
-RUN lerna --scope=*/web bootstrap --include-dependencies
 COPY packages/web/.babelrc packages/web/
 COPY packages/web/.browserslistrc packages/web/
 COPY packages/web/.env packages/web/

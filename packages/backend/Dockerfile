@@ -18,22 +18,20 @@ RUN apt-get update \
     && apt-get install git ssh ca-certificates protobuf-compiler \
         -yq --reinstall --no-install-suggests --no-install-recommends --allow-downgrades --allow-remove-essential --allow-change-held-packages
 
-# Install Lerna.
+# Install dependencies using npm workspaces.
 COPY package*.json .
+COPY packages/common/package*.json packages/common/
+COPY packages/backend/package*.json packages/backend/
 RUN npm ci --ignore-scripts
 ENV PATH /app/node_modules/.bin:$PATH
 COPY *.json .
 
 # Build common.
-COPY packages/common/package*.json packages/common/
-RUN lerna --scope=*/common bootstrap --include-dependencies
 COPY packages/common/*.json packages/common/
 COPY packages/common/src/ packages/common/src/
 RUN lerna --scope=*/common run build
 
 # Build backend.
-COPY packages/backend/package*.json packages/backend/
-RUN lerna --scope=*/backend bootstrap --include-dependencies
 COPY packages/backend/*.json packages/backend/
 COPY packages/backend/tools/ packages/backend/tools/
 COPY packages/backend/src/ packages/backend/src/

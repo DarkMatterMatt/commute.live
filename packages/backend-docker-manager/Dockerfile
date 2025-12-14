@@ -6,15 +6,14 @@
 FROM node:lts-alpine AS builder
 WORKDIR /app
 
-# Install Lerna.
+# Install dependencies using npm workspaces.
 COPY package*.json .
+COPY packages/backend-docker-manager/package*.json packages/backend-docker-manager/
 RUN npm ci --ignore-scripts
 ENV PATH /app/node_modules/.bin:$PATH
 COPY *.json .
 
 # Build backend-docker-manager.
-COPY packages/backend-docker-manager/package*.json packages/backend-docker-manager/
-RUN lerna --scope=*/backend-docker-manager bootstrap --include-dependencies
 COPY packages/backend-docker-manager/*.json packages/backend-docker-manager/
 COPY packages/backend-docker-manager/src/ packages/backend-docker-manager/src/
 RUN lerna --scope=*/backend-docker-manager run build
