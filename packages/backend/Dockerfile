@@ -13,9 +13,11 @@ WORKDIR /app
 # ------> ca-certificates
 # > ts-proto
 # --> protobuf-compiler
+# > better-sqlite3
+# --> python3, make, g++ (for native compilation)
 
 RUN apt-get update \
-    && apt-get install git ssh ca-certificates protobuf-compiler \
+    && apt-get install git ssh ca-certificates protobuf-compiler python3 make g++ \
         -yq --reinstall --no-install-suggests --no-install-recommends --allow-downgrades --allow-remove-essential --allow-change-held-packages
 
 # Install dependencies using npm workspaces.
@@ -23,6 +25,10 @@ COPY package*.json .
 COPY packages/common/package*.json packages/common/
 COPY packages/backend/package*.json packages/backend/
 RUN npm ci --ignore-scripts
+
+# Rebuild native modules for Linux platform
+RUN npm rebuild better-sqlite3
+
 ENV PATH /app/node_modules/.bin:$PATH
 COPY *.json .
 
