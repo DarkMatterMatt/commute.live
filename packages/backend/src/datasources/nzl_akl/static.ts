@@ -258,19 +258,12 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             direction_id AS directionId,
             route_long_name AS longName,
             SUM(service_count) AS routeCount,
-            shape_length AS routeLength,
+            COALESCE(shape_length, 0) AS routeLength,
             route_type AS routeType,
             T.shape_id AS shapeId,
             route_short_name AS shortName,
             ${normaliseLongName("trip_headsign")} AS tripHeadsign
         FROM trips T
-        INNER JOIN (
-            SELECT
-                shape_id,
-                MAX(shape_dist_traveled) as shape_length
-            FROM shapes
-            GROUP BY shape_id
-        ) S ON S.shape_id=T.shape_id
         INNER JOIN (
             SELECT service_id, CAST(
                     (monday + tuesday + wednesday + thursday + friday + saturday + sunday)
@@ -282,6 +275,13 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
             SELECT route_id, route_short_name, ${normaliseLongName("route_long_name")} AS route_long_name, route_type
             FROM routes
         ) R ON R.route_id=T.route_id
+        LEFT JOIN (
+            SELECT
+                shape_id,
+                MAX(shape_dist_traveled) as shape_length
+            FROM shapes
+            GROUP BY shape_id
+        ) S ON S.shape_id=T.shape_id
         GROUP BY direction_id, route_long_name, trip_headsign
     `).all() as {
         directionId: 0 | 1;
@@ -289,7 +289,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         routeCount: number;
         routeLength: number;
         routeType: number;
-        shapeId: string;
+        shapeId: string | null;
         shortName: string;
         tripHeadsign: string;
     }[];
