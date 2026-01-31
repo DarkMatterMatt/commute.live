@@ -329,9 +329,6 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         ],
     });
 
-    const maxInArr = <T>(arr: T[], getter: (item: T) => number) =>
-        arr.reduce((a, b) => Math.max(a, getter(b)), -Infinity);
-
     type RouteWithId = typeof routes[0] & { id: Id };
     const routesByKey = new Map<string, [RouteWithId[], RouteWithId[]]>();
     for (const r of routes) {
@@ -346,6 +343,7 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         const longNames: [StrOrNull, StrOrNull] = [null, null];
         const shapeIds: [StrOrNull, StrOrNull] = [null, null];
 
+        // find the "best" shape (by frequency and length), and the corresponding long name.
         for (const directionId of [0, 1] as const) {
             let possibilities = possibilitiesByDirection[directionId];
             if (possibilities.length === 0) {
@@ -355,13 +353,13 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
 
             // we want routes that occur often (at least 60% as often as the most common route)
             if (possibilities.length > 1) {
-                const maxOccurrences = maxInArr(possibilities, p => p.routeCount);
+                const maxOccurrences = Math.max(...possibilities.map(p => p.routeCount));
                 possibilities = possibilities.filter(p => p.routeCount >= maxOccurrences * 0.6);
             }
 
             // we want routes that are long (at least 90% as long as the longest route)
             if (possibilities.length > 1) {
-                const maxLength = maxInArr(possibilities, p => p.routeLength);
+                const maxLength = Math.max(...possibilities.map(p => p.routeLength));
                 possibilities = possibilities.filter(p => p.routeLength >= maxLength * 0.9);
             }
 
