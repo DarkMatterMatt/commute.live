@@ -173,7 +173,7 @@ function fixStopTimeUpdate(stu: AucklandTransportData<StopTimeUpdate>): StopTime
     const output: StopTimeUpdate = {};
     if (arrival != null) output.arrival = fixStopTimeEvent(arrival);
     if (departure != null) output.departure = fixStopTimeEvent(departure);
-    if (schedule_relationship != null) {
+    if (schedule_relationship != null && schedule_relationship !== "") {
         output.schedule_relationship = parseEnum(
             TripUpdate$StopTimeUpdate$ScheduleRelationship, schedule_relationship);
     }
@@ -200,7 +200,7 @@ function fixTrip(t: AucklandTransportData<TripDescriptor>): TripDescriptor {
     const output: TripDescriptor = {};
     if (direction_id != null) output.direction_id = ensureNumber(direction_id);
     if (route_id != null) output.route_id = route_id;
-    if (schedule_relationship != null) {
+    if (schedule_relationship != null && schedule_relationship !== "") {
         output.schedule_relationship = parseEnum(TripDescriptor$ScheduleRelationship, schedule_relationship);
     }
     if (start_date != null) output.start_date = start_date;
@@ -247,10 +247,16 @@ export function fixVehiclePosition(vp: AucklandTransportData<VehiclePosition>): 
     const stop_id = vp.stop_id ?? vp.stopId;
 
     const output: VehiclePosition = {};
-    if (congestion_level != null) output.congestion_level = parseEnum(CongestionLevel, congestion_level);
-    if (current_status != null) output.current_status = parseEnum(VehicleStopStatus, current_status);
+    if (congestion_level != null && congestion_level !== "") {
+        output.congestion_level = parseEnum(CongestionLevel, congestion_level);
+    }
+    if (current_status != null && current_status !== "") {
+        output.current_status = parseEnum(VehicleStopStatus, current_status);
+    }
     if (current_stop_sequence != null) output.current_stop_sequence = ensureNumber(current_stop_sequence);
-    if (occupancy_status != null) output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
+    if (occupancy_status != null && occupancy_status !== "") {
+        output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
+    }
     if (position != null) output.position = fixPosition(position);
     if (stop_id != null) output.stop_id = stop_id;
     if (timestamp != null) output.timestamp = ensureNumber(timestamp);
