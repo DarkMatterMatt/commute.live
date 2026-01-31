@@ -5,7 +5,7 @@ import env from "~/env";
 import { RollingAverageByTime } from "~/helpers";
 import { getLogger } from "~/log";
 import type { FeedEntity, TripUpdate, VehiclePosition } from "~/types";
-import { fixTripUpdate, fixVehiclePosition, getReadyState } from "./realtime_websocket";
+import { type AucklandTransportData, fixTripUpdate, fixVehiclePosition, getReadyState } from "./realtime_websocket";
 
 const log = getLogger("NZLAKL/realtime/poll");
 
@@ -110,7 +110,7 @@ export async function initialize(
 /**
  * Received a message.
  */
-function onMessage(data: FeedEntity & Record<string, any>): void {
+function onMessage(data: AucklandTransportData<FeedEntity>): void {
     // NOTE: AT sometimes incorrectly uses camelCase keys, string timestamps, and string enums
 
     const { id: _id, vehicle, alert: _alert } = data;

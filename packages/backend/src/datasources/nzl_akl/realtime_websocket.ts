@@ -62,7 +62,7 @@ function onError(wsIdx: number, err: Error): undefined | number {
  */
 function onMessage(wsIdx: number, data_: string): void {
     // NOTE: AT's WebSocket incorrectly uses camelCase keys, string timestamps, and string enums
-    const data: FeedEntity & Record<string, any> = JSON.parse(data_);
+    const data: FeedEntity & AsCamelCase<FeedEntity> = JSON.parse(data_);
 
     const { id: _id, vehicle, alert: _alert } = data;
     const trip_update = data.trip_update ?? data.tripUpdate;
@@ -94,7 +94,7 @@ function onOpen(wsIdx: number): void {
 
     mpws.send(wsIdx, JSON.stringify({
         // appears to be a stripped-down GraphQL API
-        filters: { },
+        filters: {},
         query: "{ id vehicle tripUpdate trip_update alert }",
     }));
 }
@@ -130,12 +130,23 @@ export async function terminate(): Promise<void> {
     mpws.terminate();
 }
 
-function fixPosition(p: Position & Record<string, any>): Position {
+type SnakeToCamelCase<S> = S extends `${infer T}_${infer U}`
+    ? `${T}${Capitalize<SnakeToCamelCase<U>>}`
+    : S;
+
+type AsCamelCase<T> = { [K in keyof T as SnakeToCamelCase<K>]?: T[K] };
+
+type NumbersMightBeStrings<T> = { [K in keyof T]: T[K] extends number | undefined ? T[K] | string : T[K] };
+
+/** AT's WebSocket data may use camelCase keys, string timestamps, and string enums. */
+export type AucklandTransportData<T> = NumbersMightBeStrings<T & AsCamelCase<T>>
+
+function fixPosition(p: AucklandTransportData<Position>): Position {
     const { bearing, latitude, longitude, odometer, speed } = p;
 
     const output: Position = {
-        latitude,
-        longitude,
+        latitude: ensureNumber(latitude),
+        longitude: ensureNumber(longitude),
     };
     if (bearing != null) output.bearing = (ensureNumber(bearing) + 360) % 360;
     if (odometer != null) output.odometer = ensureNumber(odometer);
@@ -143,7 +154,7 @@ function fixPosition(p: Position & Record<string, any>): Position {
     return output;
 }
 
-function fixStopTimeEvent(ste: TripUpdate$StopTimeEvent & Record<string, any>): TripUpdate$StopTimeEvent {
+function fixStopTimeEvent(ste: AucklandTransportData<TripUpdate$StopTimeEvent>): TripUpdate$StopTimeEvent {
     const { delay, time, uncertainty } = ste;
 
     const output: TripUpdate$StopTimeEvent = {};
@@ -153,7 +164,7 @@ function fixStopTimeEvent(ste: TripUpdate$StopTimeEvent & Record<string, any>): 
     return output;
 }
 
-function fixStopTimeUpdate(stu: StopTimeUpdate & Record<string, any>): StopTimeUpdate {
+function fixStopTimeUpdate(stu: AucklandTransportData<StopTimeUpdate>): StopTimeUpdate {
     const { arrival, departure } = stu;
     const schedule_relationship = stu.schedule_relationship ?? stu.scheduleRelationship;
     const stop_id = stu.stop_id ?? stu.stopId;
@@ -178,7 +189,7 @@ function ensureNumber(t: string | number): number {
     return t;
 }
 
-function fixTrip(t: TripDescriptor & Record<string, any>): TripDescriptor {
+function fixTrip(t: AucklandTransportData<TripDescriptor>): TripDescriptor {
     const direction_id = t.direction_id ?? t.directionId;
     const route_id = t.route_id ?? t.routeId;
     const schedule_relationship = t.schedule_relationship ?? t.scheduleRelationship;
@@ -187,7 +198,7 @@ function fixTrip(t: TripDescriptor & Record<string, any>): TripDescriptor {
     const trip_id = t.trip_id ?? t.tripId;
 
     const output: TripDescriptor = {};
-    if (direction_id != null) output.direction_id = direction_id;
+    if (direction_id != null) output.direction_id = ensureNumber(direction_id);
     if (route_id != null) output.route_id = route_id;
     if (schedule_relationship != null) {
         output.schedule_relationship = parseEnum(TripDescriptor$ScheduleRelationship, schedule_relationship);
@@ -198,7 +209,7 @@ function fixTrip(t: TripDescriptor & Record<string, any>): TripDescriptor {
     return output;
 }
 
-export function fixTripUpdate(tu: TripUpdate & Record<string, any>): TripUpdate {
+export function fixTripUpdate(tu: AucklandTransportData<TripUpdate>): TripUpdate {
     const { delay, timestamp, trip, vehicle } = tu;
     let stop_time_update = tu.stop_time_update ?? tu.stopTimeUpdate ?? [];
 
@@ -216,7 +227,7 @@ export function fixTripUpdate(tu: TripUpdate & Record<string, any>): TripUpdate 
     return output;
 }
 
-function fixVehicleDescriptor(vd: VehicleDescriptor & Record<string, any>): VehicleDescriptor {
+function fixVehicleDescriptor(vd: AucklandTransportData<VehicleDescriptor>): VehicleDescriptor {
     const { id, label } = vd;
     const license_plate = vd.license_plate ?? vd.licensePlate;
 
@@ -227,7 +238,7 @@ function fixVehicleDescriptor(vd: VehicleDescriptor & Record<string, any>): Vehi
     return output;
 }
 
-export function fixVehiclePosition(vp: VehiclePosition & Record<string, any>): VehiclePosition {
+export function fixVehiclePosition(vp: AucklandTransportData<VehiclePosition>): VehiclePosition {
     const { position, timestamp, trip, vehicle } = vp;
     const congestion_level = vp.congestion_level ?? vp.congestionLevel;
     const current_status = vp.current_status ?? vp.currentStatus;
@@ -238,7 +249,7 @@ export function fixVehiclePosition(vp: VehiclePosition & Record<string, any>): V
     const output: VehiclePosition = {};
     if (congestion_level != null) output.congestion_level = parseEnum(CongestionLevel, congestion_level);
     if (current_status != null) output.current_status = parseEnum(VehicleStopStatus, current_status);
-    if (current_stop_sequence != null) output.current_stop_sequence = current_stop_sequence;
+    if (current_stop_sequence != null) output.current_stop_sequence = ensureNumber(current_stop_sequence);
     if (occupancy_status != null) output.occupancy_status = parseEnum(OccupancyStatus, occupancy_status);
     if (position != null) output.position = fixPosition(position);
     if (stop_id != null) output.stop_id = stop_id;

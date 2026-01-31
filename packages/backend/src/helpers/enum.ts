@@ -8,14 +8,13 @@ export function parseEnum<T extends string, TEnumValue extends number>(
     val: string | number,
 ): TEnumValue {
     if (typeof val === "string") {
-        const result = (enumType as any)[val];
+        const result = enumType[val as T];
         if (typeof result === "number") {
-            return result as TEnumValue;
+            return result;
         }
     }
     else if (typeof val === "number") {
-        const result = (enumType as any)[val];
-        if (typeof result === "string") {
+        if (Object.values(enumType).includes(val)) {
             return val as TEnumValue;
         }
     }
@@ -32,8 +31,8 @@ export function parseStringEnum<T extends string, TEnumValue extends string>(
     enumType: { [key in T]: TEnumValue },
     val: string,
 ): TEnumValue {
-    if (Object.keys(enumType).includes(val)) {
-        return (enumType as any)[val];
+    if (val in enumType) {
+        return enumType[val as T];
     }
     if (Object.values(enumType).includes(val)) {
         return val as TEnumValue;
