@@ -10,7 +10,10 @@ dotenv.config();
 
 const rawEnv = cleanEnv(process.env, {
     ENABLED_REGIONS: makeValidator(x => x ? x.split(",") : "all")({ default: "all" }),
-    AUCKLAND_TRANSPORT_KEY: str(),
+    /** Used for APIs: `/v2/realtime-streaming`, and `/trip-allocations/v3`. */
+    AUCKLAND_TRANSPORT_KEY_DVS: str(),
+    /** Used for APIs: `/gtfs/v3`, `/realtime/legacy`, and `/mobile/streaming/v1`. */
+    AUCKLAND_TRANSPORT_KEY_PTD: str(),
     NSW_KEY: str(),
     CACHE_DIR: dir({ default: "cache" }),
     FETCH_URL_WHEN_LOADED: str({ default: undefined }),

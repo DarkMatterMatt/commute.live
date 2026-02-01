@@ -1,10 +1,9 @@
 import type { JSONSerializable } from "@commutelive/common";
-import fetch from "node-fetch";
 import WebSocket from "ws";
-import env from "~/env";
 import { RollingAverageByTime } from "~/helpers";
 import { getLogger } from "~/log";
 import type { FeedEntity, TripUpdate, VehiclePosition } from "~/types";
+import { queryApiPtd } from "./api";
 import { type AucklandTransportData, fixTripUpdate, fixVehiclePosition, getReadyState } from "./realtime_websocket";
 
 const log = getLogger("NZLAKL/realtime/poll");
@@ -46,17 +45,15 @@ export async function getStatus(): Promise<JSONSerializable> {
     };
 }
 
-async function queryApi(url: string) {
-    const res = await fetch(url, {
-        headers: { "Ocp-Apim-Subscription-Key": env.AUCKLAND_TRANSPORT_KEY },
-    });
+async function queryRealtime<T>(url: string): Promise<T> {
+    const res = await queryApiPtd(url);
     if (res.status !== 200) {
         throw new Error(`Got status ${res.status} from ${url}`);
     }
     const json = (await res.json() as {
         status: string;
         response: {
-            entity: (FeedEntity & Record<string, any>)[];
+            entity: T;
         };
     });
     return json.response.entity;
@@ -76,7 +73,7 @@ export async function checkForRealtimeUpdate(): Promise<boolean> {
     updateInProgress = true;
 
     try {
-        const updates = await queryApi(realtimeApiUrl);
+        const updates = await queryRealtime<AucklandTransportData<FeedEntity>[]>(realtimeApiUrl);
         if (updates.length === 0) {
             return false;
         }
