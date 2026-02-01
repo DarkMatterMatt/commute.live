@@ -22,7 +22,9 @@
   "workspaces": [
     "packages/*"
   ],
-  "scripts": {},
+  "scripts": {
+    "postinstall": "git config core.hooksPath .githooks"
+  },
   "devDependencies": {
     "@eslint/compat": "^2.0.0",
     "lerna": "^9.0.3",

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Pre-push hook to ensure commits to main start with "Publish"
+# This enforces that versions are updated before pushing to main
+
+# Read stdin to get the refs being pushed
+while read local_ref local_sha remote_ref remote_sha
+do
+    # Check if pushing to main branch
+    if [[ "$remote_ref" == "refs/heads/main" ]]; then
+        # Get the last commit message
+        commit_msg=$(git log -1 --pretty=%B HEAD)
+
+        # Check if commit message starts with "Publish"
+        if [[ ! "$commit_msg" =~ ^Publish ]]; then
+            echo ""
+            echo "❌ ERROR: Cannot push to main"
+            echo ""
+            echo "The last commit message must start with 'Publish' when pushing to main."
+            echo "This ensures package versions are updated before publishing."
+            echo ""
+            echo "To fix, run 'npx lerna version' and push again."
+            echo ""
+            exit 1
+        fi
+
+        echo "✓ Commit message starts with 'Publish' - allowing push to main"
+    fi
+done
+
+exit 0
