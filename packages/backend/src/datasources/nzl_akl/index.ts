@@ -5,11 +5,13 @@ import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates,
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static";
 import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries";
 
-const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY;
+const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY_DVS;
 
 const GTFS_URL = "https://gtfs.at.govt.nz/gtfs.zip";
 
 const REALTIME_API_URL = "https://api.at.govt.nz/realtime/legacy";
+
+const STATIC_API_URL = "https://api.at.govt.nz/gtfs/v3";
 
 const WS_URL = "wss://mobile.at.govt.nz/mobile/streaming/v1"
     + `?subscription_key=${AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY}`;
@@ -63,7 +65,7 @@ export const NZL_AKL: DataSource = {
     initialize: async cacheDir => {
         await Promise.all([
             initializeRealtime(cacheDir, WS_URL, REALTIME_API_URL),
-            initializeStatic(cacheDir, GTFS_URL),
+            initializeStatic(cacheDir, GTFS_URL, STATIC_API_URL),
         ]);
     },
 

@@ -2,7 +2,7 @@ import { createWriteStream } from "node:fs";
 import { readFile, unlink, writeFile } from "node:fs/promises";
 import path, { basename } from "node:path";
 import { pipeline } from "node:stream/promises";
-import { defaultProjection, type Id, type JSONSerializable, sleep, type StrOrNull } from "@commutelive/common";
+import { chunk, defaultProjection, type Id, type JSONSerializable, Preconditions, sleep, type StrOrNull } from "@commutelive/common";
 import Database from "better-sqlite3";
 import { closeDb, importGtfs, openDb } from "gtfs";
 import fetch, { type Response } from "node-fetch";
@@ -10,11 +10,13 @@ import Graceful from "node-graceful";
 import { SqlBatcher } from "~/helpers/";
 import { getLogger } from "~/log";
 import type { SqlDatabase } from "~/types";
+import { queryApiPtd } from "./api";
 import { makeId } from "./id";
 
 const log = getLogger("NZLAKL/static");
 
 let gtfsUrl: string;
+let staticApiUrl: string;
 
 let cacheDir: string;
 
@@ -64,18 +66,18 @@ async function getLastUpdate(): Promise<null | Date> {
 /**
  * Open database (load from remote source if local cache does not exist).
  */
-export async function initializeStatic(cacheDir_: string, gtfsUrl_: string): Promise<void> {
+export async function initializeStatic(cacheDir_: string, gtfsUrl_: string, staticApiUrl_: string): Promise<void> {
     cacheDir = cacheDir_;
     gtfsUrl = gtfsUrl_;
+    staticApiUrl = staticApiUrl_;
+
+    await checkForStaticUpdate();
 
     const lastUpdate = await getLastUpdate();
-    if (lastUpdate == null) {
-        await checkForStaticUpdate();
-    }
-    else {
-        const dbPath = getDbPath(lastUpdate);
-        db = new Database(dbPath, { readonly: true });
-    }
+    Preconditions.assert(lastUpdate != null);
+
+    const dbPath = getDbPath(lastUpdate);
+    db = new Database(dbPath, { readonly: true });
 }
 
 /**
@@ -92,7 +94,14 @@ export async function checkForStaticUpdate(): Promise<boolean> {
         return false;
     }
     if (res.status === 200) {
-        await performUpdate(res);
+        const lastModifiedStr = res.headers.get("Last-Modified");
+        const lastModified = lastModifiedStr ? new Date(lastModifiedStr) : new Date();
+        if (+lastModified === +lastUpdate) {
+            // we already have the latest data
+            return false;
+        }
+
+        await performUpdate(res, lastModified);
         return true;
     }
 
@@ -102,16 +111,12 @@ export async function checkForStaticUpdate(): Promise<boolean> {
 /**
  * Download zip, import to database, remove zip & old database.
  */
-async function performUpdate(res: Response): Promise<void> {
+async function performUpdate(res: Response, lastModified: Date): Promise<void> {
     log.info("Updating static data.");
     if (res.body == null) {
         // should never occur
         throw new Error(`Response returned empty body, ${res.url}`);
     }
-
-    // fetch & store timestamp for update
-    const lastModifiedStr = res.headers.get("Last-Modified");
-    const lastModified = lastModifiedStr ? new Date(lastModifiedStr) : new Date();
 
     // write last update timestamp to disk
     const fname = getLastUpdatePath();
@@ -148,6 +153,15 @@ async function performUpdate(res: Response): Promise<void> {
 async function postImport(db: SqlDatabase): Promise<void> {
     log.info("Running post-import functions.");
 
+    // the static GTFS data doesn't include school buses, but the REST API does. We'll query the
+    // API to fetch any missing routes
+    try {
+        await supplementWithMissingRoutes(db);
+    }
+    catch (err) {
+        log.warn("Failed to supplement GTFS with missing routes, continuing with GTFS-only data.", err);
+    }
+
     // add index for routes.route_short_name
     db.prepare<[]>(`
         CREATE INDEX idx_routes_route_short_name
@@ -163,6 +177,178 @@ async function postImport(db: SqlDatabase): Promise<void> {
     // rebuilds the database file, repacking it into a minimal amount of disk space
     // disabled for now because we run out of memory on servers with 1GB RAM
     //db.prepare<[]>("VACUUM").run();
+}
+
+async function queryGtfs<T>(url: string): Promise<T> {
+    const res = await queryApiPtd(`${staticApiUrl}/${url}`);
+    if (res.status !== 200) {
+        throw new Error(`Got status ${res.status} from ${url}`);
+    }
+    const json = (await res.json() as { data: T });
+    return json.data;
+}
+
+/**
+ * Supplement GTFS data with missing routes and trips from the API.
+ * For example, school buses exist in the API but not in the static GTFS data.
+ */
+async function supplementWithMissingRoutes(db: SqlDatabase): Promise<void> {
+    log.info("Fetching routes from API to supplement GTFS data.");
+
+    // Fetch all routes from API
+    const rawApiRoutes = await queryGtfs<Partial<{
+        type: string; // always 'route', because we're querying routes...
+        id: string; // always attributes.route_id...
+        attributes: Partial<{
+            route_id: string;
+            agency_id: string;
+            route_short_name: string;
+            route_long_name: string;
+            route_type: number;
+            // The API claims we might get the following, but I haven't seen them populated.
+            // route_desc: string;
+            // route_url: number;
+            // route_color: string;
+            // route_text_color: string;
+            // route_sort_order: string;
+        }>;
+    }>[]>("routes");
+
+    // Unbox the `attributes` field, ensure `route_id` & `route_type` are present.
+    const apiRoutes = rawApiRoutes
+        .map(r => r.attributes?.route_id && r.attributes?.route_type != null && {
+            ...r.attributes,
+            route_id: r.attributes?.route_id,
+            route_type: r.attributes?.route_type,
+        })
+        .filter(r => !!r);
+
+    // Get existing route_ids from database
+    const existingRoutes = db.prepare<[], { route_id: string }>("SELECT route_id FROM routes").all();
+    const existingRouteIds = new Set(existingRoutes.map(r => r.route_id));
+
+    log.debug(`Found ${existingRouteIds.size} of ${apiRoutes.length} routes in GTFS.`);
+
+    // Filter to find missing routes
+    const missingRoutes = apiRoutes.filter(r => !existingRouteIds.has(r.route_id));
+    if (missingRoutes.length === 0) {
+        return;
+    }
+
+    // Get trip information for missing routes.
+    const allTrips: {
+        route_id: string;
+        trip_id: string;
+        service_id: string;
+        trip_headsign?: string;
+        direction_id?: number;
+        shape_id?: string;
+        wheelchair_accessible?: number;
+        bikes_allowed?: number;
+    }[] = [];
+    for (const batch of chunk(missingRoutes, 20)) {
+        const trips = await Promise.all(batch.map(async ({ route_id }) => {
+            const rawRouteTrips = await queryGtfs<Partial<{
+                type: string;
+                id: string;
+                attributes: Partial<{
+                    service_id: string;
+                    route_id: string;
+                    trip_id: string;
+                    trip_headsign: string;
+                    direction_id: number;
+                    shape_id: string;
+                    wheelchair_accessible: number;
+                    bikes_allowed: number;
+                    // The API claims we might get the following, but I haven't seen them populated.
+                    // trip_short_name: string;
+                    // block_id: string;
+                }>;
+            }>[]>(`routes/${encodeURIComponent(route_id)}/trips`);
+
+            // Unbox the `attributes` field, ensure `trip_id` is present.
+            return rawRouteTrips
+                .map(r => r.attributes?.trip_id && r.attributes?.service_id && {
+                    ...r.attributes,
+                    route_id,
+                    service_id: r.attributes?.service_id,
+                    trip_id: r.attributes?.trip_id,
+                })
+                .filter(r => !!r);
+        }));
+        allTrips.push(...trips.flatMap(t => t));
+    }
+
+    // Insert missing routes into routes table.
+    const routeBatcher = new SqlBatcher<[
+        string, // route_id
+        StrOrNull, // agency_id
+        StrOrNull, // route_short_name
+        StrOrNull, // route_long_name
+        number, // route_type
+    ]>({
+        db,
+        table: "routes",
+        columns: [
+            "route_id",
+            "agency_id",
+            "route_short_name",
+            "route_long_name",
+            "route_type",
+        ],
+    });
+
+    for (const route of missingRoutes) {
+        await routeBatcher.queue(
+            route.route_id,
+            route.agency_id ?? null,
+            route.route_short_name ?? null,
+            route.route_long_name ?? null,
+            route.route_type,
+        );
+    }
+    await routeBatcher.flush();
+
+    // Insert missing trips into trips table.
+    const tripBatcher = new SqlBatcher<[
+        string, // route_id
+        string, // service_id
+        string, // trip_id
+        StrOrNull, // trip_headsign
+        number | null, // direction_id
+        StrOrNull, // shape_id
+        number | null, // wheelchair_accessible
+        number | null, // bikes_allowed
+    ]>({
+        db,
+        table: "trips",
+        columns: [
+            "route_id",
+            "service_id",
+            "trip_id",
+            "trip_headsign",
+            "direction_id",
+            "shape_id",
+            "wheelchair_accessible",
+            "bikes_allowed",
+        ],
+    });
+
+    for (const trip of allTrips) {
+        await tripBatcher.queue(
+            trip.route_id,
+            trip.service_id,
+            trip.trip_id,
+            trip.trip_headsign ?? null,
+            trip.direction_id ?? null,
+            trip.shape_id ?? null,
+            trip.wheelchair_accessible ?? null,
+            trip.bikes_allowed ?? null,
+        );
+    }
+    await tripBatcher.flush();
+
+    log.verbose(`Supplemented GTFS with ${missingRoutes.length} routes and ${allTrips.length} trips.`);
 }
 
 /**
@@ -289,14 +475,14 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         routeCount: number;
         routeLength: number;
         routeType: number;
-        shapeId: string | null;
+        shapeId: StrOrNull;
         shortName: string;
         tripHeadsign: string;
     }[];
 
     // Auckland Transport no longer provides route_long_name, so we use the trip headsign instead.
     routes = routes.map(({ longName, shortName, tripHeadsign, ...rest }) => ({
-        longName: (longName && longName !== shortName) ? longName : tripHeadsign,
+        longName: /^\w+$/.test(longName) ? tripHeadsign : longName,
         shortName,
         tripHeadsign,
         ...rest,
