@@ -1,3 +1,5 @@
+import { Preconditions } from "~/errors";
+
 /**
  * Comparator function for sorting numbers in ascending order.
  *
@@ -67,4 +69,25 @@ export function binarySearch(arr: number[], target: number) {
         below: high,
         found: -1,
     };
+}
+
+/**
+ * Returns an array of T[], where each of T[] contains `chunkSize` items.
+ * The last array may have less than `chunkSize` items.
+ */
+export function chunk<T>(arr: T[], chunkSize: number): T[][] {
+    Preconditions.assert(Number.isInteger(chunkSize));
+    let numChunks = Math.ceil(arr.length / chunkSize);
+    return [...range(0, numChunks)].map(i => arr.slice(chunkSize * i, chunkSize * (i + 1)));
+}
+
+/**
+ * Returns a sequence of numbers, from `start`, incrementing by 1, stopping before `end`.
+ */
+export function* range(start: number, end: number): Generator<number, void, unknown> {
+    Preconditions.assert(Number.isInteger(start));
+    Preconditions.assert(Number.isInteger(end));
+    for (let i = start; i < end; i++) {
+        yield i;
+    }
 }

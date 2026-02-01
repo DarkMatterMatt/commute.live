@@ -1,5 +1,5 @@
 import { simpleTest } from "~/test-helpers";
-import { binarySearch, quantile } from "..";
+import { binarySearch, chunk, quantile, range } from "..";
 
 describe("quantile", () => {
     const TEST_ARR = [5, 7, 4, 4, 6, 2, 8];
@@ -26,4 +26,25 @@ describe("binarySearch", () => {
         [TEST_ARR, 7, { found: 4, above: 5, below: 3 }],
         [TEST_ARR, 9, { found: -1, above: 6, below: 5 }],
     ], "toMatchObject");
+});
+
+describe("range", () => {
+    simpleTest((start: number, end: number) => [...range(start, end)], [
+        [0, 5, [0, 1, 2, 3, 4]],
+        [5, 5, []],
+        [0, 1, [0]],
+        [-3, 2, [-3, -2, -1, 0, 1]],
+    ], "toEqual");
+});
+
+describe("chunk", () => {
+    simpleTest(chunk, [
+        [[1, 2, 3, 4, 5], 2, [[1, 2], [3, 4], [5]]],
+        [[1, 2, 3, 4], 2, [[1, 2], [3, 4]]],
+        [[1, 2, 3], 1, [[1], [2], [3]]],
+        [[1, 2], 5, [[1, 2]]],
+        [[], 2, []],
+        [[1, 2, 3, 4, 5, 6, 7, 8, 9], 3, [[1, 2, 3], [4, 5, 6], [7, 8, 9]]],
+        [["a", "b", "c", "d", "e"], 2, [["a", "b"], ["c", "d"], ["e"]]],
+    ], "toEqual");
 });

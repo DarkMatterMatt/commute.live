@@ -1,3 +1,4 @@
+import { Preconditions } from "~/errors";
 import type { ClearTimeout, SetTimeout, TimerId } from "./time";
 
 const defaultSetTimeout = setTimeout;
@@ -27,6 +28,7 @@ export class TimedMap<K, V> implements Map<K, V> {
         private readonly setTimeout: SetTimeout = defaultSetTimeout,
         private readonly clearTimeout: ClearTimeout = defaultClearTimeout,
     ) {
+        Preconditions.assert(partialOpts?.defaultTtl == null || partialOpts.defaultTtl >= 0);
         const opts = {
             entries: null,
             defaultTtl: 60 * 1000,
@@ -37,6 +39,7 @@ export class TimedMap<K, V> implements Map<K, V> {
 
         this.cache = new Map(opts.entries?.map(([k, v]) => {
             const [ttl, val] = Array.isArray(v) ? v : [opts.defaultTtl, v];
+            Preconditions.assert(ttl >= 0);
             return [k, [
                 this.setTimeout(() => this.delete(k), ttl),
                 val,
@@ -69,6 +72,7 @@ export class TimedMap<K, V> implements Map<K, V> {
     }
 
     public set(key: K, value: V, ttl?: number): this {
+        Preconditions.assert(ttl == null || ttl >= 0);
         const timeout = this.setTimeout(() => this.delete(key), ttl ?? this.defaultTtl);
 
         const arr = this.cache.get(key);

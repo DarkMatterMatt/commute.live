@@ -29,7 +29,10 @@ export class QueueingRateLimiter extends RateLimiter {
         // remove the oldest element from the queue, and update the update timeout
         this.recent.remove();
         if (this.recent.size() > 0) {
-            this.updateQueueTimeout = setTimeout(() => this.removeOldest(), this.recent.element() - Date.now());
+            this.updateQueueTimeout = setTimeout(
+                () => this.removeOldest(),
+                Math.max(this.recent.element() - Date.now(), 0),
+            );
         }
 
         // execute the next waiting callback
@@ -46,7 +49,10 @@ export class QueueingRateLimiter extends RateLimiter {
 
             // we just added the first element to the queue
             if (this.updateQueueTimeout == null) {
-                this.updateQueueTimeout = setTimeout(() => this.removeOldest(), this.recent.element() - now);
+                this.updateQueueTimeout = setTimeout(
+                    () => this.removeOldest(),
+                    Math.max(this.recent.element() - Date.now(), 0),
+                );
             }
 
             cb?.();
