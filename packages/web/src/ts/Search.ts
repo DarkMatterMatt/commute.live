@@ -2,6 +2,7 @@ import { createPromise, type RegionCode } from "@commutelive/common";
 import { api } from "./Api";
 import { render } from "./Render";
 import Route from "./Route";
+import { settings } from "./Settings";
 import type State from "./State";
 import type { SearchRoute } from "./types";
 
@@ -174,7 +175,18 @@ class Search {
             return [filterWeight, r] as const;
         });
 
-        const filtered = weighted.filter(([weight, r]) => weight && !this.state.isActive(r));
+        const showSchoolBuses = settings.getVal("showSchoolBuses");
+        const filtered = weighted.filter(([weight, r]) => {
+            // Filter out routes with no weight or already active
+            if (!weight || this.state.isActive(r)) {
+                return false;
+            }
+            // Filter out school buses (type 712) if the setting is off
+            if (!showSchoolBuses && r.type === 712) {
+                return false;
+            }
+            return true;
+        });
         filtered.sort(([a], [b]) => b - a);
         this.render(filtered.map(([, r]) => r));
     }

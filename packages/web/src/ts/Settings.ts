@@ -21,6 +21,7 @@ const SETTINGS = [
     new BooleanSetting("animateMarkerPosition", getInput("sw-animate-marker-position")),
     new BooleanSetting("snapToRoute", getInput("sw-snap-to-route")),
     new BooleanSetting("showTransitRoutes", getInput("sw-show-transit-routes")),
+    new BooleanSetting("showSchoolBuses", getInput("sw-show-school-buses")),
     new StringSetting<"markerType", MarkerType>("markerType", getInput("s-marker-type")),
 ] as const;
 
