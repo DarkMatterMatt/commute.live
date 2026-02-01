@@ -50,18 +50,24 @@ function getFname(cacheDir: string, year: number, month: number) {
 }
 
 /**
- * Delete previous database.
+ * Delete old databases (older than 2 months).
  */
-async function cleanUp(cacheDir: string, oldYear: number, oldMonth: number): Promise<void> {
+async function cleanUp(cacheDir: string, currentYear: number, currentMonth: number): Promise<void> {
     log.debug("Cleaning up old data.");
 
     // TODO: surely this can be done better than using sleep()
     // assume that in 30 secs nobody will be using the old data
     await sleep(30 * 1000);
 
+    // Delete databases older than 2 months (keep current and previous month)
+    const date = new Date(Date.UTC(currentYear, currentMonth - 1, 1));
+    date.setUTCMonth(date.getUTCMonth() - 2);
+    const { year: oldYear, month: oldMonth } = getYearAndMonth(date);
+
     const fname = getFname(cacheDir, oldYear, oldMonth);
     if (existsSync(fname)) {
         await unlink(fname);
+        log.debug(`Deleted old IP Geo database: ${fname}`);
     }
 }
 
@@ -95,13 +101,26 @@ async function downloadDatabaseByDate(cacheDir: string, year: number, month: num
 async function downloadDatabaseIfNeeded(cacheDir: string) {
     const { year, month } = getYearAndMonth();
 
-    const updated = await downloadDatabaseByDate(cacheDir, year, month);
-    if (!updated) {
-        return;
+    // Try current month first
+    let updated = await downloadDatabaseByDate(cacheDir, year, month);
+
+    // If current month failed and no database loaded, try previous month
+    if (!updated && ipDb == null) {
+        const { year: prevYear, month: prevMonth } = getLastYearAndMonth();
+        updated = await downloadDatabaseByDate(cacheDir, prevYear, prevMonth);
+
+        if (updated || ipDb != null) {
+            log.info(`Using fallback database: ${prevYear}-${prevMonth.toString().padStart(2, "0")}`);
+        }
+        else {
+            log.error("Failed to load any IP Geo database (tried current and previous month)");
+        }
     }
 
-    const { year: oldYear, month: oldMonth } = getLastYearAndMonth();
-    await cleanUp(cacheDir, oldYear, oldMonth);
+    // Clean up databases older than 2 months
+    if (updated) {
+        await cleanUp(cacheDir, year, month);
+    }
 }
 
 export const iplocationRoute = new GetRouteGenerator<[], [], IpLocationDataResult>({
