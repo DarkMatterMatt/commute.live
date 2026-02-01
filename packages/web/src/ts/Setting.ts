@@ -29,11 +29,11 @@ export abstract class Setting<Name extends string, V> {
     }
 }
 
-export class BooleanSetting<Name extends string, V extends boolean> extends Setting<Name, V> {
+export class BooleanSetting<Name extends string> extends Setting<Name, boolean> {
     public readonly defaultValue = this.value;
 
     public get value() {
-        return this.$elem.checked as V;
+        return this.$elem.checked;
     }
 
     public set value(x) {
