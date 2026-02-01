@@ -156,6 +156,9 @@ async function postImport(db: SqlDatabase): Promise<void> {
         ON routes (route_short_name)
     `).run();
 
+    // add table with all stops for each route/direction
+    await addRouteStops(db);
+
     // add table summarising routes
     await addRouteSummaries(db);
 
@@ -230,7 +233,15 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         )
     `).run();
 
-    const batcher = new SqlBatcher<[string, StrOrNull, StrOrNull, string, number, StrOrNull, StrOrNull]>({
+    const batcher = new SqlBatcher<[
+        string,
+        StrOrNull,
+        StrOrNull,
+        string,
+        number,
+        StrOrNull,
+        StrOrNull,
+    ]>({
         db,
         table: "route_summaries",
         columns: [
@@ -288,9 +299,38 @@ async function addRouteSummaries(db: SqlDatabase): Promise<void> {
         }
 
         // add to database
-        await batcher.queue(id, longNames[0], longNames[1], shortName, routeType, shapeIds[0], shapeIds[1]);
+        await batcher.queue(id, ...longNames, shortName, routeType, ...shapeIds);
     }
     await batcher.flush();
+}
+
+/**
+ * Creates route_stops table with all unique stops for each route/direction.
+ */
+async function addRouteStops(db: SqlDatabase): Promise<void> {
+    log.debug("Adding route stops.");
+
+    // Create table
+    db.prepare<[], never>(`
+        CREATE TABLE route_stops (
+            route_short_name VARCHAR(255) NOT NULL,
+            direction_id INTEGER NOT NULL,
+            stop_id VARCHAR(255) NOT NULL,
+            PRIMARY KEY (route_short_name, direction_id, stop_id)
+        )
+    `).run();
+
+    // Populate with all unique stops from all trips
+    db.prepare<[], never>(`
+        INSERT INTO route_stops (route_short_name, direction_id, stop_id)
+        SELECT DISTINCT R.route_short_name, T.direction_id, ST.stop_id
+        FROM routes R
+        INNER JOIN trips T ON R.route_id = T.route_id
+        INNER JOIN stop_times ST ON T.trip_id = ST.trip_id
+        WHERE T.direction_id IS NOT NULL
+    `).run();
+
+    log.debug("Route stops added.");
 }
 
 /**

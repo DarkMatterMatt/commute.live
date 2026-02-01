@@ -1,5 +1,5 @@
 import type { Id, LatLng } from "@commutelive/common";
-import type { RouteSummary, VehiclePosition } from "~/types";
+import type { RouteSummary, Stop, VehiclePosition } from "~/types";
 import { makeId } from "./id";
 
 type LatLngTuple = [lat: number, lng: number];
@@ -126,6 +126,11 @@ export async function getShapes(id: Id): Promise<[LatLng[] | null, LatLng[] | nu
     const s0 = shapes?.[0]?.map(([lat, lng]) => ({ lat, lng })) ?? null;
     const s1 = shapes?.[1]?.map(([lat, lng]) => ({ lat, lng })) ?? null;
     return [s0, s1];
+}
+
+export async function getStops(_id: Id): Promise<[Stop[] | null, Stop[] | null]> {
+    // Demo datasource doesn't have stop data
+    return [null, null];
 }
 
 

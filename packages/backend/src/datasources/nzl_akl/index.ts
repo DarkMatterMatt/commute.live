@@ -3,7 +3,7 @@ import type { DataSource } from "~/types";
 import { makeId, regionCode } from "./id";
 import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates, getVehicleUpdates, initializeRealtime, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static";
-import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries";
+import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getStops, getTripIdByTripDetails } from "./static_queries";
 
 const AUCKLAND_TRANSPORT_SUBSCRIPTION_KEY = env.AUCKLAND_TRANSPORT_KEY_DVS;
 
@@ -47,6 +47,9 @@ export const NZL_AKL: DataSource = {
 
     getShapes: id =>
         getShapes(getDatabase(), id),
+
+    getStops: id =>
+        getStops(getDatabase(), id),
 
     getStatus: async () => ({
         realtime: await getRealtimeStatus(),

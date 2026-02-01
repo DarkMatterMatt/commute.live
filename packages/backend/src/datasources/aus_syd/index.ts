@@ -4,7 +4,7 @@ import { checkForRealtimeUpdate, getStatus as getRealtimeStatus, getTripUpdates,
 import type { NSWSource } from "./realtime_polling";
 import { buses, ferries_sydneyferries, lightrail_cbdandsoutheast, lightrail_innerwest, lightrail_newcastle, metro, nswtrains, sydneytrains } from "./sources/";
 import { checkForStaticUpdate, getDatabase, getStatus as getStaticStatus, initializeStatic } from "./static";
-import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getTripIdByTripDetails } from "./static_queries";
+import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getStops, getTripIdByTripDetails } from "./static_queries";
 
 const GTFS_URL = "https://api.transport.nsw.gov.au/v1/publictransport/timetables/complete/gtfs";
 
@@ -50,6 +50,9 @@ export const AUS_SYD: DataSource = {
 
     getShapes: id =>
         getShapes(getDatabase(), id),
+
+    getStops: id =>
+        getStops(getDatabase(), id),
 
     getStatus: async () => ({
         realtime: await getRealtimeStatus(),

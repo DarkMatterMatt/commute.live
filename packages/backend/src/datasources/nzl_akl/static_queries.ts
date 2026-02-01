@@ -1,5 +1,5 @@
 import type { Id, LatLng, StrOrNull } from "@commutelive/common";
-import type { RouteSummary, SqlDatabase } from "~/types";
+import type { RouteSummary, SqlDatabase, Stop } from "~/types";
 import { parseId } from "./id";
 
 /**
@@ -171,6 +171,47 @@ export async function getTripIdByTripDetails(
         );
     }
     return result.tripId;
+}
+
+/**
+ * Returns all stops for the given route and direction (unordered).
+ */
+async function getStopsForRoute(
+    db: SqlDatabase,
+    shortName: string,
+    directionId: 0 | 1,
+): Promise<Stop[] | null> {
+    const stops = db.prepare<
+        { shortName: string; directionId: number },
+        { stopId: string, lat: number; lng: number; name: string }
+    >(`
+        SELECT S.stop_id AS stopId, S.stop_lat AS lat, S.stop_lon AS lng, S.stop_name AS name
+        FROM route_stops RS
+        INNER JOIN stops S ON RS.stop_id = S.stop_id
+        WHERE RS.route_short_name = $shortName
+            AND RS.direction_id = $directionId
+    `).all({ shortName, directionId });
+
+    return stops.length > 0
+        ? stops.map(s => ({ stopId: s.stopId, location: { lat: s.lat, lng: s.lng }, name: s.name }))
+        : null;
+}
+
+/**
+ * Returns all stops for two directions (unordered).
+ *
+ * Returns the complete set of stops across all trip variants (express, local, peak-hour, etc.) for
+ * each direction.
+ */
+export async function getStops(
+    db: SqlDatabase,
+    id: Id,
+): Promise<[Stop[] | null, Stop[] | null]> {
+    const { shortName } = parseId(id);
+    return Promise.all([
+        getStopsForRoute(db, shortName, 0),
+        getStopsForRoute(db, shortName, 1),
+    ]);
 }
 
 /**

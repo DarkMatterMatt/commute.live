@@ -1,7 +1,7 @@
 import type { DataSource } from "~/types";
 import { makeId, regionCode } from "./id";
 import { getTripUpdates, getVehicleUpdates, initialize, registerTripUpdateListener, registerVehicleUpdateListener } from "./realtime";
-import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes } from "./static";
+import { getIdByTripId, getRoutesSummary, getRouteSummary, getShapes, getStops } from "./static";
 
 export const FAKE_FAKE: DataSource = {
     code: regionCode,
@@ -29,6 +29,8 @@ export const FAKE_FAKE: DataSource = {
     getRoutesSummary,
 
     getShapes,
+
+    getStops,
 
     getStatus: async () => ({
         active: true,

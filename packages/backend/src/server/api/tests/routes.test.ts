@@ -212,7 +212,7 @@ describe("routesRoute", () => {
 
         const { body } = await executeRoute(
             routesRoute,
-            { fields: "id,longNames,polylines,region,shortName,type,vehicles", routeIds: "FAKE_FAKE|B2" },
+            { fields: "id,longNames,polylines,region,shortName,stops,type,vehicles", routeIds: "FAKE_FAKE|B2" },
             regions,
         );
         expect(body?.status).toBe("success");
@@ -226,5 +226,81 @@ describe("routesRoute", () => {
         expect(route.shortName).toBe("B2");
         expect(route.type).toBe(3);
         expect(route.vehicles).toBeDefined();
+        expect(route.stops).toBeDefined();
+    });
+
+    it("returns stops when requested", async () => {
+        const regions = [aFakeDataSource];
+
+        const { body } = await executeRoute(
+            routesRoute,
+            { fields: "id,stops", routeIds: "FAKE_FAKE|B1" },
+            regions,
+        );
+        expect(body?.status).toBe("success");
+        Preconditions.assert(body?.status === "success");
+
+        const [route] = body.routes;
+        expect(route.id).toBe("FAKE_FAKE|B1");
+        expect(route.stops).toBeDefined();
+        expect(Array.isArray(route.stops)).toBe(true);
+        expect(route.stops).toHaveLength(2);
+        const [stops0, stops1] = route.stops!;
+
+        // Check direction 0
+        expect(stops0).toHaveLength(3);
+        expect(stops0?.[0]).toEqual({
+            stopId: "BUS_STOP_1",
+            location: { lat: -36.8484, lng: 174.7632 },
+            name: "Bus Stop 1",
+        });
+
+        // Check direction 1
+        expect(stops1).toHaveLength(3);
+        expect(stops1?.[0]).toEqual({
+            stopId: "BUS_STOP_3",
+            location: { lat: -36.8495, lng: 174.7645 },
+            name: "Bus Stop 3",
+        });
+    });
+
+    it("returns null for directions without stops", async () => {
+        const regions = [aFakeDataSource];
+
+        const { body } = await executeRoute(
+            routesRoute,
+            { fields: "id,stops", routeIds: "FAKE_FAKE|B2" },
+            regions,
+        );
+        expect(body?.status).toBe("success");
+        Preconditions.assert(body?.status === "success");
+
+        const [route] = body.routes;
+        expect(route.id).toBe("FAKE_FAKE|B2");
+        expect(route.stops).toBeDefined();
+        expect(route.stops?.[0]).toHaveLength(2);
+        expect(route.stops?.[0]?.[0]).toEqual({
+            stopId: "CENTRAL_STN",
+            location: { lat: -36.8486, lng: 174.7634 },
+            name: "Central Station",
+        });
+        expect(route.stops?.[1]).toBeNull();
+    });
+
+    it("includes stops in all fields test", async () => {
+        const regions = [aFakeDataSource];
+
+        const { body } = await executeRoute(
+            routesRoute,
+            { fields: "id,longNames,polylines,region,shortName,stops,type,vehicles", routeIds: "FAKE_FAKE|F1" },
+            regions,
+        );
+        expect(body?.status).toBe("success");
+        Preconditions.assert(body?.status === "success");
+
+        const [route] = body.routes;
+        expect(route.stops).toBeDefined();
+        expect(route.stops?.[0]).toHaveLength(2);
+        expect(route.stops?.[1]).toHaveLength(2);
     });
 });

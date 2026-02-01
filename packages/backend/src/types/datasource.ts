@@ -13,6 +13,15 @@ export interface RouteSummary {
     type: number;
 }
 
+export interface Stop {
+    /** Unique identifier for the stop. */
+    stopId: string;
+    /** Physical location. */
+    location: LatLng;
+    /** The user-facing stop name. */
+    name: string;
+}
+
 /**
  * Represents a datasource for a single region.
  */
@@ -92,6 +101,14 @@ export interface DataSource {
      * Returns null if there is no shape for the specified direction.
      */
     getShapes: (id: Id) => Promise<[LatLng[] | null, LatLng[] | null]>;
+
+    /**
+     * Returns stops for two directions, matching the primary shapes.
+     *
+     * For each direction, uses the shape_id from route_summaries to find a representative trip and
+     * returns its stops in order. Returns null if there is no shape for the specified direction.
+     */
+    getStops: (id: Id) => Promise<[Stop[] | null, Stop[] | null]>;
 
     /**
      * Return datasource status in a JSON-serializable format.

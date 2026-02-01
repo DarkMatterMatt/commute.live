@@ -9,6 +9,7 @@ const validFields = [
     "polylines",
     "region",
     "shortName",
+    "stops",
     "type",
     "vehicles",
 ] as const;
@@ -78,6 +79,11 @@ export const routesRoute = new GetRouteGenerator<["fields", "routeIds"], [], Par
 
                     case "region": {
                         result["region"] = region.code;
+                        break;
+                    }
+
+                    case "stops": {
+                        result["stops"] = await region.getStops(id);
                         break;
                     }
 
