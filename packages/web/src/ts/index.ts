@@ -11,6 +11,7 @@ import { render } from "./Render";
 import Search from "./Search";
 import { settings } from "./Settings";
 import { state } from "./State";
+import { StopManager } from "./StopManager";
 
 const OPEN_MENU_ON_FIRST_VISIT_TIMEOUT = 5 * 1000;
 
@@ -203,6 +204,7 @@ function onGeolocationError(err: GeolocationPositionError) {
 
     const markerView = new HtmlMarkerView(map);
     state.setMarkerView(markerView);
+    StopManager.setMarkerView(markerView);
 
     const search = new Search(state, $searchInput, $dropdownFilter);
 

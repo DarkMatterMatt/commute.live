@@ -1,6 +1,7 @@
 import { binarySearch, defaultProjection, getClosestLatLngOnPolyline, type Id, type LatLng, type LatLngPoint, type LiveVehicle, type StrOrNull } from "@commutelive/common";
 import { api } from "./Api";
 import type HtmlMarkerView from "./HtmlMarkerView";
+import { StopManager } from "./StopManager";
 import type { MarkerType } from "./types";
 import VehicleMarker from "./VehicleMarker";
 
@@ -61,6 +62,8 @@ class Route {
     private snapToRoute: boolean;
 
     private readonly vehicleMarkers = new Map<string, VehicleMarker>();
+
+    private stopIds: [string[], string[]] = [[], []];
 
     public static getLongName(longNames: [StrOrNull, StrOrNull]) {
         // find best long name, take the first alphabetically if both are specified
@@ -221,6 +224,7 @@ class Route {
         this.polylines?.[2]?.setOptions({ strokeColor: color });
         this.polylines?.[3]?.setOptions({ strokeColor: color });
         this.vehicleMarkers.forEach(m => m.setColor(color));
+        StopManager.updateRouteColor(this.id, color);
     }
 
     public setMarkerIconType(type: MarkerType): void {
@@ -298,6 +302,40 @@ class Route {
         vehicles.map(v => this.showVehicle(v));
     }
 
+    public async loadStops(): Promise<void> {
+        const { stops } = await api.queryRoute(this.id, ["stops"]);
+        if (stops == null) {
+            return; // No stops available for this route
+        }
+
+        stops.forEach((directionStops, directionIdx) => {
+            if (directionStops == null) {
+                return;
+            }
+
+            this.stopIds[directionIdx] = directionStops.map(s => s.stopId);
+
+            directionStops.forEach(stop => {
+                StopManager.addStop(
+                    stop.stopId,
+                    new google.maps.LatLng(stop.location.lat, stop.location.lng),
+                    this.id,
+                    this.color,
+                    stop.name,
+                );
+            });
+        });
+    }
+
+    private unloadStops(): void {
+        this.stopIds.forEach(directionStops => {
+            directionStops.forEach(stopId => {
+                StopManager.removeStop(stopId, this.id);
+            });
+        });
+        this.stopIds = [[], []];
+    }
+
     public async loadPolylines(): Promise<void> {
         if (!this.showTransitRoutes && !this.snapToRoute) {
             return;
@@ -356,6 +394,7 @@ class Route {
         this.active = true;
 
         await this.loadPolylines();
+        await this.loadStops();
         await this.loadVehicles();
     }
 
@@ -368,6 +407,8 @@ class Route {
 
         this.polylines?.forEach(p => p?.setMap(null));
         this.polylines = null;
+
+        this.unloadStops();
 
         this.vehicleMarkers.forEach(m => this.removeVehicle(m));
     }

@@ -28,6 +28,7 @@ declare namespace JSX {
         path: any;
         span: any;
         svg: any;
+        circle: any;
     }
 }
 

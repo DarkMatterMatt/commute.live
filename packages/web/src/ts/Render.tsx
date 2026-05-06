@@ -366,6 +366,102 @@ class Render {
         }
     }
 
+    /**
+     * Helper function to convert polar coordinates to cartesian coordinates.
+     */
+    private static polarToCartesian(
+        centerX: number,
+        centerY: number,
+        radius: number,
+        angleInDegrees: number,
+    ): { x: number; y: number } {
+        const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+        return {
+            x: centerX + (radius * Math.cos(angleInRadians)),
+            y: centerY + (radius * Math.sin(angleInRadians)),
+        };
+    }
+
+    /**
+     * Helper function to create an SVG arc path.
+     */
+    private static describeArc(
+        x: number,
+        y: number,
+        radius: number,
+        startAngle: number,
+        endAngle: number,
+    ): string {
+        const start = Render.polarToCartesian(x, y, radius, endAngle);
+        const end = Render.polarToCartesian(x, y, radius, startAngle);
+        const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+        return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+    }
+
+    /**
+     * Create a stop marker SVG with multi-colored arc segments.
+     *
+     * Creates a hollow circle where the stroke is split into colored segments,
+     * one for each route that services the stop.
+     */
+    public static createStopMarkerSvg(colors: string[]): HTMLDivElement {
+        const radius = 12;
+        const strokeWidth = 3;
+        const size = radius * 2;
+
+        // Special case: single color - render a simple circle
+        if (colors.length === 1) {
+            return (
+                <div style={{ position: "absolute", left: `${-radius}px`, top: `${-radius}px` }}>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox={`0 0 ${size} ${size}`}
+                        style={{ width: `${size}px`, height: `${size}px` }}
+                    >
+                        <circle
+                            cx={radius.toString()}
+                            cy={radius.toString()}
+                            r={(radius - (strokeWidth / 2)).toString()}
+                            stroke={colors[0]}
+                            stroke-width={strokeWidth.toString()}
+                            fill="none"
+                        />
+                    </svg>
+                </div>
+            );
+        }
+
+        // Multiple colors: generate arc path for each color
+        const numColors = colors.length;
+        const arcs = colors.map((color, i) => {
+            const startAngle = (i * 360) / numColors;
+            const endAngle = ((i + 1) * 360) / numColors;
+            const arcPath = Render.describeArc(radius, radius, radius - (strokeWidth / 2), startAngle, endAngle);
+
+            return (
+                <path
+                    d={arcPath}
+                    stroke={color}
+                    stroke-width={strokeWidth.toString()}
+                    fill="none"
+                    stroke-linecap="butt"
+                />
+            );
+        });
+
+        return (
+            <div style={{ position: "absolute", left: `${-radius}px`, top: `${-radius}px` }}>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox={`0 0 ${size} ${size}`}
+                    style={{ width: `${size}px`, height: `${size}px` }}
+                >
+                    {arcs}
+                </svg>
+            </div>
+        );
+    }
+
     public static createActiveRoute(
         routeData: Pick<SearchRoute, "id" | "type" | "shortName" | "longName">,
         color: string,

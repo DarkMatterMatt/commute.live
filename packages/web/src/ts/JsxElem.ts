@@ -24,7 +24,7 @@ type HtmlAttrs = Record<string, string> & {
     style?: HtmlStyles;
 };
 
-type HtmlChildren = string | Node;
+type HtmlChildren = string | Node | Node[];
 
 /**
  * Use JSX without React
@@ -51,10 +51,14 @@ class React {
                 }
                 else {
                     try {
-                        fragments.appendChild(child);
+                        if (Array.isArray(child)) {
+                            child.forEach(c => fragments.appendChild(c));
+                        } else {
+                            fragments.appendChild(child);
+                        }
                     }
                     catch (e) {
-                        console.log("Failed to append child:", child);
+                        console.log("Failed to append child:", child, e);
                     }
                 }
             }

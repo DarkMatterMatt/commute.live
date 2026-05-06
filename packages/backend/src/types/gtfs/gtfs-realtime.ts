@@ -108,6 +108,7 @@ export enum TripDescriptor$ScheduleRelationship {
     ADDED,
     UNSCHEDULED,
     CANCELED,
+    DUPLICATED,
 }
 
 export interface TripUpdate {
