@@ -108,6 +108,12 @@ export enum TripDescriptor$ScheduleRelationship {
     ADDED,
     UNSCHEDULED,
     CANCELED,
+    // REPLACEMENT = 4, was removed in 2014.
+    // See: https://groups.google.com/forum/#!topic/gtfs-realtime/77c3WZrGBnI
+    REPLACEMENT = 5,
+    DUPLICATED,
+    DELETED,
+    NEW,
 }
 
 export interface TripUpdate {
